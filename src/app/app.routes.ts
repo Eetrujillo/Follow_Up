@@ -8,7 +8,7 @@ import { Login } from './pages/login/login';
 import { Signup } from './pages/signup/signup';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+  { path: '', redirectTo: 'signup', pathMatch: 'full' },
   { path: 'dashboard',   component: Dashboard },
   { path: 'library',     component: Library },
   { path: 'calendar',    component: Calendar },
