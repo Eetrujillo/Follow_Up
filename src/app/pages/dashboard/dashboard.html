@@ -1,1 +1,78 @@
 <p>dashboard works!</p>
+<div class="dashboard-wrapper">
+  <header class="main-header">
+    <p class="breadcrumb">Follow-up > <span>Panel Principal</span></p>
+    <h1>Panel Principal</h1>
+  </header>
+
+  <div class="dashboard-grid">
+    <section class="card">
+      <h3 class="card-title">PROCESO DIARIO</h3>
+      <div class="chart-container">
+        <svg viewBox="0 0 36 36" class="circular-chart">
+          <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+          <path class="circle" 
+                [attr.stroke-dasharray]="progressPercent + ', 100'" 
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+        </svg>
+        <div class="percentage-display">
+          <strong>{{ progressPercent }}%</strong>
+          <span>Completado</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3 class="card-title">ACTIVIDAD SEMANAL</h3>
+      <div class="bar-chart">
+        <div class="bar" style="height: 30%"><span>Lun</span></div>
+        <div class="bar" style="height: 50%"><span>Mar</span></div>
+        <div class="bar active" [style.height.%]="progressPercent"><span>Mie</span></div>
+        <div class="bar" style="height: 40%"><span>Jue</span></div>
+        <div class="bar" style="height: 60%"><span>Vie</span></div>
+        <div class="bar" style="height: 20%"><span>Sab</span></div>
+        <div class="bar" style="height: 35%"><span>Dom</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3 class="card-title">✓ TAREAS PENDIENTES</h3>
+      <div class="add-task-box">
+        <input [(ngModel)]="newTaskText" (keyup.enter)="addTask()" placeholder="Añadir tarea...">
+        <button (click)="addTask()">+</button>
+      </div>
+      <div class="task-list">
+        <div *ngFor="let task of tasks" class="task-item" [class.completed]="task.completed">
+          <input type="checkbox" [(ngModel)]="task.completed">
+          <span>{{ task.text }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3 class="card-title">🕒 ACTIVIDAD RECIENTE</h3>
+      <div class="activity-list">
+        <div *ngFor="let act of activities" class="activity-item">
+          <span class="act-name">{{ act.title }}</span>
+          <span class="act-time">{{ act.time }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3 class="card-title">ZONA DE ENFOQUE</h3>
+      <div class="timer-content">
+        <div class="timer-status">
+          <span class="dot" [class.pulse]="isRunning"></span> {{ statusText }}
+        </div>
+        <div class="timer-digits">{{ formatTime() }}</div>
+        <div class="timer-actions">
+          <button class="btn-round main" (click)="toggleTimer()">
+            {{ isRunning ? '⏸' : '▶' }}
+          </button>
+          <button class="btn-round" (click)="stopTimer()">⏹</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

@@ -1,0 +1,57 @@
+:root {
+  --bg-dark: #0d0d0d;
+  --card-dark: #161616;
+  --accent-blue: #0085ff;
+  --border: #242424;
+  --text-gray: #808080;
+}
+
+.dashboard-wrapper { padding: 20px; color: white; }
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  grid-gap: 20px;
+}
+
+.card {
+  background: var(--card-dark);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.card-title { font-size: 11px; color: var(--text-gray); letter-spacing: 1px; margin-bottom: 20px; }
+
+.chart-container { position: relative; width: 150px; margin: 0 auto; }
+.circular-chart { display: block; }
+.circle-bg { fill: none; stroke: #222; stroke-width: 2.8; }
+.circle { fill: none; stroke: var(--accent-blue); stroke-width: 2.8; stroke-linecap: round; transition: stroke-dasharray 0.5s ease; }
+.percentage-display {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  text-align: center;
+}
+.percentage-display strong { font-size: 24px; display: block; }
+.percentage-display span { font-size: 10px; color: var(--text-gray); }
+
+.bar-chart { display: flex; align-items: flex-end; justify-content: space-between; height: 120px; padding-top: 10px; }
+.bar { width: 30px; background: #222; border-radius: 6px; position: relative; }
+.bar.active { background: var(--accent-blue); }
+.bar span { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 10px; color: var(--text-gray); }
+
+.add-task-box { display: flex; gap: 8px; margin-bottom: 15px; }
+.add-task-box input { background: #000; border: 1px solid var(--border); color: white; border-radius: 4px; padding: 5px; flex: 1; }
+.add-task-box button { background: var(--accent-blue); border: none; color: white; border-radius: 4px; cursor: pointer; }
+
+.task-item { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 14px; }
+.task-item.completed span { text-decoration: line-through; color: var(--text-gray); }
+input[type="checkbox"] { accent-color: var(--accent-blue); }
+
+.timer-content { text-align: center; }
+.timer-digits { font-size: 48px; font-weight: bold; margin: 15px 0; }
+.dot { height: 8px; width: 8px; background: #444; border-radius: 50%; display: inline-block; margin-right: 5px; }
+.dot.pulse { background: #00ff88; box-shadow: 0 0 8px #00ff88; animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: 0.5; } }
+
+.btn-round { background: #222; border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; margin: 0 5px; }
+.btn-round.main { background: var(--accent-blue); }

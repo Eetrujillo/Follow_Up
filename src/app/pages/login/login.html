@@ -1,1 +1,30 @@
-<p>login works!</p>
+<div class="login-wrapper">
+  <div class="login-container">
+    <div class="logo-box">⚡</div>
+
+    <h1 class="titulo">Follow-up</h1>
+    <p class="subtitulo">Inicia sesion para continuar</p>
+
+    <form>
+      <div class="campo">
+        <label>Correo electronico</label>
+        <input class="campo-contra"  type="email" placeholder="usuario@gmail.com">
+      </div>
+
+      <div class="campo">
+        <label>contraseña</label>
+        <div class="password-wrapper">
+          <input class="campo-contra" [type]="verPassword ? 'text' : 'password'" placeholder="12345678">
+          
+          <span class="ojo" (click)="toggleOjo()">
+            {{ verPassword ? '👁️‍🗨️' : '👁️' }}
+          </span>
+        </div>
+      </div>
+
+      <button type="submit">Iniciar sesion</button>
+    </form>
+
+    <p class="pie">No tienes cuenta? <span () >Registrate</span></p>
+</div>
+</div>  
