@@ -8,18 +8,20 @@
     <form>
       <div class="campo">
         <label>Correo electronico</label>
-        <input class="campo-contra"  type="email" placeholder="usuario@gmail.com">
+        <input class="campo-contra" type="email" placeholder="usuario@gmail.com" [(ngModel)]="email" name="email" (blur)="validarEmail()">
+        <p class="error-message" *ngIf="mostrarErrorEmail">El correo debe contener un @</p>
       </div>
 
       <div class="campo">
         <label>contraseña</label>
         <div class="password-wrapper">
-          <input class="campo-contra" [type]="verPassword ? 'text' : 'password'" placeholder="12345678">
+          <input class="campo-coyntra" [type]="verPassword ? 'text' : 'password'" placeholder="12345678" [(ngModel)]="password" name="password" (blur)="validarPassword()">
           
           <span class="ojo" (click)="toggleOjo()">
             {{ verPassword ? '👁️‍🗨️' : '👁️' }}
           </span>
         </div>
+        <p class="error-message" *ngIf="mostrarErrorPassword">{{ mensajeErrorPassword }}</p>
       </div>
 
       <button type="submit">Iniciar sesion</button>

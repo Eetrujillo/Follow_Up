@@ -99,6 +99,14 @@ button {
   margin-top: 30px;
 }
 
+.error-message {
+  color: #ff6b6b;
+  font-size: 12px;
+  margin-top: 5px;
+  margin-bottom: 0;
+  text-align: left;
+}
+
 .pie span {
   cursor: pointer;
   font-weight: bold;
