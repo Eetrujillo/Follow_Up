@@ -16,7 +16,11 @@
           placeholder="Tu nombre"
           [(ngModel)]="name"
           name="name"
+          (input)="clearError('name')"
         />
+        <div class="field-error" *ngIf="submitted && errors.name">
+          <small>{{ errors.name }}</small>
+        </div>
       </div>
 
       <div class="form-group">
@@ -27,7 +31,11 @@
           placeholder="correo@ejemplo.com"
           [(ngModel)]="email"
           name="email"
+          (input)="clearError('email')"
         />
+        <div class="field-error" *ngIf="submitted && errors.email">
+          <small>{{ errors.email }}</small>
+        </div>
       </div>
 
       <div class="form-group">
@@ -38,7 +46,11 @@
           placeholder="Mínimo 8 caracteres"
           [(ngModel)]="password"
           name="password"
+          (input)="clearError('password')"
         />
+        <div class="field-error" *ngIf="submitted && errors.password">
+          <small>{{ errors.password }}</small>
+        </div>
       </div>
 
       <div class="form-group">
@@ -49,7 +61,11 @@
           placeholder="Repite tu contraseña"
           [(ngModel)]="confirm"
           name="confirm"
+          (input)="clearError('confirm')"
         />
+        <div class="field-error" *ngIf="submitted && errors.confirm">
+          <small>{{ errors.confirm }}</small>
+        </div>
       </div>
 
       <button type="submit" class="btn-primary">Crear cuenta</button>
