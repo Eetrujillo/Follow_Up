@@ -44,27 +44,27 @@ export class Signup {
     this.clearErrors();
 
     if (!this.name.trim()) {
-      this.errors.name = 'El nombre es obligatorio.';
+      this.errors.name = '¿Cuál es tu nombre?';
     }
 
     if (!this.email.trim()) {
-      this.errors.email = 'El correo es obligatorio.';
+      this.errors.email = 'Necesitamos tu correo para continuar.';
     } else if (!this.email.includes('@')) {
-      this.errors.email = 'El correo debe contener @.';
+      this.errors.email = 'Por favor, ingresa un correo válido.';
     }
 
     if (!this.password) {
-      this.errors.password = 'La contraseña es obligatoria.';
+      this.errors.password = 'Elige una contraseña segura.';
     } else if (this.password.length < 8) {
-      this.errors.password = 'La contraseña debe tener 8 caracteres.';
+      this.errors.password = 'La contraseña debe tener al menos 8 caracteres.';
     }
 
     if (!this.confirm) {
-      this.errors.confirm = 'La confirmación es obligatoria.';
+      this.errors.confirm = 'Confirma tu contraseña, por favor.';
     }
 
     if (!this.errors.password && !this.errors.confirm && this.password !== this.confirm) {
-      this.errors.confirm = 'Las contraseñas no coinciden.';
+      this.errors.confirm = 'Parece que las contraseñas no coinciden. ¡Intenta de nuevo!';
     }
 
     return !this.errors.name && !this.errors.email && !this.errors.password && !this.errors.confirm;

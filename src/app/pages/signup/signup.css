@@ -101,3 +101,8 @@
 .auth-redirect a:hover {
   text-decoration: underline;
 }
+.field-error {
+  color: red;
+  font-size: 11px;
+  margin-top: 4px;
+} 
