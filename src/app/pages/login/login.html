@@ -1,32 +1,55 @@
 <div class="login-wrapper">
   <div class="login-container">
-    <div class="logo-box">⚡</div>
 
+    <div class="logo-box">
+      @defer { ⚡ }
+    </div>
     <h1 class="titulo">Follow-up</h1>
     <p class="subtitulo">Inicia sesion para continuar</p>
 
-    <form>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
       <div class="campo">
         <label>Correo electronico</label>
-        <input class="campo-contra" type="email" placeholder="usuario@gmail.com" [(ngModel)]="email" name="email" (blur)="validarEmail()">
-        <p class="error-message" *ngIf="mostrarErrorEmail">El correo debe contener un @</p>
+        <input type="email" placeholder="usuario@gmail.com" formControlName="email" />
+
+        <div class="error" *ngIf="email?.touched && email?.invalid">
+          <small *ngIf="email?.errors?.['required']">Por favor, ingresa tu correo.</small>
+          <small *ngIf="email?.errors?.['email']">Este correo no parece válido.</small>
+        </div>
       </div>
 
       <div class="campo">
-        <label>contraseña</label>
+        <label>Contrasena</label>
         <div class="password-wrapper">
-          <input class="campo-coyntra" [type]="verPassword ? 'text' : 'password'" placeholder="12345678" [(ngModel)]="password" name="password" (blur)="validarPassword()">
-          
+          <input [type]="verPassword ? 'text' : 'password'" placeholder="12345678" formControlName="password" />
           <span class="ojo" (click)="toggleOjo()">
+            @defer {
             {{ verPassword ? '👁️‍🗨️' : '👁️' }}
+
+            }
           </span>
         </div>
-        <p class="error-message" *ngIf="mostrarErrorPassword">{{ mensajeErrorPassword }}</p>
+
+        <div class="error" *ngIf="password?.touched && password?.invalid">
+          <small *ngIf="password?.errors?.['required']">Se necesita tu contraseña para entrar</small>
+          <small *ngIf="password?.errors?.['minlength']">La contraseña debe tener minimo 8 caracteres</small>
+        </div>
       </div>
 
-      <button type="submit">Iniciar sesion</button>
+      <button type="submit" [disabled]="isLoading">{{ isLoading ? 'Validando la informacion' : 'Iniciar sesion'
+        }}</button>
+
+      <div class="error" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
     </form>
 
-    <p class="pie">No tienes cuenta? <span () >Registrate</span></p>
+    <p class="pie">
+      No tienes cuenta?
+      <span class="registro-link" routerLink="/signup">Registrate</span>
+    </p>
+
+  </div>
 </div>
-</div>  

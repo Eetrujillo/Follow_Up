@@ -1,54 +1,66 @@
 import { Component } from '@angular/core';
-import { Router} from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { RouterModule, Router } from '@angular/router';
+import { AuthService } from '../../shared/services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, CommonModule], 
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './login.html',
-  styleUrls: ['./login.css'],
+  styleUrl: './login.css'
 })
 export class Login {
-  verPassword: boolean = false;
-  email: string = '';
-  password: string = '';
-  mostrarErrorEmail: boolean = false;
-  mostrarErrorPassword: boolean = false;
-  mensajeErrorPassword: string = '';
 
-  constructor(private router: Router) { }
+  loginForm: FormGroup;
+  verPassword = false;
+  errorMessage = '';
+  isLoading = false;
+
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private authService: AuthService
+  ) {
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(8)]]
+    });
+  }
+
+  get email() {
+    return this.loginForm.get('email');
+  }
+
+  get password() {
+    return this.loginForm.get('password');
+  }
 
   toggleOjo() {
     this.verPassword = !this.verPassword;
   }
 
-  validarEmail() {
-    if (this.email.trim() === '') {
-      this.mostrarErrorEmail = false;
-    } else if (!this.email.includes('@')) {
-      this.mostrarErrorEmail = true;
-    } else {
-      this.mostrarErrorEmail = false;
-    }
-  }
+  onSubmit() {
+    this.errorMessage = '';
 
-  validarPassword() {
-    if (this.password.trim() === '') {
-      this.mostrarErrorPassword = true;
-      this.mensajeErrorPassword = 'La contraseña es requerida';
-    } else if (this.password.length < 8) {
-      this.mostrarErrorPassword = true;
-      this.mensajeErrorPassword = 'La contraseña debe tener minimo 8 caracteres';
-    } else {
-      this.mostrarErrorPassword = false;
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      return;
     }
-  }
 
-  goToSignup() {
-    console.log("Navegando a signup...");
-    this.router.navigate(['/signup']);
-    
+    const { email, password } = this.loginForm.value;
+    this.isLoading = true;
+
+    this.authService.login(email, password).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.router.navigate(['/dashboard']);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = err?.message || 'Error al iniciar sesión';
+      }
+    });
   }
 }
