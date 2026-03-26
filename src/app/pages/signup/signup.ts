@@ -1,82 +1,58 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
+import { UserService } from '../../shared/services/user';
 
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './signup.html',
   styleUrl: './signup.css'
 })
 export class Signup {
 
-  name     = '';
-  email    = '';
-  password = '';
-  confirm  = '';
+  signupForm: FormGroup;
+  errorMessage: string = '';
 
-  submitted = false;
-  errors = {
-    name: '',
-    email: '',
-    password: '',
-    confirm: ''
-  };
-
-  constructor(private router: Router) {}
-
-  private clearErrors() {
-    this.errors = {
-      name: '',
-      email: '',
-      password: '',
-      confirm: ''
-    };
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private userService: UserService
+  ) {
+    this.signupForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(1)]],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(8)]],
+      confirm: ['', Validators.required]
+    }, { validators: this.passwordMatchValidator });
   }
 
-  clearError(field: keyof typeof this.errors) {
-    this.errors[field] = '';
-  }
-
-  private validate(): boolean {
-    this.clearErrors();
-
-    if (!this.name.trim()) {
-      this.errors.name = '¿Cuál es tu nombre?';
-    }
-
-    if (!this.email.trim()) {
-      this.errors.email = 'Necesitamos tu correo para continuar.';
-    } else if (!this.email.includes('@')) {
-      this.errors.email = 'Por favor, ingresa un correo válido.';
-    }
-
-    if (!this.password) {
-      this.errors.password = 'Elige una contraseña segura.';
-    } else if (this.password.length < 8) {
-      this.errors.password = 'La contraseña debe tener al menos 8 caracteres.';
-    }
-
-    if (!this.confirm) {
-      this.errors.confirm = 'Confirma tu contraseña, por favor.';
-    }
-
-    if (!this.errors.password && !this.errors.confirm && this.password !== this.confirm) {
-      this.errors.confirm = 'Parece que las contraseñas no coinciden. ¡Intenta de nuevo!';
-    }
-
-    return !this.errors.name && !this.errors.email && !this.errors.password && !this.errors.confirm;
+  private passwordMatchValidator(group: FormGroup): { [key: string]: any } | null {
+    const password = group.get('password');
+    const confirm = group.get('confirm');
+    return password && confirm && password.value !== confirm.value ? { passwordMismatch: true } : null;
   }
 
   onSubmit() {
-    this.submitted = true;
+    this.errorMessage = '';
 
-    if (!this.validate()) {
-      return;
+    if (this.signupForm.valid) {
+      try {
+        const formValue = this.signupForm.value;
+        this.userService.createUser({
+          name: formValue.name,
+          email: formValue.email,
+          password: formValue.password
+        });
+
+        this.router.navigate(['/dashboard']);
+      } catch (error: any) {
+        this.errorMessage = error.message;
+      }
+    } else {
+      this.signupForm.markAllAsTouched();
     }
-
-    this.router.navigate(['/dashboard']);
   }
 }

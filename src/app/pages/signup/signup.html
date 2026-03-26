@@ -6,7 +6,11 @@
       <p class="auth-subtitle">Crea tu cuenta para empezar</p>
     </div>
 
-    <form class="auth-form" (ngSubmit)="onSubmit()">
+    <div class="error-message" *ngIf="errorMessage">
+      <small>{{ errorMessage }}</small>
+    </div>
+
+    <form class="auth-form" [formGroup]="signupForm" (ngSubmit)="onSubmit()">
 
       <div class="form-group">
         <label for="name">Nombre completo</label>
@@ -14,12 +18,10 @@
           id="name"
           type="text"
           placeholder="Tu nombre"
-          [(ngModel)]="name"
-          name="name"
-          (input)="clearError('name')"
+          formControlName="name"
         />
-        <div class="field-error" *ngIf="submitted && errors.name">
-          <small>{{ errors.name }}</small>
+        <div class="field-error" *ngIf="signupForm.get('name')?.invalid && signupForm.get('name')?.touched">
+          <small *ngIf="signupForm.get('name')?.errors?.['required']">¿Cuál es tu nombre?</small>
         </div>
       </div>
 
@@ -29,12 +31,11 @@
           id="email"
           type="email"
           placeholder="correo@ejemplo.com"
-          [(ngModel)]="email"
-          name="email"
-          (input)="clearError('email')"
+          formControlName="email"
         />
-        <div class="field-error" *ngIf="submitted && errors.email">
-          <small>{{ errors.email }}</small>
+        <div class="field-error" *ngIf="signupForm.get('email')?.invalid && signupForm.get('email')?.touched">
+          <small *ngIf="signupForm.get('email')?.errors?.['required']">Necesitamos tu correo para continuar.</small>
+          <small *ngIf="signupForm.get('email')?.errors?.['email']">Por favor, ingresa un correo válido.</small>
         </div>
       </div>
 
@@ -44,12 +45,11 @@
           id="password"
           type="password"
           placeholder="Mínimo 8 caracteres"
-          [(ngModel)]="password"
-          name="password"
-          (input)="clearError('password')"
+          formControlName="password"
         />
-        <div class="field-error" *ngIf="submitted && errors.password">
-          <small>{{ errors.password }}</small>
+        <div class="field-error" *ngIf="signupForm.get('password')?.invalid && signupForm.get('password')?.touched">
+          <small *ngIf="signupForm.get('password')?.errors?.['required']">Elige una contraseña segura.</small>
+          <small *ngIf="signupForm.get('password')?.errors?.['minlength']">La contraseña debe tener al menos 8 caracteres.</small>
         </div>
       </div>
 
@@ -59,12 +59,11 @@
           id="confirm"
           type="password"
           placeholder="Repite tu contraseña"
-          [(ngModel)]="confirm"
-          name="confirm"
-          (input)="clearError('confirm')"
+          formControlName="confirm"
         />
-        <div class="field-error" *ngIf="submitted && errors.confirm">
-          <small>{{ errors.confirm }}</small>
+        <div class="field-error" *ngIf="(signupForm.get('confirm')?.invalid && signupForm.get('confirm')?.touched) || signupForm.errors?.['passwordMismatch']">
+          <small *ngIf="signupForm.get('confirm')?.errors?.['required']">Confirma tu contraseña, por favor.</small>
+          <small *ngIf="signupForm.errors?.['passwordMismatch']">Parece que las contraseñas no coinciden. ¡Intenta de nuevo!</small>
         </div>
       </div>
 

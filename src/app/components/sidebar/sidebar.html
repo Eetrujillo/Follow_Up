@@ -24,7 +24,7 @@
        [routerLink]="item.route"
        routerLinkActive="active"
        class="nav-item">
-      <span class="nav-icon" [innerHTML]="item.icon"></span>
+      <span class="nav-icon">{{ item.icon }}</span>
       <span class="nav-label" *ngIf="!isCollapsed">{{ item.label }}</span>
     </a>
   </nav>
