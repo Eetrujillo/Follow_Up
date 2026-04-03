@@ -1,1 +1,31 @@
-<p>library works!</p>
+<div class="page-wrapper">
+
+  <div class="breadcrumb">
+    <span>Follow-up</span>
+    <span class="sep">›</span>
+    <span>Biblioteca</span>
+  </div>
+
+  <h1>Biblioteca</h1>
+  <p class="subtitle">Organiza tus materiales de estudio en carpetas tematicas.</p>
+
+  <div class="folders-grid">
+    <div class="folder-card" *ngFor="let folder of folders">
+      <div class="folder-left">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </svg>
+        <div>
+          <p class="folder-name">{{ folder.name }}</p>
+          <p class="folder-docs">{{ folder.docs }} documentos</p>
+        </div>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </div>
+  </div>
+
+</div>
