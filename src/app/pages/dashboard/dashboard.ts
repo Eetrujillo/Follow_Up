@@ -20,14 +20,12 @@ interface Task {
 })
 export class Dashboard implements OnInit {
 
-  // Referencias a los canvas de Chart.js
   @ViewChild('donutCanvas', { static: true }) donutCanvas!: ElementRef;
   @ViewChild('barCanvas',   { static: true }) barCanvas!: ElementRef;
 
   private donutChart!: Chart;
   private barChart!: Chart;
 
-  // ── Tareas ──────────────────────────────────────────
   newTaskText = '';
 
   tasks: Task[] = [
@@ -59,7 +57,6 @@ export class Dashboard implements OnInit {
     this.updateDonut();
   }
 
-  // ── Actividad reciente ───────────────────────────────
   activities = [
     { title: 'Notas de JavaScript',  time: 'Hace 2 horas' },
     { title: 'Proyecto Final React',  time: 'Hace 5 horas' },
@@ -67,7 +64,6 @@ export class Dashboard implements OnInit {
     { title: 'Guia de CSS Grid',      time: 'Hace 2 dias'  },
   ];
 
-  // ── Pomodoro ─────────────────────────────────────────
   segundos = 25 * 60;
   isRunning = false;
   private intervalo: any;
@@ -104,7 +100,6 @@ export class Dashboard implements OnInit {
     this.segundos = 25 * 60;
   }
 
-  // ── Charts ───────────────────────────────────────────
   ngOnInit() {
     this.createDonut();
     this.createBar();
@@ -144,7 +139,6 @@ export class Dashboard implements OnInit {
         datasets: [{
           data: [3, 5, 8, 2, 1, 0, 0],
           backgroundColor: (ctx) => {
-            // El dia de hoy (indice 2 = Miercoles) en azul
             return ctx.dataIndex === 2 ? '#3b82f6' : '#2a2a2a';
           },
           borderRadius: 4,

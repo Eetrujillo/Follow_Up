@@ -14,8 +14,8 @@
         <input type="email" placeholder="usuario@gmail.com" formControlName="email" />
 
         <div class="error" *ngIf="email?.touched && email?.invalid">
-          <small *ngIf="email?.errors?.['required']">Por favor, ingresa tu correo.</small>
-          <small *ngIf="email?.errors?.['email']">Este correo no parece válido.</small>
+          <small *ngIf="email?.errors?.['required']">Por favor, ingresa tu correo</small>
+          <small *ngIf="email?.errors?.['email']">Este correo no parece valido</small>
         </div>
       </div>
 
