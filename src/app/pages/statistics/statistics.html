@@ -1,1 +1,35 @@
-<p>statistics works!</p>
+<div class="page-wrapper">
+
+  <div class="breadcrumb">
+    <span>Follow-up</span>
+    <span class="sep">›</span>
+    <span>Estadisticas</span>
+  </div>
+
+  <h1>Estadisticas</h1>
+  <p class="subtitle">Resumen de tu progreso y habitos de estudio.</p>
+
+  <div class="stats-grid">
+    <div class="stat-card" *ngFor="let stat of stats">
+      <p class="stat-label">{{ stat.label }}</p>
+      <p class="stat-value">{{ stat.value }}</p>
+      <p class="stat-sub">{{ stat.sub }}</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="card-title">RESUMEN SEMANAL</h3>
+    <div class="progress-list">
+      <div class="progress-row" *ngFor="let item of weekly">
+        <span class="progress-label">{{ item.label }}</span>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill"
+               [style.width.%]="item.percent">
+          </div>
+        </div>
+        <span class="progress-pct">{{ item.percent }}%</span>
+      </div>
+    </div>
+  </div>
+
+</div>
