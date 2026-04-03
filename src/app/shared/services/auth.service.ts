@@ -1,31 +1,52 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { catchError, map, Observable, of, throwError } from 'rxjs';
+import { User } from '../models/user.model';
 import { UserService } from './user';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+
+  private readonly authUrl = '/api/auth/login';
   private isAuthenticated = false;
   private currentUser: any = null;
 
-  constructor(private userService: UserService, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private userService: UserService
+  ) {}
 
   login(email: string, password: string): Observable<boolean> {
-    const user = this.userService.getUserByEmail(email);
-    if (user && user.password === password) {
-      this.isAuthenticated = true;
-      this.currentUser = user;
-      return of(true);
+    if (!email || !password) {
+      return throwError(() => new Error('Faltan datos: correo y contraseña son obligatorios'));
     }
-    return of(false);
+
+    return this.http.post<User>(this.authUrl, { email, password }).pipe(
+      map(user => {
+        if (!user || !user.email) {
+          throw new Error('No encontramos ninguna cuenta con ese correo');
+        }
+        this.isAuthenticated = true;
+        this.currentUser = user;
+        return true;
+      }),
+      catchError(() => {
+        const fallbackUser = this.userService.authenticateUser(email, password);
+        if (fallbackUser) {
+          this.isAuthenticated = true;
+          this.currentUser = fallbackUser;
+          return of(true);
+        }
+        return of(false);
+      })
+    );
   }
 
   logout(): void {
     this.isAuthenticated = false;
     this.currentUser = null;
-    this.router.navigate(['/login']);
   }
 
   isLoggedIn(): boolean {

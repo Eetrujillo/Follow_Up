@@ -1,54 +1,59 @@
-<div class="login-wrapper">
-  <div class="login-container">
+<div class="auth-container">
+  <div class="auth-card">
 
-    <div class="logo-box">
-      @defer { ⚡ }
+    <div class="auth-header">
+      <h1 class="auth-logo">Follow-up</h1>
+      <p class="auth-subtitle">Inicia sesión para continuar</p>
     </div>
-    <h1 class="titulo">Follow-up</h1>
-    <p class="subtitulo">Inicia sesion para continuar</p>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <div class="error-message" *ngIf="errorMessage">
+      <small>{{ errorMessage }}</small>
+    </div>
 
-      <div class="campo">
-        <label>Correo electronico</label>
-        <input type="email" placeholder="usuario@gmail.com" formControlName="email" />
+    <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
 
-        <div class="error" *ngIf="email?.touched && email?.invalid">
-          <small *ngIf="email?.errors?.['required']">Por favor, ingresa tu correo</small>
-          <small *ngIf="email?.errors?.['email']">Este correo no parece valido</small>
+      <div class="form-group">
+        <label for="email">Correo electrónico</label>
+        <input
+          id="email"
+          type="email"
+          placeholder="usuario@gmail.com"
+          formControlName="email"
+        />
+        <div class="field-error" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+          <small *ngIf="loginForm.get('email')?.errors?.['required']">Por favor, ingresa tu correo</small>
+          <small *ngIf="loginForm.get('email')?.errors?.['email']">Este correo no parece válido</small>
         </div>
       </div>
 
-      <div class="campo">
-        <label>Contrasena</label>
+      <div class="form-group">
+        <label for="password">Contraseña</label>
         <div class="password-wrapper">
-          <input [type]="verPassword ? 'text' : 'password'" placeholder="12345678" formControlName="password" />
+          <input
+            id="password"
+            [type]="verPassword ? 'text' : 'password'"
+            placeholder="12345678"
+            formControlName="password"
+          />
           <span class="ojo" (click)="toggleOjo()">
-            @defer {
             {{ verPassword ? '👁️‍🗨️' : '👁️' }}
-
-            }
           </span>
         </div>
-
-        <div class="error" *ngIf="password?.touched && password?.invalid">
-          <small *ngIf="password?.errors?.['required']">Se necesita tu contraseña para entrar</small>
-          <small *ngIf="password?.errors?.['minlength']">La contraseña debe tener minimo 8 caracteres</small>
+        <div class="field-error" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+          <small *ngIf="loginForm.get('password')?.errors?.['required']">Se necesita tu contraseña para entrar</small>
+          <small *ngIf="loginForm.get('password')?.errors?.['minlength']">La contraseña debe tener mínimo 8 caracteres</small>
         </div>
       </div>
 
-      <button type="submit" [disabled]="isLoading">{{ isLoading ? 'Validando la informacion' : 'Iniciar sesion'
-        }}</button>
-
-      <div class="error" *ngIf="errorMessage">
-        {{ errorMessage }}
-      </div>
+      <button type="submit" class="btn-primary" [disabled]="isLoading">
+        {{ isLoading ? 'Validando la información' : 'Iniciar sesión' }}
+      </button>
 
     </form>
 
-    <p class="pie">
+    <p class="auth-redirect">
       No tienes cuenta?
-      <span class="registro-link" routerLink="/signup">Registrate</span>
+      <a routerLink="/signup">Regístrate</a>
     </p>
 
   </div>

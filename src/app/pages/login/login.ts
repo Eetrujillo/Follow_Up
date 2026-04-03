@@ -12,6 +12,7 @@ import { AuthService } from '../../shared/services/auth.service';
   styleUrl: './login.css'
 })
 export class Login {
+
   loginForm: FormGroup;
   verPassword = false;
   errorMessage: string = '';
@@ -57,12 +58,12 @@ export class Login {
         if (result) {
           this.router.navigate(['/dashboard']);
         } else {
-          this.errorMessage = 'Credenciales invalidas';
+          this.errorMessage = 'Credenciales inválidas';
         }
       },
       error: (err: any) => {
         this.isLoading = false;
-        this.errorMessage = err?.message || 'Error al iniciar sesion';
+        this.errorMessage = err?.message || 'Error al iniciar sesión';
       }
     });
   }
