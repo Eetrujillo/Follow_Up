@@ -1,1 +1,49 @@
-<p>notepad works!</p>
+<div class="page-wrapper">
+
+  <div class="breadcrumb">
+    <span>Follow-up</span>
+    <span class="sep">›</span>
+    <span>Bloc de Notas</span>
+  </div>
+
+  <h1>Bloc de Notas</h1>
+  <p class="subtitle">Tu espacio personal para escritura libre.</p>
+
+  <div class="editor-container">
+
+    <div class="toolbar">
+      <button class="tool-btn" [class.active]="bold"      (click)="applyBold()">
+        <strong>B</strong>
+      </button>
+      <button class="tool-btn" [class.active]="italic"    (click)="applyItalic()">
+        <em>I</em>
+      </button>
+      <button class="tool-btn" [class.active]="underline" (click)="applyUnderline()">
+        <u>U</u>
+      </button>
+      <div class="divider"></div>
+      <button class="tool-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+          <line x1="8" y1="6" x2="21" y2="6"/>
+          <line x1="8" y1="12" x2="21" y2="12"/>
+          <line x1="8" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6"  x2="3.01" y2="6"/>
+          <line x1="3" y1="12" x2="3.01" y2="12"/>
+          <line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <textarea
+      class="editor"
+      [class.bold]="bold"
+      [class.italic]="italic"
+      [class.underline]="underline"
+      [(ngModel)]="content"
+      placeholder="Empieza a escribir aqui...">
+    </textarea>
+
+  </div>
+
+</div>

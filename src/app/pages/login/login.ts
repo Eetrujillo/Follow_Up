@@ -14,28 +14,29 @@ import { AuthService } from '../../shared/services/auth.service';
 export class Login {
 
   loginForm: FormGroup;
-  verPassword = false;
-  errorMessage: string = '';
-  isLoading = false;
+  verPassword  = false;
+  errorMessage = '';
+  isLoading    = false;
 
   constructor(
-    private fb: FormBuilder,
-    private router: Router,
+    private fb:          FormBuilder,
+    private router:      Router,
     private authService: AuthService
   ) {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8)]]
+      email: [
+        '',
+        [Validators.required, Validators.email]
+      ],
+      password: [
+        '',
+        [Validators.required, Validators.minLength(8)]
+      ]
     });
   }
 
-  get email() {
-    return this.loginForm.get('email');
-  }
-
-  get password() {
-    return this.loginForm.get('password');
-  }
+  get email()    { return this.loginForm.get('email');    }
+  get password() { return this.loginForm.get('password'); }
 
   toggleOjo() {
     this.verPassword = !this.verPassword;
@@ -53,17 +54,17 @@ export class Login {
     this.isLoading = true;
 
     this.authService.login(email, password).subscribe({
-      next: (result: boolean) => {
+      next: (success) => {
         this.isLoading = false;
-        if (result) {
+        if (success) {
           this.router.navigate(['/dashboard']);
         } else {
-          this.errorMessage = 'Credenciales inválidas';
+          this.errorMessage = 'Correo o contraseña incorrectos';
         }
       },
-      error: (err: any) => {
+      error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err?.message || 'Error al iniciar sesión';
+        this.errorMessage = err?.message || 'Error al iniciar sesion';
       }
     });
   }

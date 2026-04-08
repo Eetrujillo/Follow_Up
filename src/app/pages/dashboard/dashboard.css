@@ -4,6 +4,9 @@
   font-family: sans-serif;
   min-height: 100vh;
   background: #161616;
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
 }
 
 .breadcrumb {
@@ -23,9 +26,10 @@ h1 {
 /* Grid */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1fr 2fr 1.5fr 1.5fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1.5fr) minmax(0, 1.5fr) minmax(0, 1fr);
   grid-template-rows: auto auto;
   gap: 16px;
+  width: 100%;
 }
 
 .card-progress { grid-column: 1;     grid-row: 1; }
@@ -39,6 +43,8 @@ h1 {
   border: 1px solid #2a2a2a;
   border-radius: 10px;
   padding: 20px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .card-title {
@@ -52,8 +58,8 @@ h1 {
 /* Donut */
 .donut-wrap {
   position: relative;
-  width: 140px;
-  height: 140px;
+  width: 130px;
+  height: 130px;
   margin: 0 auto;
 }
 
@@ -78,8 +84,9 @@ h1 {
 
 /* Barras */
 .bar-wrap {
-  height: 120px;
+  height: 110px;
   position: relative;
+  width: 100%;
 }
 
 .bar-wrap canvas {
@@ -96,6 +103,7 @@ h1 {
 
 .add-task-box input {
   flex: 1;
+  min-width: 0;
   background: #252525;
   border: 1px solid #2e2e2e;
   border-radius: 6px;
@@ -115,6 +123,7 @@ h1 {
   color: white;
   font-size: 18px;
   width: 32px;
+  flex-shrink: 0;
   cursor: pointer;
   padding: 0;
   margin: 0;
@@ -132,12 +141,22 @@ h1 {
   gap: 10px;
   font-size: 13px;
   color: #ccc;
+  min-width: 0;
+}
+
+.task-item span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .task-item input[type="checkbox"] {
   accent-color: #3b82f6;
   width: 15px;
   height: 15px;
+  flex-shrink: 0;
   cursor: pointer;
   padding: 0;
 }
@@ -149,6 +168,7 @@ h1 {
 
 .del-btn {
   margin-left: auto;
+  flex-shrink: 0;
   background: none;
   border: none;
   color: #444;
@@ -175,14 +195,22 @@ h1 {
   gap: 10px;
   font-size: 13px;
   color: #ccc;
+  min-width: 0;
 }
 
-.act-name { flex: 1; }
+.act-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .act-time {
   font-size: 11px;
   color: #555;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Pomodoro */
@@ -206,6 +234,7 @@ h1 {
   height: 7px;
   border-radius: 50%;
   background: #555;
+  flex-shrink: 0;
 }
 
 .dot.pulse {
@@ -219,7 +248,7 @@ h1 {
 }
 
 .timer-digits {
-  font-size: 34px;
+  font-size: 30px;
   font-weight: 700;
   letter-spacing: 2px;
 }
@@ -243,6 +272,7 @@ h1 {
   margin: 0;
   background: #2a2a2a;
   color: #888;
+  flex-shrink: 0;
   transition: background 0.2s;
 }
 

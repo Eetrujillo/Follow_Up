@@ -20,7 +20,7 @@ export class AuthService {
 
   login(email: string, password: string): Observable<boolean> {
     if (!email || !password) {
-      return throwError(() => new Error('Faltan datos: correo y contraseña son obligatorios'));
+      return throwError(() => new Error('Faltan datos: el correo y contraseña son obligatorios'));
     }
 
     return this.http.post<User>(this.authUrl, { email, password }).pipe(

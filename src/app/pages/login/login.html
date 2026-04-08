@@ -1,59 +1,67 @@
-<div class="auth-container">
-  <div class="auth-card">
+<div class="login-wrapper">
+  <div class="login-container">
 
-    <div class="auth-header">
-      <h1 class="auth-logo">Follow-up</h1>
-      <p class="auth-subtitle">Inicia sesión para continuar</p>
+    <div class="logo-box">
+      @defer { ⚡ }
     </div>
+    <h1 class="titulo">Follow-up</h1>
+    <p class="subtitulo">Inicia sesion para continuar</p>
 
-    <div class="error-message" *ngIf="errorMessage">
-      <small>{{ errorMessage }}</small>
-    </div>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
 
-    <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-
-      <div class="form-group">
-        <label for="email">Correo electrónico</label>
+      <div class="campo">
+        <label>Correo electronico</label>
         <input
-          id="email"
           type="email"
           placeholder="usuario@gmail.com"
           formControlName="email"
-        />
-        <div class="field-error" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
-          <small *ngIf="loginForm.get('email')?.errors?.['required']">Por favor, ingresa tu correo</small>
-          <small *ngIf="loginForm.get('email')?.errors?.['email']">Este correo no parece válido</small>
-        </div>
+          [class.input-error]="email?.invalid && email?.touched" />
+
+        <span class="error" *ngIf="email?.touched && email?.hasError('required')">
+          El correo es obligatorio
+        </span>
+        <span class="error" *ngIf="email?.touched && email?.hasError('email')">
+          Ingresa un correo valido
+        </span>
       </div>
 
-      <div class="form-group">
-        <label for="password">Contraseña</label>
+      <div class="campo">
+        <label>Contrasena</label>
         <div class="password-wrapper">
           <input
-            id="password"
             [type]="verPassword ? 'text' : 'password'"
-            placeholder="12345678"
+            placeholder="Minimo 8 caracteres"
             formControlName="password"
-          />
+            [class.input-error]="password?.invalid && password?.touched" />
           <span class="ojo" (click)="toggleOjo()">
-            {{ verPassword ? '👁️‍🗨️' : '👁️' }}
+            @defer {
+              {{ verPassword ? '👁️' : '🙈' }}
+            }
           </span>
         </div>
-        <div class="field-error" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
-          <small *ngIf="loginForm.get('password')?.errors?.['required']">Se necesita tu contraseña para entrar</small>
-          <small *ngIf="loginForm.get('password')?.errors?.['minlength']">La contraseña debe tener mínimo 8 caracteres</small>
-        </div>
+
+        <span class="error" *ngIf="password?.touched && password?.hasError('required')">
+          La contrasena es obligatoria
+        </span>
+        <span class="error" *ngIf="password?.touched && password?.hasError('minlength')">
+          Minimo 8 caracteres
+        </span>
       </div>
 
-      <button type="submit" class="btn-primary" [disabled]="isLoading">
-        {{ isLoading ? 'Validando la información' : 'Iniciar sesión' }}
+      <div class="error-box" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" [disabled]="isLoading">
+        <span *ngIf="!isLoading">Iniciar sesion</span>
+        <span *ngIf="isLoading">Cargando...</span>
       </button>
 
     </form>
 
-    <p class="auth-redirect">
+    <p class="pie">
       No tienes cuenta?
-      <a routerLink="/signup">Regístrate</a>
+      <span class="registro-link" routerLink="/signup">Registrate</span>
     </p>
 
   </div>
