@@ -11,7 +11,6 @@ import { FormsModule } from '@angular/forms';
 })
 export class Notepad {
 
-  content = 'Este es tu bloc de notas personal. Puedes usarlo para ideas rapidas, notas de estudio, o cualquier cosa que necesites recordar';
 
   bold      = false;
   italic    = false;
