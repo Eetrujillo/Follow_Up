@@ -1,6 +1,6 @@
 <div class="dashboard-wrapper">
 
-  <header class="main-header">
+  <header>
     <p class="breadcrumb">Follow-up › <span>Panel Principal</span></p>
     <h1>Panel Principal</h1>
   </header>
@@ -30,7 +30,6 @@
     <!-- TAREAS PENDIENTES -->
     <section class="card card-tasks">
       <h3 class="card-title">TAREAS PENDIENTES</h3>
-
       <div class="add-task-box">
         <input
           [(ngModel)]="newTaskText"
@@ -38,7 +37,6 @@
           placeholder="Nueva tarea..." />
         <button (click)="addTask()">+</button>
       </div>
-
       <div class="task-list">
         <div class="task-item"
              *ngFor="let task of tasks"
@@ -78,20 +76,25 @@
           {{ statusText }}
         </div>
 
-        <div class="timer-digits">{{ formatTime() }}</div>
+        <!-- Digitos separados para mejor visual -->
+        <div class="timer-digits">
+          <span class="time-block">{{ minutes }}</span>
+          <span class="time-sep">:</span>
+          <span class="time-block">{{ secs }}</span>
+        </div>
 
         <div class="timer-actions">
           <button class="btn-round main" (click)="toggleTimer()">
-            <svg *ngIf="!isRunning" width="14" height="14" viewBox="0 0 24 24" fill="white">
+            <svg *ngIf="!isRunning" width="16" height="16" viewBox="0 0 24 24" fill="white">
               <polygon points="5 3 19 12 5 21 5 3"/>
             </svg>
-            <svg *ngIf="isRunning" width="14" height="14" viewBox="0 0 24 24" fill="white">
+            <svg *ngIf="isRunning" width="16" height="16" viewBox="0 0 24 24" fill="white">
               <rect x="6" y="4" width="4" height="16"/>
               <rect x="14" y="4" width="4" height="16"/>
             </svg>
           </button>
           <button class="btn-round" (click)="stopTimer()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="2">
               <polyline points="1 4 1 10 7 10"/>
               <path d="M3.51 15a9 9 0 1 0 .49-5"/>
