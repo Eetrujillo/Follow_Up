@@ -1,8 +1,10 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TaskService } from '../../shared/services/task.spec';
+import { StorageService } from '../../shared/services/storage.spec';
 
-interface Event {
+interface CalendarEvent {
   id: number;
   day: number;
   month: number;
@@ -15,7 +17,7 @@ interface Day {
   number: number;
   isToday: boolean;
   isEmpty: boolean;
-  events: Event[];
+  events: CalendarEvent[];
 }
 
 @Component({
@@ -30,14 +32,25 @@ export class Calendar {
   today       = new Date();
   currentDate = new Date();
 
-  showModal    = false;
-  selectedDay  = 0;
+  showModal     = false;
+  selectedDay   = 0;
   newEventTitle = '';
   newEventColor = '#3b82f6';
 
+
+  showEventsModal = false;
+  selectedDayEvents: CalendarEvent[] = [];
+
   colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
-  events: Event[] = [];
+  events: CalendarEvent[] = [];
+
+  constructor(
+    private taskService: TaskService,
+    private storage: StorageService
+  ) {
+    this.events = this.storage.get<CalendarEvent[]>('calendar_events', []);
+  }
 
   get monthName(): string {
     return this.currentDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
@@ -72,25 +85,21 @@ export class Calendar {
   }
 
   prevMonth() {
-    this.currentDate = new Date(
-      this.currentDate.getFullYear(),
-      this.currentDate.getMonth() - 1, 1
-    );
+    this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() - 1, 1);
   }
 
   nextMonth() {
-    this.currentDate = new Date(
-      this.currentDate.getFullYear(),
-      this.currentDate.getMonth() + 1, 1
-    );
+    this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 1);
   }
 
+  
   openModal(day: Day) {
     if (day.isEmpty) return;
-    this.selectedDay   = day.number;
-    this.newEventTitle = '';
-    this.newEventColor = '#3b82f6';
-    this.showModal     = true;
+    this.selectedDay        = day.number;
+    this.selectedDayEvents  = day.events;
+    this.newEventTitle      = '';
+    this.newEventColor      = '#3b82f6';
+    this.showModal          = true;
   }
 
   closeModal() {
@@ -99,19 +108,34 @@ export class Calendar {
 
   saveEvent() {
     if (!this.newEventTitle.trim()) return;
-    this.events.push({
-      id:     Date.now(),
-      day:    this.selectedDay,
-      month:  this.currentDate.getMonth(),
-      year:   this.currentDate.getFullYear(),
-      title:  this.newEventTitle.trim(),
-      color:  this.newEventColor
-    });
+
+    const newEvent: CalendarEvent = {
+      id:    Date.now(),
+      day:   this.selectedDay,
+      month: this.currentDate.getMonth(),
+      year:  this.currentDate.getFullYear(),
+      title: this.newEventTitle.trim(),
+      color: this.newEventColor
+    };
+
+    this.events.push(newEvent);
+    this.storage.set('calendar_events', this.events);
+
+    
+    const dateStr = `${this.selectedDay}/${this.currentDate.getMonth() + 1}/${this.currentDate.getFullYear()}`;
+    this.taskService.addTask(
+      `${this.newEventTitle.trim()} (${dateStr})`,
+      'calendar',
+      dateStr
+    );
+
     this.closeModal();
   }
 
+  
   deleteEvent(eventId: number, e: MouseEvent) {
     e.stopPropagation();
     this.events = this.events.filter(ev => ev.id !== eventId);
+    this.storage.set('calendar_events', this.events);
   }
 }

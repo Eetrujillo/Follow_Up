@@ -1,17 +1,11 @@
-import { Component, AfterViewInit, OnDestroy, OnInit, ViewChild, ElementRef, NgZone } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
-import { StorageService } from '../../shared/service/storage';
-import { interval, Subscription } from 'rxjs';
+import { TaskService, Task } from '../../shared/services/task.spec';
+import { Subscription } from 'rxjs';
 
 Chart.register(...registerables);
-
-interface Task {
-  id: number;
-  text: string;
-  completed: boolean;
-}
 
 @Component({
   selector: 'app-dashboard',
@@ -27,6 +21,7 @@ export class Dashboard implements AfterViewInit, OnDestroy, OnInit {
 
   private donutChart!: Chart;
   private barChart!: Chart;
+  private taskSub!: Subscription;
 
   newTaskText = '';
   tasks: Task[] = [];
@@ -38,93 +33,41 @@ export class Dashboard implements AfterViewInit, OnDestroy, OnInit {
     { title: 'Guia de CSS Grid',      time: 'Hace 2 dias'  },
   ];
 
-  segundos     = 25 * 60;   // 25 minutos
-  isRunning    = false;
-  private sub!: Subscription;
+  segundos  = 25 * 60;
+  isRunning = false;
+  private intervalo: any;
 
-  constructor(private storage: StorageService, private ngZone: NgZone) {
-    this.tasks = this.storage.get<Task[]>('dashboard_tasks', [
-      { id: 1, text: 'Revisar notas de React Hooks',       completed: false },
-      { id: 2, text: 'Completar ejercicios de TypeScript',  completed: true  },
-      { id: 3, text: 'Leer capitulo 5 del libro',           completed: false },
-      { id: 4, text: 'Preparar presentacion semanal',       completed: false },
-    ]);
-  }
+  constructor(private taskService: TaskService) {}
 
   ngOnInit() {
-    this.startTimer();
+    // Escuchar cambios en las tareas en tiempo real
+    this.taskSub = this.taskService.tasks$.subscribe(tasks => {
+      this.tasks = tasks;
+      if (this.donutChart) this.updateDonut();
+    });
   }
 
-  // Inicia el cronómetro
-  startTimer() {
-    if (!this.isRunning) {
-      this.isRunning = true;
-      this.sub = interval(1000).subscribe(() => {
-        this.ngZone.run(() => {   // <-- Forzamos que Angular detecte cambios
-          if (this.segundos > 0) {
-            this.segundos--;
-          } else {
-            this.stopTimer();
-          }
-        });
-      });
-    }
-  }
-
-  // Pausa o reanuda sin reiniciar
-  toggleTimer() {
-    if (this.isRunning) {
-      this.sub?.unsubscribe();
-      this.isRunning = false;
-    } else {
-      this.startTimer();
-    }
-  }
-
-  // Detiene y reinicia a 25 min
-  stopTimer() {
-    this.sub?.unsubscribe();
-    this.isRunning = false;
-    this.segundos  = 25 * 60;
-  }
-
-  ngOnDestroy() {
-    this.sub?.unsubscribe();
-  }
-
-  // --- Tareas ---
   get progressPercent(): number {
     if (this.tasks.length === 0) return 0;
     return Math.round((this.tasks.filter(t => t.completed).length / this.tasks.length) * 100);
   }
 
-  saveTasks() {
-    this.storage.set('dashboard_tasks', this.tasks);
-  }
-
   addTask() {
     if (!this.newTaskText.trim()) return;
-    this.tasks.push({ id: Date.now(), text: this.newTaskText.trim(), completed: false });
+    this.taskService.addTask(this.newTaskText.trim(), 'dashboard');
     this.newTaskText = '';
-    this.saveTasks();
-    this.updateDonut();
   }
 
   deleteTask(id: number) {
-    this.tasks = this.tasks.filter(t => t.id !== id);
-    this.saveTasks();
-    this.updateDonut();
+    this.taskService.deleteTask(id);
   }
 
-  onTaskChange() {
-    this.saveTasks();
-    this.updateDonut();
+  onTaskChange(task: Task) {
+    this.taskService.toggleTask(task.id);
   }
 
-  // --- Pomodoro ---
-  get statusText(): string {
-    return this.isRunning ? 'En progreso' : 'En pausa';
-  }
+  // ── Timer ─────────────────────────────────────────────
+  get statusText(): string { return this.isRunning ? 'En progreso' : 'En pausa'; }
 
   get minutes(): string {
     return Math.floor(this.segundos / 60).toString().padStart(2, '0');
@@ -134,7 +77,31 @@ export class Dashboard implements AfterViewInit, OnDestroy, OnInit {
     return (this.segundos % 60).toString().padStart(2, '0');
   }
 
-  // --- Gráficas ---
+  toggleTimer() {
+    if (this.isRunning) {
+      clearInterval(this.intervalo);
+      this.isRunning = false;
+    } else {
+      this.isRunning = true;
+      this.intervalo = setInterval(() => {
+        if (this.segundos > 0) { this.segundos--; }
+        else { this.stopTimer(); }
+      }, 1000);
+    }
+  }
+
+  stopTimer() {
+    clearInterval(this.intervalo);
+    this.isRunning = false;
+    this.segundos  = 25 * 60;
+  }
+
+  ngOnDestroy() {
+    clearInterval(this.intervalo);
+    this.taskSub?.unsubscribe();
+  }
+
+  // ── Charts ────────────────────────────────────────────
   ngAfterViewInit() {
     this.createDonut();
     this.createBar();
