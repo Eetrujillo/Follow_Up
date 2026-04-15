@@ -60,10 +60,16 @@ label {
   position: absolute;
   right: 14px;
   cursor: pointer;
-  font-size: 18px;
-  user-select: none;
+  color: #888;
   display: flex;
   align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: color 0.2s;
+}
+
+.ojo:hover {
+  color: #1d8cf8; 
 }
 
 input {
@@ -72,7 +78,7 @@ input {
   border: 1px solid #2e2e2e;
   border-radius: 10px;
   padding: 13px 16px;
-  padding-right: 50px;
+  padding-right: 48px; 
   color: white;
   outline: none;
   box-sizing: border-box;
@@ -80,12 +86,18 @@ input {
   transition: border 0.2s;
 }
 
-input:focus       { border-color: #1d8cf8; }
-input.input-error { border-color: #ef4444; }
+input:focus {
+  border-color: #1d8cf8;
+}
 
-input::placeholder { color: #444; }
+input.input-error {
+  border-color: #ef4444;
+}
 
-/* Mensajes de error */
+input::placeholder {
+  color: #444;
+}
+
 .error {
   color: #ef4444;
   font-size: 11px;
@@ -117,8 +129,14 @@ button {
   transition: background 0.2s, opacity 0.2s;
 }
 
-button:hover    { background-color: #1670d0; }
-button:disabled { opacity: 0.6; cursor: not-allowed; }
+button:hover {
+  background-color: #1670d0;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 .pie {
   color: #888;
@@ -132,4 +150,6 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   color: #1d8cf8;
 }
 
-.registro-link:hover { text-decoration: underline; }
+.registro-link:hover {
+  text-decoration: underline;
+}
