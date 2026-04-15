@@ -10,7 +10,6 @@ import { UserService } from './user';
 export class AuthService {
 
   private readonly authUrl = '/api/auth/login';
-  private isAuthenticated = false;
   private currentUser: any = null;
 
   constructor(
@@ -20,23 +19,23 @@ export class AuthService {
 
   login(email: string, password: string): Observable<boolean> {
     if (!email || !password) {
-      return throwError(() => new Error('Faltan datos: el correo y contraseña son obligatorios'));
+      return throwError(() => new Error('Faltan datos'));
     }
 
     return this.http.post<User>(this.authUrl, { email, password }).pipe(
       map(user => {
-        if (!user || !user.email) {
-          throw new Error('No encontramos ninguna cuenta con ese correo');
-        }
-        this.isAuthenticated = true;
+        if (!user || !user.email) throw new Error('Usuario no encontrado');
         this.currentUser = user;
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('currentUser', JSON.stringify(user));
         return true;
       }),
       catchError(() => {
         const fallbackUser = this.userService.authenticateUser(email, password);
         if (fallbackUser) {
-          this.isAuthenticated = true;
           this.currentUser = fallbackUser;
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('currentUser', JSON.stringify(fallbackUser));
           return of(true);
         }
         return of(false);
@@ -45,15 +44,18 @@ export class AuthService {
   }
 
   logout(): void {
-    this.isAuthenticated = false;
     this.currentUser = null;
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('currentUser');
   }
 
   isLoggedIn(): boolean {
-    return this.isAuthenticated;
+    return localStorage.getItem('isLoggedIn') === 'true';
   }
 
   getCurrentUser(): any {
-    return this.currentUser;
+    if (this.currentUser) return this.currentUser;
+    const saved = localStorage.getItem('currentUser');
+    return saved ? JSON.parse(saved) : null;
   }
 }

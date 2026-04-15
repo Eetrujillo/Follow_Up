@@ -2,7 +2,7 @@
   padding: 24px 32px;
   color: #fff;
   font-family: sans-serif;
-  min-height: 100vh;
+  min-height: 107.6vh;
   background: #161616;
   box-sizing: border-box;
   width: 100%;
@@ -76,7 +76,6 @@ h1 {
   font-weight: 500;
 }
 
-/* Donut */
 .donut-wrap {
   position: relative;
   width: 130px;
@@ -103,7 +102,6 @@ h1 {
   color: #888;
 }
 
-/* Barras */
 .bar-wrap {
   height: 110px;
   position: relative;
@@ -115,7 +113,6 @@ h1 {
   height: 100% !important;
 }
 
-/* Tareas */
 .add-task-box {
   display: flex;
   gap: 8px;
@@ -207,7 +204,6 @@ h1 {
   color: #e55;
 }
 
-/* Actividad reciente */
 .activity-list {
   display: flex;
   flex-direction: column;
@@ -238,7 +234,6 @@ h1 {
   flex-shrink: 0;
 }
 
-/* Pomodoro */
 .timer-content {
   display: flex;
   flex-direction: column;

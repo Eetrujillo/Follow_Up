@@ -35,7 +35,7 @@
             [class.input-error]="password?.invalid && password?.touched" />
           <span class="ojo" (click)="toggleOjo()">
             @defer {
-              {{ verPassword ? '👁️' : '🙈' }}
+              {{ verPassword ? 'ver' : 'ocultar' }}
             }
           </span>
         </div>

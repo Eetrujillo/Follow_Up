@@ -9,12 +9,10 @@ export class UserService {
   private users: User[] = [];
 
   constructor() {
-    // Cargar usuarios simulados desde archivo JSON
     this.loadMockUsers();
   }
 
   private loadMockUsers(): void {
-    // Cargar datos simulados desde JSON
     this.users = usersData.map(user => ({
       ...user,
       createdAt: new Date(user.createdAt)
@@ -34,7 +32,6 @@ export class UserService {
   }
 
   createUser(userData: Omit<User, 'id' | 'createdAt'>): User {
-    // Verificar si el email ya existe
     if (this.getUserByEmail(userData.email)) {
       throw new Error('El email ya está registrado');
     }
@@ -43,7 +40,7 @@ export class UserService {
       id: this.generateId(),
       name: userData.name,
       email: userData.email,
-      password: userData.password, // En producción, hashear la contraseña
+      password: userData.password, 
       createdAt: new Date()
     };
 

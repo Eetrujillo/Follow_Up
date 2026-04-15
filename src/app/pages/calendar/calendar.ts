@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TaskService } from '../../shared/services/task.spec';
-import { StorageService } from '../../shared/services/storage.spec';
+import { StorageService } from '../../shared/services/storage';
 
 interface CalendarEvent {
   id: number;

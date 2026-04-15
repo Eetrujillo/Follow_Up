@@ -1,9 +1,10 @@
+// dashboard.component.ts
 import { Component, AfterViewInit, ViewChild, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
 import { TaskService, Task } from '../../shared/services/task.spec';
-import { Subscription } from 'rxjs';
+import { Subscription, interval } from 'rxjs';
 
 Chart.register(...registerables);
 
@@ -33,14 +34,13 @@ export class Dashboard implements AfterViewInit, OnDestroy, OnInit {
     { title: 'Guia de CSS Grid',      time: 'Hace 2 dias'  },
   ];
 
-  segundos  = 25 * 60;
+  segundos = 25 * 60; 
   isRunning = false;
-  private intervalo: any;
+  private timerSub: Subscription | null = null;
 
   constructor(private taskService: TaskService) {}
 
   ngOnInit() {
-    // Escuchar cambios en las tareas en tiempo real
     this.taskSub = this.taskService.tasks$.subscribe(tasks => {
       this.tasks = tasks;
       if (this.donutChart) this.updateDonut();
@@ -66,7 +66,6 @@ export class Dashboard implements AfterViewInit, OnDestroy, OnInit {
     this.taskService.toggleTask(task.id);
   }
 
-  // ── Timer ─────────────────────────────────────────────
   get statusText(): string { return this.isRunning ? 'En progreso' : 'En pausa'; }
 
   get minutes(): string {
@@ -79,29 +78,43 @@ export class Dashboard implements AfterViewInit, OnDestroy, OnInit {
 
   toggleTimer() {
     if (this.isRunning) {
-      clearInterval(this.intervalo);
-      this.isRunning = false;
+      this.pauseTimer();
     } else {
-      this.isRunning = true;
-      this.intervalo = setInterval(() => {
-        if (this.segundos > 0) { this.segundos--; }
-        else { this.stopTimer(); }
-      }, 1000);
+      this.startTimer();
     }
   }
 
-  stopTimer() {
-    clearInterval(this.intervalo);
+  private startTimer() {
+    if (this.isRunning) return;
+    this.isRunning = true;
+    this.timerSub = interval(1000).subscribe(() => {
+      if (this.segundos > 0) {
+        this.segundos--;
+      } else {
+        this.stopTimer();
+      }
+    });
+  }
+
+  private pauseTimer() {
+    if (!this.isRunning) return;
     this.isRunning = false;
-    this.segundos  = 25 * 60;
+    this.timerSub?.unsubscribe();
+    this.timerSub = null;
+  }
+
+  stopTimer() {
+    this.timerSub?.unsubscribe();
+    this.timerSub = null;
+    this.isRunning = false;
+    this.segundos = 25 * 60;
   }
 
   ngOnDestroy() {
-    clearInterval(this.intervalo);
+    this.timerSub?.unsubscribe();
     this.taskSub?.unsubscribe();
   }
 
-  // ── Charts ────────────────────────────────────────────
   ngAfterViewInit() {
     this.createDonut();
     this.createBar();

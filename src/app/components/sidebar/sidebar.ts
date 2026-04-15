@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../shared/services/auth.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -13,18 +14,25 @@ export class Sidebar {
 
   isCollapsed = false;
 
-    navItems = [
+  navItems = [
     { label: 'Panel Principal', route: '/dashboard',  icon: '⊞' },
     { label: 'Biblioteca',      route: '/library',    icon: '▣' },
     { label: 'Calendario',      route: '/calendar',   icon: '▦' },
     { label: 'Estadisticas',    route: '/statistics', icon: '▤' },
     { label: 'Bloc de Notas',   route: '/notepad',    icon: '▧' },
   ];
+
+  constructor(
+    private router:      Router,
+    private authService: AuthService
+  ) {}
+
   toggleSidebar() {
     this.isCollapsed = !this.isCollapsed;
   }
 
   logout() {
-    console.log('Cerrando sesion...');
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }
