@@ -1,7 +1,15 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+<<<<<<< HEAD
 import { TaskService } from '../../shared/services/task';
+=======
+<<<<<<< HEAD
+import { TaskService } from '../../shared/services/task.spec';
+=======
+import { TaskService } from '../../shared/services/task';
+>>>>>>> e2099b9 (tareas)
+>>>>>>> be87f23 (tareas)
 import { StorageService } from '../../shared/services/storage';
 
 interface CalendarEvent {
