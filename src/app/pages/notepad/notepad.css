@@ -29,7 +29,6 @@ h1 {
   margin-bottom: 24px;
 }
 
-/* Editor */
 .editor-container {
   background: #1e1e1e;
   border: 1px solid #2a2a2a;
@@ -37,7 +36,6 @@ h1 {
   overflow: hidden;
 }
 
-/* Toolbar */
 .toolbar {
   display: flex;
   align-items: center;
@@ -79,7 +77,6 @@ h1 {
   margin: 0 4px;
 }
 
-/* Textarea */
 .editor {
   width: 100%;
   min-height: 500px;
