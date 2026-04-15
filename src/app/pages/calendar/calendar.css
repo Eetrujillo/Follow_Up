@@ -31,7 +31,6 @@ h1 {
   max-width: 700px;
 }
 
-/* Header */
 .cal-header {
   display: flex;
   align-items: center;
@@ -60,7 +59,6 @@ h1 {
 
 .nav-btn:hover { background: #2a2a2a; color: #fff; }
 
-/* Grid */
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -121,7 +119,6 @@ h1 {
   justify-content: center;
 }
 
-/* Eventos */
 .event-tag {
   font-size: 10px;
   color: #fff;
@@ -142,7 +139,6 @@ h1 {
   color: #666;
 }
 
-/* Modal */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -219,7 +215,6 @@ h1 {
 
 .modal-field input:focus { border-color: #3b82f6; }
 
-/* Selector de color */
 .color-picker {
   display: flex;
   gap: 10px;
@@ -241,7 +236,6 @@ h1 {
   transform: scale(1.15);
 }
 
-/* Botones del modal */
 .modal-actions {
   display: flex;
   gap: 10px;
