@@ -33,7 +33,7 @@
       </div>
       <div class="task-list">
         <div class="task-item" *ngFor="let task of tasks" [class.completed]="task.completed">
-          <input type="checkbox" [checked]="task.completed" (change)="onTaskChange(task.id)" />
+          <input type="checkbox" [checked]="task.completed" (change)="onTaskChange(task)" />
           <span>{{ task.text }}</span>
           <button class="del-btn" (click)="deleteTask(task.id)">x</button>
         </div>

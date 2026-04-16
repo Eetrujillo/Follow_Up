@@ -1,45 +1,39 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, map, Observable, of, throwError } from 'rxjs';
-import { User } from '../models/user.model';
+import { Observable, throwError, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { UserService } from './user';
+import { User } from '../models/user';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  private readonly authUrl = '/api/auth/login';
-  private currentUser: any = null;
+  private apiUrl = 'http://localhost:3000/users';
+  private currentUser: User | null = null;
 
   constructor(
-    private http: HttpClient,
+    private http:        HttpClient,
     private userService: UserService
   ) {}
 
   login(email: string, password: string): Observable<boolean> {
     if (!email || !password) {
-      return throwError(() => new Error('Faltan datos'));
+      return throwError(() => new Error('Correo y contrasena son obligatorios'));
     }
 
-    return this.http.post<User>(this.authUrl, { email, password }).pipe(
+    return this.userService.authenticateUser(email, password).pipe(
       map(user => {
-        if (!user || !user.email) throw new Error('Usuario no encontrado');
-        this.currentUser = user;
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        return true;
-      }),
-      catchError(() => {
-        const fallbackUser = this.userService.authenticateUser(email, password);
-        if (fallbackUser) {
-          this.currentUser = fallbackUser;
+        if (user) {
+          this.currentUser = user;
           localStorage.setItem('isLoggedIn', 'true');
-          localStorage.setItem('currentUser', JSON.stringify(fallbackUser));
-          return of(true);
+          localStorage.setItem('currentUser', JSON.stringify(user));
+          return true;
         }
-        return of(false);
-      })
+        return false;
+      }),
+      catchError(() => of(false))
     );
   }
 
@@ -53,7 +47,7 @@ export class AuthService {
     return localStorage.getItem('isLoggedIn') === 'true';
   }
 
-  getCurrentUser(): any {
+  getCurrentUser(): User | null {
     if (this.currentUser) return this.currentUser;
     const saved = localStorage.getItem('currentUser');
     return saved ? JSON.parse(saved) : null;

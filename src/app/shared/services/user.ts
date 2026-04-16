@@ -1,22 +1,56 @@
 import { Injectable } from '@angular/core';
-import { User } from '../models/user.model';
+import { HttpClient } from '@angular/common/http';
 import usersData from '../mocks/users.mock.json';
+import { User } from '../models/user';
+import { Observable } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
+
+
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
   private users: User[] = [];
-
-  constructor() {
-    this.loadMockUsers();
+    private apiUrl = 'http://localhost:3000/users';
+  constructor(private http: HttpClient) {}
+  
+  register(name: string, email: string, password: string): Observable<User> {
+    // Primero verificar que el email no exista
+    return this.http.get<User[]>(`${this.apiUrl}?email=${email}`).pipe(
+      map(users => {
+        if (users.length > 0) {
+          throw new Error('Este correo ya esta registrado');
+        }
+        return users;
+      }),
+      // Si no existe se crear
+      map(() => {
+        const newUser: User = {
+          id: Date.now(),
+          name,
+          email,
+          password,
+          createdAt: new Date()
+        };
+        this.http.post<User>(this.apiUrl, newUser).subscribe();
+        return newUser;
+      }),
+      catchError(err => throwError(() => err))
+    );
   }
 
-  private loadMockUsers(): void {
-    this.users = usersData.map(user => ({
-      ...user,
-      createdAt: new Date(user.createdAt)
-    }));
+   authenticateUser(email: string, password: string): Observable<User | null> {
+    return this.http.get<User[]>(
+      `${this.apiUrl}?email=${email}&password=${password}`
+    ).pipe(
+      map(users => users.length > 0 ? users[0] : null)
+    );
+  }
+
+  getAllUsers(): Observable<User[]> {
+    return this.http.get<User[]>(this.apiUrl);
   }
 
   getUsers(): User[] {
@@ -64,15 +98,8 @@ export class UserService {
     return true;
   }
 
-  authenticateUser(email: string, password: string): User | null {
-    const user = this.getUserByEmail(email);
-    if (user && user.password === password) {
-      return user;
-    }
-    return null;
-  }
-
   private generateId(): number {
-    return this.users.length > 0 ? Math.max(...this.users.map(u => u.id)) + 1 : 1;
-  }
+  return this.users.length > 0 ? Math.max(...this.users.map(u=>u.id ?? 0)) + 1 : 1;
+}
+
 }

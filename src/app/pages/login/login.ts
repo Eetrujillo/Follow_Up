@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
+import { TaskService } from '../../shared/services/task';
 import { AuthService } from '../../shared/services/auth.service';
 
 @Component({
@@ -21,7 +22,8 @@ export class Login {
   constructor(
     private fb:          FormBuilder,
     private router:      Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private taskService: TaskService
   ) {
     this.loginForm = this.fb.group({
       email: [
@@ -57,6 +59,7 @@ export class Login {
       next: (success) => {
         this.isLoading = false;
         if (success) {
+          this.taskService.reloadForUser();
           this.router.navigate(['/dashboard']);
         } else {
           this.errorMessage = 'Correo o contraseña incorrectos';
