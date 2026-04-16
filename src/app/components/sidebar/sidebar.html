@@ -21,7 +21,7 @@
         [(ngModel)]="searchQuery"
         (ngModelChange)="onSearch()"
         (focus)="onSearch()" />
-      <span class="search-shortcut" *ngIf="!searchQuery">Ctrl K</span>
+      <span class="search-shortcut" *ngIf="!searchQuery"></span>
       <button class="clear-btn" *ngIf="searchQuery" (click)="clearSearch()">x</button>
     </div>
 
