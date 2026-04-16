@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { UserService } from '../../shared/services/user';
 
 @Component({
@@ -14,45 +15,54 @@ import { UserService } from '../../shared/services/user';
 export class Signup {
 
   signupForm: FormGroup;
-  errorMessage: string = '';
+  errorMessage = '';
+  isLoading    = false;
 
   constructor(
-    private fb: FormBuilder,
-    private router: Router,
+    private fb:          FormBuilder,
+    private router:      Router,
     private userService: UserService
   ) {
     this.signupForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(1)]],
+      name: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
-      confirm: ['', Validators.required]
-    }, { validators: this.passwordMatchValidator });
+      confirm: ['', [Validators.required]]
+    }, { validators: this.passwordsMatch });
   }
 
-  private passwordMatchValidator(group: FormGroup): { [key: string]: any } | null {
-    const password = group.get('password');
-    const confirm = group.get('confirm');
-    return password && confirm && password.value !== confirm.value ? { passwordMismatch: true } : null;
+  passwordsMatch(group: FormGroup) {
+    const pass    = group.get('password')?.value;
+    const confirm = group.get('confirm')?.value;
+    return pass === confirm ? null : { noMatch: true };
   }
+
+  get name()     { return this.signupForm.get('name');     }
+  get email()    { return this.signupForm.get('email');    }
+  get password() { return this.signupForm.get('password'); }
+  get confirm()  { return this.signupForm.get('confirm');  }
 
   onSubmit() {
     this.errorMessage = '';
 
-    if (this.signupForm.valid) {
-      try {
-        const formValue = this.signupForm.value;
-        this.userService.createUser({
-          name: formValue.name,
-          email: formValue.email,
-          password: formValue.password
-        });
-
-        this.router.navigate(['/dashboard']);
-      } catch (error: any) {
-        this.errorMessage = error.message;
-      }
-    } else {
+    if (this.signupForm.invalid) {
       this.signupForm.markAllAsTouched();
+      return;
     }
+
+    const { name, email, password } = this.signupForm.value;
+    this.isLoading = true;
+
+
+    this.userService.register(name, email, password).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = err?.message || 'Error al registrar';
+      }
+    });
   }
 }

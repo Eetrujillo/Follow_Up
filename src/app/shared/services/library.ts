@@ -1,70 +1,104 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { StorageService } from './storage';
+import { AuthService } from './auth.service';
 
 export interface Document {
   id: number;
   name: string;
   content: string;
   createdAt: string;
+  isNote?: boolean;
 }
 
 export interface Folder {
   id: number;
   name: string;
   documents: Document[];
+  isNotesFolder?: boolean;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class LibraryService {
 
   private foldersSubject = new BehaviorSubject<Folder[]>([]);
   folders$ = this.foldersSubject.asObservable();
 
-  constructor(private storage: StorageService) {
-    const saved = this.storage.get<Folder[]>('library_folders', [
-      { id: 1, name: 'Desarrollo Frontend',      documents: [] },
-      { id: 2, name: 'Desarrollo Backend',       documents: [] },
-      { id: 3, name: 'Bases de Datos',           documents: [] },
-      { id: 4, name: 'Algoritmos',               documents: [] },
-      { id: 5, name: 'Diseno UX/UI',             documents: [] },
-      { id: 6, name: 'DevOps',                   documents: [] },
-      { id: 7, name: 'Machine Learning',         documents: [] },
-      { id: 8, name: 'Arquitectura de Software', documents: [] },
+  constructor(
+    private storage:     StorageService,
+    private authService: AuthService
+  ) {
+    this.loadFolders();
+  }
+
+  private get storageKey(): string {
+    const user = this.authService.getCurrentUser();
+    return `library_${user?.id || user?.email || 'guest'}`;
+  }
+
+  private loadFolders() {
+    const saved = this.storage.get<Folder[]>(this.storageKey, [
+      { id: 1, name: 'Desarrollo Frontend',      documents: [], isNotesFolder: false },
+      { id: 2, name: 'Desarrollo Backend',       documents: [], isNotesFolder: false },
+      { id: 3, name: 'Bases de Datos',           documents: [], isNotesFolder: false },
+      { id: 4, name: 'Algoritmos',               documents: [], isNotesFolder: false },
+      { id: 5, name: 'Diseno UX/UI',             documents: [], isNotesFolder: false },
+      { id: 6, name: 'DevOps',                   documents: [], isNotesFolder: false },
+      { id: 7, name: 'Machine Learning',         documents: [], isNotesFolder: false },
+      { id: 8, name: 'Arquitectura de Software', documents: [], isNotesFolder: false },
+      // Carpeta especial de notas
+      { id: 9, name: 'Mis Notas', documents: [], isNotesFolder: true },
     ]);
     this.foldersSubject.next(saved);
+  }
+
+  reloadForUser() {
+    this.loadFolders();
   }
 
   getFolders(): Folder[] {
     return this.foldersSubject.getValue();
   }
 
+  getNotesFolder(): Folder | undefined {
+    return this.getFolders().find(f => f.isNotesFolder);
+  }
+
   addFolder(name: string) {
     const folders = this.getFolders();
-    folders.push({ id: Date.now(), name, documents: [] });
+    folders.push({ id: Date.now(), name, documents: [], isNotesFolder: false });
     this.save(folders);
   }
 
   deleteFolder(folderId: number) {
-    const folders = this.getFolders().filter(f => f.id !== folderId);
+    // No permitir borrar la carpeta de notas
+    const folders = this.getFolders().filter(f =>
+      f.id !== folderId || f.isNotesFolder
+    );
     this.save(folders);
   }
 
-  addDocument(folderId: number, name: string, content: string) {
+  addDocument(folderId: number, name: string, content: string, isNote = false) {
     const folders = this.getFolders().map(f => {
       if (f.id === folderId) {
         f.documents.push({
           id: Date.now(),
           name,
           content,
-          createdAt: new Date().toLocaleDateString('es-ES')
+          createdAt: new Date().toLocaleDateString('es-ES'),
+          isNote
         });
       }
       return f;
     });
     this.save(folders);
+  }
+
+  // Guardar nota desde el bloc de notas
+  saveNote(name: string, content: string) {
+    const notesFolder = this.getNotesFolder();
+    if (!notesFolder) return;
+    this.addDocument(notesFolder.id, name, content, true);
   }
 
   updateDocument(folderId: number, docId: number, content: string) {
@@ -91,6 +125,6 @@ export class LibraryService {
 
   private save(folders: Folder[]) {
     this.foldersSubject.next(folders);
-    this.storage.set('library_folders', folders);
+    this.storage.set(this.storageKey, folders);
   }
 }
