@@ -62,10 +62,10 @@
         {{ errorMessage }}
       </div>
 
-      <button type="submit" [disabled]="isLoading">
-        <span *ngIf="!isLoading">Crear cuenta</span>
-        <span *ngIf="isLoading">Registrando...</span>
-      </button>
+     <button type="submit" class="btn-submit" [disabled]="isLoading">
+  <span *ngIf="!isLoading">Crear cuenta</span>
+  <span *ngIf="isLoading">Registrando...</span>
+</button>
 
     </form>
 

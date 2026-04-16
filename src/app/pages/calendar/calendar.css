@@ -271,3 +271,8 @@ h1 {
 }
 
 .btn-save:hover { background: #2563eb; }
+.error-msg {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: -8px;
+}

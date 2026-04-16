@@ -106,3 +106,26 @@
   font-size: 11px;
   margin-top: 4px;
 } 
+
+button {
+  width: 100%;
+  padding: 13px;
+  background-color: #1d8cf8;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+button:hover {
+  background-color: #1670d0;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

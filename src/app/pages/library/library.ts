@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule, Router } from '@angular/router';
+
 import { LibraryService, Folder, Document } from '../../shared/services/library';
 
 @Component({
@@ -29,7 +31,7 @@ export class Library implements OnInit {
   // Editor
   editorContent = '';
 
-  constructor(private libraryService: LibraryService) {}
+  constructor(private libraryService: LibraryService, private router: Router) {}
 
   ngOnInit() {
     this.libraryService.folders$.subscribe(folders => {
@@ -98,7 +100,10 @@ export class Library implements OnInit {
     if (!this.selectedFolder) return;
     this.libraryService.deleteDocument(this.selectedFolder.id, docId);
   }
-
+onSaveAndGoBack() {
+  this.saveDocumentContent();
+  this.goBack();
+}
   // ── Editor ────────────────────────────────────────────
   saveDocumentContent() {
     if (!this.selectedFolder || !this.selectedDoc) return;
@@ -107,5 +112,7 @@ export class Library implements OnInit {
       this.selectedDoc.id,
       this.editorContent
     );
+    
   }
+  
 }

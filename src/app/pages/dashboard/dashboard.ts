@@ -164,31 +164,36 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     this.donutChart.update();
   }
 
-  createBar() {
-    this.barChart = new Chart(this.barCanvas.nativeElement, {
-      type: 'bar',
-      data: {
-        labels: ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'],
-        datasets: [{
-          data: [3, 5, 8, 2, 1, 0, 0],
-          backgroundColor: ['#2a2a2a','#2a2a2a','#3b82f6','#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a'],
-          borderRadius: 4,
-          borderSkipped: false,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { enabled: false } },
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: { color: '#666', font: { size: 11 } },
-            border: { display: false }
-          },
-          y: { display: false }
-        }
+createBar() {
+  const todayIndex = (new Date().getDay() + 6) % 7;
+
+  const colors = ['#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a'];
+  colors[todayIndex] = '#3b82f6'; 
+
+  this.barChart = new Chart(this.barCanvas.nativeElement, {
+    type: 'bar',
+    data: {
+      labels: ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'],
+      datasets: [{
+        data: [3, 5, 8, 2, 1, 0, 0],
+        backgroundColor: colors,
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: '#666', font: { size: 11 } },
+          border: { display: false }
+        },
+        y: { display: false }
       }
-    });
-  }
+    }
+  });
+}
 }

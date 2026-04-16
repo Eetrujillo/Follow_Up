@@ -31,6 +31,8 @@ export class Calendar {
 
   today       = new Date();
   currentDate = new Date();
+  errorMessage = '';
+
 
   showModal     = false;
   selectedDay   = 0;
@@ -105,33 +107,36 @@ export class Calendar {
   closeModal() {
     this.showModal = false;
   }
-
-  saveEvent() {
-    if (!this.newEventTitle.trim()) return;
-
-    const newEvent: CalendarEvent = {
-      id:    Date.now(),
-      day:   this.selectedDay,
-      month: this.currentDate.getMonth(),
-      year:  this.currentDate.getFullYear(),
-      title: this.newEventTitle.trim(),
-      color: this.newEventColor
-    };
-
-    this.events.push(newEvent);
-    this.storage.set('calendar_events', this.events);
-
-    
-    const dateStr = `${this.selectedDay}/${this.currentDate.getMonth() + 1}/${this.currentDate.getFullYear()}`;
-    this.taskService.addTask(
-      `${this.newEventTitle.trim()} (${dateStr})`,
-      'calendar',
-      dateStr
-    );
-
-    this.closeModal();
+saveEvent() {
+  // Validacion: titulo vacio
+  if (!this.newEventTitle.trim()) {
+    this.errorMessage = 'Escribe un titulo para el evento';
+    return;
   }
 
+  this.errorMessage = '';
+
+  const newEvent: CalendarEvent = {
+    id:    Date.now(),
+    day:   this.selectedDay,
+    month: this.currentDate.getMonth(),
+    year:  this.currentDate.getFullYear(),
+    title: this.newEventTitle.trim(),
+    color: this.newEventColor
+  };
+
+  this.events.push(newEvent);
+  this.storage.set('calendar_events', this.events);
+
+  const dateStr = `${this.selectedDay}/${this.currentDate.getMonth() + 1}/${this.currentDate.getFullYear()}`;
+  this.taskService.addTask(
+    `${this.newEventTitle.trim()} (${dateStr})`,
+    'calendar',
+    dateStr
+  );
+
+  this.closeModal();
+}
   
   deleteEvent(eventId: number, e: MouseEvent) {
     e.stopPropagation();

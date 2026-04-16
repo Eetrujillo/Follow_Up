@@ -123,7 +123,7 @@
   <ng-container *ngIf="view === 'editor'">
     <div class="page-header">
       <div class="header-left">
-        <button class="btn-back" (click)="goBack()">
+        <button class="btn-back" (click)="goBack() ">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                stroke="currentColor" stroke-width="2">
             <polyline points="15 18 9 12 15 6"/>
@@ -132,7 +132,7 @@
         </button>
         <h1>{{ selectedDoc?.name }}</h1>
       </div>
-      <button class="btn-save" (click)="saveDocumentContent()">Guardar</button>
+      <button class="btn-save" (click)="onSaveAndGoBack()" >Guardar</button>
     </div>
 
     <div class="editor-box">
