@@ -17,11 +17,7 @@ export class Notepad implements OnInit, OnDestroy {
   italic    = false;
   underline = false;
 
-<<<<<<< HEAD
   remainingTime = 60;
-=======
-  remainingTime = 60; 
->>>>>>> e2099b9 (tareas)
   private intervalId: any;
 
   applyBold()      { this.bold      = !this.bold;      }

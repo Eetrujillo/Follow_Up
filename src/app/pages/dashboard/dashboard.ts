@@ -2,14 +2,9 @@ import { Component, AfterViewInit, OnDestroy, OnInit, ViewChild, ElementRef, NgZ
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
-<<<<<<< HEAD
-import { TaskService, Task } from '../../shared/services/task';
-import { Subscription, interval } from 'rxjs';
-=======
 import { StorageService } from '../../shared/services/storage';
 import { TaskService, Task } from '../../shared/services/task';
 import { interval, Subscription } from 'rxjs';
->>>>>>> be87f23 (tareas)
 
 Chart.register(...registerables);
 
@@ -38,7 +33,7 @@ export class Dashboard implements AfterViewInit, OnDestroy, OnInit {
     { title: 'Guia de CSS Grid',      time: 'Hace 2 dias'  },
   ];
 
-  segundos     = 25 * 60;   // 25 minutos
+  segundos     = 25 * 60; 
   isRunning    = false;
   private sub!: Subscription;
   private taskSub!: Subscription;
@@ -53,12 +48,11 @@ export class Dashboard implements AfterViewInit, OnDestroy, OnInit {
     });
   }
 
-  // Inicia el cronómetro
   startTimer() {
     if (!this.isRunning) {
       this.isRunning = true;
       this.sub = interval(1000).subscribe(() => {
-        this.ngZone.run(() => {   // <-- Forzamos que Angular detecte cambios
+        this.ngZone.run(() => {  
           if (this.segundos > 0) {
             this.segundos--;
           } else {
@@ -69,7 +63,6 @@ export class Dashboard implements AfterViewInit, OnDestroy, OnInit {
     }
   }
 
-  // Pausa o reanuda sin reiniciar
   toggleTimer() {
     if (this.isRunning) {
       this.sub?.unsubscribe();
@@ -79,7 +72,6 @@ export class Dashboard implements AfterViewInit, OnDestroy, OnInit {
     }
   }
 
-  // Detiene y reinicia a 25 min
   stopTimer() {
     this.sub?.unsubscribe();
     this.isRunning = false;
