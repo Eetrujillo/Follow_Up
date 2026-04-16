@@ -1,0 +1,68 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { RouterModule, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { UserService } from '../../shared/services/user';
+
+@Component({
+  selector: 'app-signup',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  templateUrl: './signup.html',
+  styleUrl: './signup.css'
+})
+export class Signup {
+
+  signupForm: FormGroup;
+  errorMessage = '';
+  isLoading    = false;
+
+  constructor(
+    private fb:          FormBuilder,
+    private router:      Router,
+    private userService: UserService
+  ) {
+    this.signupForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(2)]],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(8)]],
+      confirm: ['', [Validators.required]]
+    }, { validators: this.passwordsMatch });
+  }
+
+  passwordsMatch(group: FormGroup) {
+    const pass    = group.get('password')?.value;
+    const confirm = group.get('confirm')?.value;
+    return pass === confirm ? null : { noMatch: true };
+  }
+
+  get name()     { return this.signupForm.get('name');     }
+  get email()    { return this.signupForm.get('email');    }
+  get password() { return this.signupForm.get('password'); }
+  get confirm()  { return this.signupForm.get('confirm');  }
+
+  onSubmit() {
+    this.errorMessage = '';
+
+    if (this.signupForm.invalid) {
+      this.signupForm.markAllAsTouched();
+      return;
+    }
+
+    const { name, email, password } = this.signupForm.value;
+    this.isLoading = true;
+
+
+    this.userService.register(name, email, password).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = err?.message || 'Error al registrar';
+      }
+    });
+  }
+}

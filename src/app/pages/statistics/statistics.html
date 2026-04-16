@@ -1,0 +1,62 @@
+<div class="page-wrapper">
+
+  <div class="breadcrumb">
+    <span>Follow-up</span>
+    <span class="sep">›</span>
+    <span>Estadisticas</span>
+  </div>
+
+  <h1>Estadisticas</h1>
+  <p class="subtitle">Resumen de tu progreso y habitos de estudio.</p>
+
+  <div class="stats-grid">
+
+    <div class="stat-card">
+      <p class="stat-label">TAREAS TOTALES</p>
+      <p class="stat-value">{{ totalTasks }}</p>
+      <p class="stat-sub">{{ completedTasks }} completadas</p>
+    </div>
+
+    <div class="stat-card">
+      <p class="stat-label">RACHA ACTUAL</p>
+      <p class="stat-value">{{ studyStreak }}</p>
+      <p class="stat-sub">dias consecutivos</p>
+    </div>
+
+    <div class="stat-card">
+      <p class="stat-label">DOCUMENTOS</p>
+      <p class="stat-value">{{ totalDocs }}</p>
+      <p class="stat-sub">en tu biblioteca</p>
+    </div>
+
+    <div class="stat-card">
+      <p class="stat-label">OBJETIVOS</p>
+      <p class="stat-value">{{ objectivePercent }}%</p>
+      <p class="stat-sub">completados este mes</p>
+    </div>
+
+  </div>
+
+  <!-- Grafico semanal -->
+  <div class="card" style="margin-bottom: 16px;">
+    <h3 class="card-title">ACTIVIDAD SEMANAL</h3>
+    <div style="height: 140px;">
+      <canvas #weeklyCanvas></canvas>
+    </div>
+  </div>
+
+  <!-- Resumen por categoria -->
+  <div class="card">
+    <h3 class="card-title">RESUMEN SEMANAL</h3>
+    <div class="progress-list">
+      <div class="progress-row" *ngFor="let item of weekly">
+        <span class="progress-label">{{ item.label }}</span>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" [style.width.%]="item.percent"></div>
+        </div>
+        <span class="progress-pct">{{ item.percent }}%</span>
+      </div>
+    </div>
+  </div>
+
+</div>

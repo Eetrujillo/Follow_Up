@@ -1,0 +1,155 @@
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #121212;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  font-family: sans-serif;
+  color: white;
+  padding: 0 24px;
+}
+
+.logo-box {
+  color: #1d8cf8;
+  font-size: 45px;
+  margin-bottom: 10px;
+}
+
+.titulo {
+  font-size: 28px;
+  margin: 0 0 8px;
+  font-weight: 700;
+}
+
+.subtitulo {
+  color: #888;
+  font-size: 14px;
+  margin-bottom: 32px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin-bottom: 18px;
+}
+
+label {
+  color: #888;
+  font-size: 12px;
+  margin-bottom: 7px;
+}
+
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ojo {
+  position: absolute;
+  right: 14px;
+  cursor: pointer;
+  color: #888;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: color 0.2s;
+}
+
+.ojo:hover {
+  color: #1d8cf8; 
+}
+
+input {
+  width: 100%;
+  background-color: #1e1e1e;
+  border: 1px solid #2e2e2e;
+  border-radius: 10px;
+  padding: 13px 16px;
+  padding-right: 48px; 
+  color: white;
+  outline: none;
+  box-sizing: border-box;
+  font-size: 14px;
+  transition: border 0.2s;
+}
+
+input:focus {
+  border-color: #1d8cf8;
+}
+
+input.input-error {
+  border-color: #ef4444;
+}
+
+input::placeholder {
+  color: #444;
+}
+
+.error {
+  color: #ef4444;
+  font-size: 11px;
+  margin-top: 5px;
+}
+
+.error-box {
+  background: #2a1515;
+  border: 1px solid #ef4444;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #ef4444;
+  font-size: 13px;
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+button {
+  width: 100%;
+  padding: 13px;
+  background-color: #1d8cf8;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+button:hover {
+  background-color: #1670d0;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pie {
+  color: #888;
+  font-size: 13px;
+  margin-top: 26px;
+}
+
+.registro-link {
+  cursor: pointer;
+  font-weight: 700;
+  color: #1d8cf8;
+}
+
+.registro-link:hover {
+  text-decoration: underline;
+}

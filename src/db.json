@@ -1,0 +1,39 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Esteban",
+      "email": "esteban@gmail.com",
+      "password": "12345678",
+      "createdAt": "2026-04-15T10:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "name": "Juan",
+      "email": "juan@example.com",
+      "password": "87654321",
+      "createdAt": "2026-04-15T11:00:00.000Z"
+    },
+    {
+      "id": 1776300780624,
+      "name": "laura",
+      "email": "laura@gmail.com",
+      "password": "123456789",
+      "createdAt": "2026-04-16T00:53:00.624Z"
+    },
+    {
+      "id": 1776358762007,
+      "name": "esteban",
+      "email": "esteban@gmail",
+      "password": "123456789",
+      "createdAt": "2026-04-16T16:59:22.007Z"
+    },
+    {
+      "id": 1776359570512,
+      "name": "silvia Mercedes Muñoz Idrobo",
+      "email": "silvis_mercedes@hotmail.com",
+      "password": "Laura1707",
+      "createdAt": "2026-04-16T17:12:50.512Z"
+    }
+  ]
+}

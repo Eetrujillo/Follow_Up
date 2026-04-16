@@ -1,0 +1,78 @@
+<div class="auth-container">
+  <div class="auth-card">
+
+    <div class="auth-header">
+      <h1 class="auth-logo">Follow-up</h1>
+      <p class="auth-subtitle">Crea tu cuenta para empezar</p>
+    </div>
+
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+
+      <div class="form-group">
+        <label>Nombre completo</label>
+        <input type="text" placeholder="Tu nombre"
+               formControlName="name"
+               [class.input-error]="name?.invalid && name?.touched" />
+        <span class="error" *ngIf="name?.touched && name?.hasError('required')">
+          El nombre es obligatorio
+        </span>
+        <span class="error" *ngIf="name?.touched && name?.hasError('minlength')">
+          Minimo 2 caracteres
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Correo electronico</label>
+        <input type="email" placeholder="correo@ejemplo.com"
+               formControlName="email"
+               [class.input-error]="email?.invalid && email?.touched" />
+        <span class="error" *ngIf="email?.touched && email?.hasError('required')">
+          El correo es obligatorio
+        </span>
+        <span class="error" *ngIf="email?.touched && email?.hasError('email')">
+          Ingresa un correo valido
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Contrasena</label>
+        <input type="password" placeholder="Minimo 8 caracteres"
+               formControlName="password"
+               [class.input-error]="password?.invalid && password?.touched" />
+        <span class="error" *ngIf="password?.touched && password?.hasError('required')">
+          La contrasena es obligatoria
+        </span>
+        <span class="error" *ngIf="password?.touched && password?.hasError('minlength')">
+          Minimo 8 caracteres
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Confirmar contrasena</label>
+        <input type="password" placeholder="Repite tu contrasena"
+               formControlName="confirm"
+               [class.input-error]="signupForm.hasError('noMatch') && confirm?.touched" />
+        <span class="error"
+              *ngIf="signupForm.hasError('noMatch') && confirm?.touched">
+          Las contrasenas no coinciden
+        </span>
+      </div>
+
+      <div class="error-box" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+     <button type="submit" class="btn-submit" [disabled]="isLoading">
+  <span *ngIf="!isLoading">Crear cuenta</span>
+  <span *ngIf="isLoading">Registrando...</span>
+</button>
+
+    </form>
+
+    <p class="auth-redirect">
+      Ya tienes cuenta?
+      <a routerLink="/login">Inicia sesion</a>
+    </p>
+
+  </div>
+</div>

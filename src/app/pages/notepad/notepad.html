@@ -1,0 +1,63 @@
+<div class="page-wrapper">
+
+  <div class="breadcrumb">
+    <span>Follow-up</span>
+    <span class="sep">›</span>
+    <span>Bloc de Notas</span>
+  </div>
+
+  <div class="page-header">
+    <div>
+      <h1>Bloc de Notas</h1>
+      <p class="subtitle">Tu espacio personal para escritura libre.</p>
+    </div>
+    <div class="header-actions">
+      <span class="saved-msg" *ngIf="saved">Guardado en biblioteca</span>
+      <button class="btn-library" (click)="openSaveModal()"
+              [disabled]="!content.trim()">
+        Guardar en Biblioteca
+      </button>
+    </div>
+  </div>
+
+  <div class="editor-container">
+    <div class="toolbar">
+      <button class="tool-btn" [class.active]="bold"      (click)="applyBold()">
+        <strong>B</strong>
+      </button>
+      <button class="tool-btn" [class.active]="italic"    (click)="applyItalic()">
+        <em>I</em>
+      </button>
+      <button class="tool-btn" [class.active]="underline" (click)="applyUnderline()">
+        <u>U</u>
+      </button>
+    </div>
+
+    <textarea
+      class="editor"
+      [class.bold]="bold"
+      [class.italic]="italic"
+      [class.underline]="underline"
+      [(ngModel)]="content"
+      (ngModelChange)="onContentChange()"
+      placeholder="Empieza a escribir aqui...">
+    </textarea>
+  </div>
+
+  <!-- Modal para nombrar la nota -->
+  <div class="modal-overlay" *ngIf="showSaveModal" (click)="showSaveModal = false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h3>Guardar en Biblioteca</h3>
+      <p class="modal-sub">La nota se guardara en la carpeta "Mis Notas"</p>
+      <input type="text"
+             placeholder="Nombre de la nota"
+             [(ngModel)]="noteName"
+             (keyup.enter)="saveToLibrary()" />
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="showSaveModal = false">Cancelar</button>
+        <button class="btn-save"   (click)="saveToLibrary()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+</div>

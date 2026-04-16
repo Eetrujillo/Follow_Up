@@ -1,0 +1,68 @@
+<aside class="sidebar" [class.collapsed]="isCollapsed">
+
+  <div class="sidebar-header">
+    <span class="sidebar-logo" *ngIf="!isCollapsed">Follow-up</span>
+    <button class="collapse-btn" (click)="toggleSidebar()">
+      <span *ngIf="!isCollapsed">&#171;&#171;</span>
+      <span *ngIf="isCollapsed">&#187;&#187;</span>
+    </button>
+  </div>
+
+  <div class="sidebar-search-wrap" *ngIf="!isCollapsed">
+    <div class="sidebar-search">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input
+        type="text"
+        placeholder="Buscar..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearch()"
+        (focus)="onSearch()" />
+      <span class="search-shortcut" *ngIf="!searchQuery">Ctrl K</span>
+      <button class="clear-btn" *ngIf="searchQuery" (click)="clearSearch()">x</button>
+    </div>
+
+    <div class="search-results" *ngIf="showResults && searchResults.length > 0">
+      <div class="result-item"
+           *ngFor="let result of searchResults"
+           (click)="goToResult(result)">
+        <span class="result-type">{{ result.type }}</span>
+        <div class="result-info">
+          <span class="result-title">{{ result.title }}</span>
+          <span class="result-sub">{{ result.subtitle }}</span>
+        </div>
+      </div>
+    </div>
+
+    
+    <div class="search-results" *ngIf="showResults && searchResults.length === 0">
+      <p class="no-results">Sin resultados para "{{ searchQuery }}"</p>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a *ngFor="let item of navItems"
+       [routerLink]="item.route"
+       routerLinkActive="active"
+       class="nav-item">
+      <span class="nav-icon">{{ item.icon }}</span>
+      <span class="nav-label" *ngIf="!isCollapsed">{{ item.label }}</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button class="logout-btn" (click)="logout()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      <span *ngIf="!isCollapsed">Cerrar sesion</span>
+    </button>
+  </div>
+
+</aside>
