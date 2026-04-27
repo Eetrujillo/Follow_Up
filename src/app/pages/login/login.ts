@@ -4,6 +4,8 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { RouterModule, Router } from '@angular/router';
 import { TaskService } from '../../shared/services/task';
 import { AuthService } from '../../shared/services/auth.service';
+import { ChangeDetectorRef } from '@angular/core';
+
 
 @Component({
   selector: 'app-login',
@@ -23,7 +25,9 @@ export class Login {
     private fb:          FormBuilder,
     private router:      Router,
     private authService: AuthService,
-    private taskService: TaskService
+    private taskService: TaskService,
+    private cdRef: ChangeDetectorRef
+
   ) {
     this.loginForm = this.fb.group({
       email: [
@@ -68,6 +72,8 @@ export class Login {
       error: (err) => {
         this.isLoading = false;
         this.errorMessage = err?.message || 'Error al iniciar sesion';
+        this.cdRef.detectChanges();
+
       }
     });
   }

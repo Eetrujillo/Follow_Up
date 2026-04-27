@@ -34,6 +34,41 @@
       "email": "silvis_mercedes@hotmail.com",
       "password": "Laura1707",
       "createdAt": "2026-04-16T17:12:50.512Z"
+    },
+    {
+      "id": 1777077477676,
+      "name": "esteb",
+      "email": "t@gmail.com",
+      "password": "1234567890",
+      "createdAt": "2026-04-25T00:37:57.676Z"
+    },
+    {
+      "id": 1777087744174,
+      "name": "esteban",
+      "email": "estebn@gmail.com",
+      "password": "123456789",
+      "createdAt": "2026-04-25T03:29:04.174Z"
+    },
+    {
+      "id": 1777131654279,
+      "name": "esteban",
+      "email": "esteban@gmail.com",
+      "password": "1234567890",
+      "createdAt": "2026-04-25T15:40:54.279Z"
+    },
+    {
+      "id": 1777131674541,
+      "name": "esteban",
+      "email": "esteban@gmail.com",
+      "password": "1234567890",
+      "createdAt": "2026-04-25T15:41:14.541Z"
+    },
+    {
+      "id": 1777259345206,
+      "name": "esteban",
+      "email": "esteba@gmail.com",
+      "password": "1234567890",
+      "createdAt": "2026-04-27T03:09:05.206Z"
     }
   ]
 }

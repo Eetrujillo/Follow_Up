@@ -20,7 +20,7 @@ export class Sidebar {
   showResults   = false;
 
   navItems = [
-    { label: 'Panel Principal', route: '/dashboard',  icon: '⊞' },
+   { label: 'Panel Principal', route: '/dashboard',  icon: '⊞' },
     { label: 'Biblioteca',      route: '/library',    icon: '▣' },
     { label: 'Calendario',      route: '/calendar',   icon: '▦' },
     { label: 'Estadisticas',    route: '/statistics', icon: '▤' },

@@ -9,11 +9,11 @@ import { takeWhile } from 'rxjs/operators';
 Chart.register(...registerables);
 
 @Component({
-  selector: 'app-dashboard',  // Asegúrate de que el selector coincida con el de tu componente
+  selector: 'app-dashboard', 
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './dashboard.html',  // Nombre del archivo HTML sin "component"
-  styleUrls: ['./dashboard.css']   // Nombre del archivo CSS sin "component"
+  templateUrl: './dashboard.html',  
+  styleUrls: ['./dashboard.css']
 })
 export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
 
@@ -34,12 +34,10 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     { title: 'Guia de CSS Grid',      time: 'Hace 2 dias'  },
   ];
 
-  // --- TIMER ---
   segundos = 25 * 60; 
   isRunning = false;
   private timerSub: Subscription | null = null;
 
-  // Variables para minutos y segundos
   minutes: string = '25';
   secs: string = '00';
 
@@ -92,7 +90,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
       .subscribe({
         next: () => {
           this.segundos--; 
-          this.updateTime(); // Asegura que los minutos y segundos se actualicen en la vista
+          this.updateTime(); 
         },
         complete: () => {
           this.stopTimer();
@@ -111,20 +109,18 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     this.timerSub?.unsubscribe();
     this.timerSub = null;
     this.isRunning = false;
-    this.segundos = 25 * 60; // Reinicia a 25 minutos
-    this.updateTime(); // Actualiza la visualización después de detener el temporizador
+    this.segundos = 25 * 60; 
+    this.updateTime(); 
   }
 
   private updateTime() {
-    // Método para forzar la actualización de los minutos y segundos en la vista
     const minutesLeft = Math.floor(this.segundos / 60);
     const secondsLeft = this.segundos % 60;
 
     this.minutes = minutesLeft < 10 ? `0${minutesLeft}` : `${minutesLeft}`;
     this.secs = secondsLeft < 10 ? `0${secondsLeft}` : `${secondsLeft}`;
 
-    // Aquí es donde Angular se asegura de que se actualicen los valores en la vista
-    this.cdr.detectChanges();  // Fuerza la detección de cambios manualmente
+    this.cdr.detectChanges();
   }
 
   ngOnDestroy() {
@@ -137,7 +133,6 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     this.createBar();
   }
 
-  // --- CHARTS ---
   createDonut() {
     const pct = this.progressPercent;
     this.donutChart = new Chart(this.donutCanvas.nativeElement, {
