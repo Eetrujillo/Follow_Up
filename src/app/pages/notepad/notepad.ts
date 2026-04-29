@@ -13,48 +13,53 @@ import { AuthService } from '../../shared/services/auth.service';
   styleUrl: './notepad.css'
 })
 export class Notepad implements AfterViewInit {
-  @ViewChild('editor') editorRef!: ElementRef<HTMLElement>;
 
-  saved = false;
+  @ViewChild('editor') editorRef!: ElementRef;
+
+  saved         = false;
   showSaveModal = false;
-  noteName = '';
+  noteName      = '';
 
-  private storageKey: string;
-
-  constructor(
-    private storage: StorageService,
-    private libraryService: LibraryService,
-    private authService: AuthService
-  ) {
+  private get storageKey(): string {
     const user = this.authService.getCurrentUser();
-    this.storageKey = `notepad_${user?.id || user?.email || 'guest'}`;
+    return `notepad_${user?.id || user?.email || 'guest'}`;
   }
 
+  get hasContent(): boolean {
+    return !!this.editorRef?.nativeElement?.innerText?.trim();
+  }
+
+  constructor(
+    private storage:        StorageService,
+    private libraryService: LibraryService,
+    private authService:    AuthService
+  ) {}
+
   ngAfterViewInit() {
+    // Cargar contenido guardado
     const saved = this.storage.get<string>(this.storageKey, '');
     if (saved) {
       this.editorRef.nativeElement.innerHTML = saved;
     }
   }
 
-  applyFormat(command: 'bold' | 'italic' | 'underline') {
-    document.execCommand(command, false);
-    this.focusEditor();
-    this.saveLocal();
+  format(command: string, value?: string) {
+    document.execCommand(command, false, value);
+    this.editorRef.nativeElement.focus();
+    this.onContentChange();
   }
 
-  isActive(command: 'bold' | 'italic' | 'underline'): boolean {
+  isActive(command: string): boolean {
     return document.queryCommandState(command);
   }
 
-  saveLocal() {
-    const content = this.editorRef?.nativeElement?.innerHTML ?? '';
-    this.storage.set(this.storageKey, content);
-    this.saved = false;
+  onSelectionChange() {
   }
 
   onContentChange() {
-    this.saveLocal();
+    const content = this.editorRef.nativeElement.innerHTML;
+    this.storage.set(this.storageKey, content);
+    this.saved = false;
   }
 
   openSaveModal() {
@@ -63,22 +68,11 @@ export class Notepad implements AfterViewInit {
   }
 
   saveToLibrary() {
-    const name = this.noteName?.trim();
-    if (!name) return;
-    const content = this.editorRef?.nativeElement?.innerHTML ?? '';
-    if (!content.trim()) return;
-
-    this.libraryService.saveNote(name, content);
+    if (!this.noteName.trim()) return;
+    const content = this.editorRef.nativeElement.innerHTML;
+    this.libraryService.saveNote(this.noteName.trim(), content);
     this.showSaveModal = false;
     this.saved = true;
-    setTimeout(() => (this.saved = false), 2000);
-  }
-
-  private focusEditor() {
-    this.editorRef?.nativeElement?.focus();
-  }
-
-  get hasContent(): boolean {
-    return !!(this.editorRef?.nativeElement?.innerText?.trim());
+    setTimeout(() => this.saved = false, 2000);
   }
 }
