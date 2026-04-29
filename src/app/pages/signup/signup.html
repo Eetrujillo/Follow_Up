@@ -40,7 +40,7 @@
                formControlName="password"
                [class.input-error]="password?.invalid && password?.touched" />
         <span class="error" *ngIf="password?.touched && password?.hasError('required')">
-          La contrasena es obligatoria
+          La contrasena 7es obligatoria
         </span>
         <span class="error" *ngIf="password?.touched && password?.hasError('minlength')">
           Minimo 8 caracteres

@@ -16,19 +16,16 @@ export class Library implements OnInit {
 
   folders: Folder[] = [];
 
-  // Vista actual: 'folders' | 'documents' | 'editor'
   view: 'folders' | 'documents' | 'editor' = 'folders';
 
   selectedFolder: Folder | null = null;
   selectedDoc:    Document | null = null;
 
-  // Modales
   showFolderModal = false;
   showDocModal    = false;
   newFolderName   = '';
   newDocName      = '';
 
-  // Editor
   editorContent = '';
 
   constructor(private libraryService: LibraryService, private router: Router) {}
@@ -43,7 +40,6 @@ export class Library implements OnInit {
     });
   }
 
-  // ── Navegacion ────────────────────────────────────────
   openFolder(folder: Folder) {
     this.selectedFolder = folder;
     this.view = 'documents';
@@ -66,7 +62,6 @@ export class Library implements OnInit {
     }
   }
 
-  // ── Carpetas ──────────────────────────────────────────
   openFolderModal() {
     this.newFolderName = '';
     this.showFolderModal = true;
@@ -83,7 +78,6 @@ export class Library implements OnInit {
     this.libraryService.deleteFolder(id);
   }
 
-  // ── Documentos ────────────────────────────────────────
   openDocModal() {
     this.newDocName = '';
     this.showDocModal = true;
@@ -104,7 +98,6 @@ onSaveAndGoBack() {
   this.saveDocumentContent();
   this.goBack();
 }
-  // ── Editor ────────────────────────────────────────────
   saveDocumentContent() {
     if (!this.selectedFolder || !this.selectedDoc) return;
     this.libraryService.updateDocument(

@@ -73,7 +73,6 @@ export class Login {
         this.isLoading = false;
         this.errorMessage = err?.message || 'Error al iniciar sesion';
         this.cdRef.detectChanges();
-
       }
     });
   }

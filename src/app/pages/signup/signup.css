@@ -140,3 +140,6 @@ button:disabled {
   border: 1px solid #ff4d4d;
   text-align: center;
 }
+.error{
+  color: #B00020;
+}

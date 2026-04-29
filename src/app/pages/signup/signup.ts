@@ -18,6 +18,7 @@ export class Signup {
   signupForm: FormGroup;
   errorMessage = '';
   isLoading = false;
+  verPasword = false;
 
   constructor(
     private fb: FormBuilder,
@@ -39,6 +40,9 @@ export class Signup {
     const confirm = group.get('confirm')?.value;
     return pass === confirm ? null : { noMatch: true };
   }
+  toggleOjo(){
+    this.verPasword = !this.password;
+  }
 
   get name() { return this.signupForm.get('name'); }
   get email() { return this.signupForm.get('email'); }
@@ -58,7 +62,6 @@ export class Signup {
 
   this.userService.register(name, email, password)
     .pipe(finalize(() => {
-      console.log('Finalize ejecutado, apagando isLoading');
       this.isLoading = false;
     }))
     .subscribe({

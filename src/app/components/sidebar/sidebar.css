@@ -13,7 +13,7 @@
 
 .sidebar {
   width: var(--sidebar-width);
-  min-height: 102.5vh;
+  min-height: 100vh;
   background-color: var(--bg-sidebar);
   display: flex;
   flex-direction: column;
