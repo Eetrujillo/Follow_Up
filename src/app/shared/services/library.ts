@@ -94,7 +94,6 @@ export class LibraryService {
     this.save(folders);
   }
 
-  // Guardar nota desde el bloc de notas
   saveNote(name: string, content: string) {
     const notesFolder = this.getNotesFolder();
     if (!notesFolder) return;

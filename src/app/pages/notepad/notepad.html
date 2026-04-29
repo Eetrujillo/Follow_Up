@@ -9,42 +9,72 @@
   <div class="page-header">
     <div>
       <h1>Bloc de Notas</h1>
-      <p class="subtitle">Tu espacio personal para escritura libre.</p>
+      <p class="subtitle">Tu espacio personal.</p>
     </div>
     <div class="header-actions">
       <span class="saved-msg" *ngIf="saved">Guardado en biblioteca</span>
-      <button class="btn-library" (click)="openSaveModal()"
-              [disabled]="!content.trim()">
+      <button class="btn-library"
+              (click)="openSaveModal()"
+              [disabled]="!hasContent">
         Guardar en Biblioteca
       </button>
     </div>
   </div>
 
   <div class="editor-container">
+
+    <!-- Toolbar -->
     <div class="toolbar">
-      <button class="tool-btn" [class.active]="bold"      (click)="applyBold()">
+      <button class="tool-btn" (click)="format('bold')"
+              [class.active]="isActive('bold')"
+              title="Negrita">
         <strong>B</strong>
       </button>
-      <button class="tool-btn" [class.active]="italic"    (click)="applyItalic()">
+      <button class="tool-btn" (click)="format('italic')"
+              [class.active]="isActive('italic')"
+              title="Cursiva">
         <em>I</em>
       </button>
-      <button class="tool-btn" [class.active]="underline" (click)="applyUnderline()">
+      <button class="tool-btn" (click)="format('underline')"
+              [class.active]="isActive('underline')"
+              title="Subrayado">
         <u>U</u>
+      </button>
+      <div class="divider"></div>
+      <button class="tool-btn" (click)="format('insertUnorderedList')"
+              title="Lista">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+          <line x1="8" y1="6"  x2="21" y2="6"/>
+          <line x1="8" y1="12" x2="21" y2="12"/>
+          <line x1="8" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6"  x2="3.01" y2="6"/>
+          <line x1="3" y1="12" x2="3.01" y2="12"/>
+          <line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+      </button>
+      <div class="divider"></div>
+      <!-- Selector de tamaño -->
+      <button class="tool-btn" (click)="format('fontSize', '4')" title="Grande">
+        <span style="font-size:15px">A</span>
+      </button>
+      <button class="tool-btn" (click)="format('fontSize', '2')" title="Normal">
+        <span style="font-size:11px">A</span>
       </button>
     </div>
 
-    <textarea
+    <div
+      #editor
       class="editor"
-      [class.bold]="bold"
-      [class.italic]="italic"
-      [class.underline]="underline"
-      [(ngModel)]="content"
-      (ngModelChange)="onContentChange()"
-      placeholder="Empieza a escribir aqui...">
-    </textarea>
+      contenteditable="true"
+      (input)="onContentChange()"
+      (keyup)="onSelectionChange()"
+      (mouseup)="onSelectionChange()"
+      [attr.data-placeholder]="'Empieza a escribir aqui...'">
+    </div>
+
   </div>
 
-  <!-- Modal para nombrar la nota -->
   <div class="modal-overlay" *ngIf="showSaveModal" (click)="showSaveModal = false">
     <div class="modal" (click)="$event.stopPropagation()">
       <h3>Guardar en Biblioteca</h3>

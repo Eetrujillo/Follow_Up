@@ -38,7 +38,6 @@ export class SearchService {
       }
     });
 
-    // Buscar en tareas
     this.taskService.getTasks().forEach(t => {
       if (t.text.toLowerCase().includes(q)) {
         results.push({
@@ -50,7 +49,6 @@ export class SearchService {
       }
     });
 
-    // Buscar en carpetas y documentos
     this.libraryService.getFolders().forEach(folder => {
       if (folder.name.toLowerCase().includes(q)) {
         results.push({
@@ -72,6 +70,6 @@ export class SearchService {
       });
     });
 
-    return results.slice(0, 8); // max 8 resultados
+    return results.slice(0, 8); 
   }
 }
