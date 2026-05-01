@@ -13,9 +13,8 @@
     </div>
     <div class="header-actions">
       <span class="saved-msg" *ngIf="saved">Guardado en biblioteca</span>
-      <button class="btn-library"
-              (click)="openSaveModal()"
-              [disabled]="!hasContent">
+      <div class="char-counter" [class.over]="isOverLimit">{{ charCount }} / {{ maxChars }}</div>
+      <button class="btn-library" (click)="openSaveModal()" [disabled]="!hasContent || isOverLimit">
         Guardar en Biblioteca
       </button>
     </div>
@@ -24,36 +23,27 @@
   <div class="editor-container">
 
     <div class="toolbar">
-      <button class="tool-btn" (click)="format('bold')"
-              [class.active]="isActive('bold')"
-              title="Negrita">
+      <button class="tool-btn" (click)="format('bold')" [class.active]="isActive('bold')" title="Negrita">
         <strong>B</strong>
       </button>
-      <button class="tool-btn" (click)="format('italic')"
-              [class.active]="isActive('italic')"
-              title="Cursiva">
+      <button class="tool-btn" (click)="format('italic')" [class.active]="isActive('italic')" title="Cursiva">
         <em>I</em>
       </button>
-      <button class="tool-btn" (click)="format('underline')"
-              [class.active]="isActive('underline')"
-              title="Subrayado">
+      <button class="tool-btn" (click)="format('underline')" [class.active]="isActive('underline')" title="Subrayado">
         <u>U</u>
       </button>
       <div class="divider"></div>
-      <button class="tool-btn" (click)="format('insertUnorderedList')"
-              title="Lista">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2">
-          <line x1="8" y1="6"  x2="21" y2="6"/>
-          <line x1="8" y1="12" x2="21" y2="12"/>
-          <line x1="8" y1="18" x2="21" y2="18"/>
-          <line x1="3" y1="6"  x2="3.01" y2="6"/>
-          <line x1="3" y1="12" x2="3.01" y2="12"/>
-          <line x1="3" y1="18" x2="3.01" y2="18"/>
+      <button class="tool-btn" (click)="format('insertUnorderedList')" title="Lista">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="8" y1="6" x2="21" y2="6" />
+          <line x1="8" y1="12" x2="21" y2="12" />
+          <line x1="8" y1="18" x2="21" y2="18" />
+          <line x1="3" y1="6" x2="3.01" y2="6" />
+          <line x1="3" y1="12" x2="3.01" y2="12" />
+          <line x1="3" y1="18" x2="3.01" y2="18" />
         </svg>
       </button>
       <div class="divider"></div>
-      <!-- Selector de tamaño -->
       <button class="tool-btn" (click)="format('fontSize', '4')" title="Grande">
         <span style="font-size:15px">A</span>
       </button>
@@ -62,15 +52,11 @@
       </button>
     </div>
 
-    <div
-      #editor
-      class="editor"
-      contenteditable="true"
-      (input)="onContentChange()"
-      (keyup)="onSelectionChange()"
-      (mouseup)="onSelectionChange()"
-      [attr.data-placeholder]="'Empieza a escribir aqui...'">
+    <div #editor class="editor" contenteditable="true" (input)="onContentChange()" (keydown)="onEditorKeyDown($event)"
+      (paste)="onEditorPaste($event)">
     </div>
+
+
 
   </div>
 
@@ -78,13 +64,10 @@
     <div class="modal" (click)="$event.stopPropagation()">
       <h3>Guardar en Biblioteca</h3>
       <p class="modal-sub">La nota se guardara en la carpeta "Mis Notas"</p>
-      <input type="text"
-             placeholder="Nombre de la nota"
-             [(ngModel)]="noteName"
-             (keyup.enter)="saveToLibrary()" />
+      <input type="text" placeholder="Nombre de la nota" [(ngModel)]="noteName" (keyup.enter)="saveToLibrary()" />
       <div class="modal-actions">
         <button class="btn-cancel" (click)="showSaveModal = false">Cancelar</button>
-        <button class="btn-save"   (click)="saveToLibrary()">Guardar</button>
+        <button class="btn-save" (click)="saveToLibrary()">Guardar</button>
       </div>
     </div>
   </div>

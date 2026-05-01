@@ -67,6 +67,8 @@ export class Login {
           this.router.navigate(['/dashboard']);
         } else {
           this.errorMessage = 'Correo o contraseña incorrectos';
+          this.cdRef.detectChanges();
+
         }
       },
       error: (err) => {

@@ -35,12 +35,13 @@
         <span class="day-number" *ngIf="!day.isEmpty">{{ day.number }}</span>
 
         <div class="event-tag" *ngFor="let ev of day.events.slice(0, 2)" [style.background]="ev.color"
-          (click)="deleteEvent(ev.id, $event)" title="Clic para eliminar">
+          (click)="openEventModal(ev); $event.stopPropagation()" title="Clic para editar">
           {{ ev.title }}
         </div>
 
+
         <span class="more-events" *ngIf="day.events.length > 2">
-          +{{ day.events.length - 2 }} mas
+          +{{ day.events.length - 2 }} más
         </span>
 
       </div>
@@ -52,14 +53,14 @@
     <div class="modal" (click)="$event.stopPropagation()">
 
       <div class="modal-header">
-        <h3>Agregar evento</h3>
+        <h3>{{ editingEventId ? 'Editar evento' : 'Agregar evento' }}</h3>
         <button class="close-btn" (click)="closeModal()">x</button>
       </div>
 
-      <p class="modal-day">Dia seleccionado: <strong>{{ selectedDay }}</strong></p>
+      <p class="modal-day">Día seleccionado: <strong>{{ selectedDay }}</strong></p>
 
       <div class="modal-field">
-        <label>Titulo del evento</label>
+        <label>Título del evento</label>
         <input type="text" placeholder="Ej: Estudiar React" [(ngModel)]="newEventTitle" (keyup.enter)="saveEvent()"
           autofocus />
       </div>
@@ -72,13 +73,14 @@
           </span>
         </div>
       </div>
-      
+
       <div class="modal-actions">
         <div class="error-msg" *ngIf="errorMessage">
           {{ errorMessage }}
         </div>
         <button class="btn-cancel" (click)="closeModal()">Cancelar</button>
-        <button class="btn-save" (click)="saveEvent()">Guardar</button>
+        <button class="btn-save" (click)="saveEvent()">{{ editingEventId ? 'Guardar cambios' : 'Guardar' }}</button>
+        <button *ngIf="editingEventId" class="btn-delete" (click)="deleteEvent(editingEventId)">Eliminar</button>
       </div>
 
     </div>

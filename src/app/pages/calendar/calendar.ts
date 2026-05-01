@@ -33,15 +33,12 @@ export class Calendar {
   currentDate = new Date();
   errorMessage = '';
 
-
   showModal     = false;
   selectedDay   = 0;
   newEventTitle = '';
   newEventColor = '#3b82f6';
 
-
-  showEventsModal = false;
-  selectedDayEvents: CalendarEvent[] = [];
+  editingEventId: number | null = null;   // Nuevo estado para edición
 
   colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -94,54 +91,74 @@ export class Calendar {
     this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 1);
   }
 
-  
   openModal(day: Day) {
     if (day.isEmpty) return;
     this.selectedDay        = day.number;
-    this.selectedDayEvents  = day.events;
     this.newEventTitle      = '';
     this.newEventColor      = '#3b82f6';
+    this.editingEventId     = null; 
     this.showModal          = true;
+  }
+
+  openEventModal(ev: CalendarEvent) {
+    this.selectedDay    = ev.day;
+    this.newEventTitle  = ev.title;
+    this.newEventColor  = ev.color;
+    this.editingEventId = ev.id;
+    this.showModal      = true;
   }
 
   closeModal() {
     this.showModal = false;
-  }
-saveEvent() {
-  // Validacion: titulo vacio
-  if (!this.newEventTitle.trim()) {
-    this.errorMessage = 'Escribe un titulo para el evento';
-    return;
+    this.editingEventId = null;
   }
 
-  this.errorMessage = '';
+  saveEvent() {
+    if (!this.newEventTitle.trim()) {
+      this.errorMessage = 'Escribe un título para el evento';
+      return;
+    }
 
-  const newEvent: CalendarEvent = {
-    id:    Date.now(),
-    day:   this.selectedDay,
-    month: this.currentDate.getMonth(),
-    year:  this.currentDate.getFullYear(),
-    title: this.newEventTitle.trim(),
-    color: this.newEventColor
-  };
+    this.errorMessage = '';
 
-  this.events.push(newEvent);
-  this.storage.set('calendar_events', this.events);
+    if (this.editingEventId) {
+      const idx = this.events.findIndex(ev => ev.id === this.editingEventId);
+      if (idx !== -1) {
+        this.events[idx].title = this.newEventTitle.trim();
+        this.events[idx].color = this.newEventColor;
+      }
+    } else {
+      const newEvent: CalendarEvent = {
+        id:    Date.now(),
+        day:   this.selectedDay,
+        month: this.currentDate.getMonth(),
+        year:  this.currentDate.getFullYear(),
+        title: this.newEventTitle.trim(),
+        color: this.newEventColor
+      };
 
-  const dateStr = `${this.selectedDay}/${this.currentDate.getMonth() + 1}/${this.currentDate.getFullYear()}`;
-  this.taskService.addTask(
-    `${this.newEventTitle.trim()} (${dateStr})`,
-    'calendar',
-    dateStr
-  );
+      this.events.push(newEvent);
 
-  this.closeModal();
-}
-  
- deleteEvent(eventId: number, e: MouseEvent) {
-  e.stopPropagation();
-  e.preventDefault();
+      const dateStr = `${this.selectedDay}/${this.currentDate.getMonth() + 1}/${this.currentDate.getFullYear()}`;
+      this.taskService.addTask(
+        `${this.newEventTitle.trim()} (${dateStr})`,
+        'calendar',
+        dateStr
+      );
+    }
+
+    this.storage.set('calendar_events', this.events);
+    this.closeModal();
+  }
+
+  deleteEvent(eventId: number, e?: MouseEvent) {
+  if (e) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
   this.events = this.events.filter(ev => ev.id !== eventId);
   this.storage.set('calendar_events', this.events);
+  this.closeModal();
 }
+
 }

@@ -12,7 +12,7 @@ import { ChangeDetectorRef } from '@angular/core';
 
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './signup.html',
-  styleUrl: './signup.css'
+  styleUrl: './signup.css',
 })
 export class Signup {
   signupForm: FormGroup;
@@ -24,15 +24,17 @@ export class Signup {
     private fb: FormBuilder,
     private router: Router,
     private userService: UserService,
-    private cdRef: ChangeDetectorRef
-
+    private cdRef: ChangeDetectorRef,
   ) {
-    this.signupForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
-      confirm: ['', [Validators.required]]
-    }, { validators: this.passwordsMatch });
+    this.signupForm = this.fb.group(
+      {
+        name: ['', [Validators.required, Validators.minLength(2)]],
+        email: ['', [Validators.required, Validators.email]],
+        password: ['', [Validators.required, Validators.minLength(8)]],
+        confirm: ['', [Validators.required]],
+      },
+      { validators: this.passwordsMatch },
+    );
   }
 
   passwordsMatch(group: FormGroup) {
@@ -40,41 +42,52 @@ export class Signup {
     const confirm = group.get('confirm')?.value;
     return pass === confirm ? null : { noMatch: true };
   }
-  toggleOjo(){
+  toggleOjo() {
     this.verPasword = !this.password;
   }
 
-  get name() { return this.signupForm.get('name'); }
-  get email() { return this.signupForm.get('email'); }
-  get password() { return this.signupForm.get('password'); }
-  get confirm() { return this.signupForm.get('confirm'); }
-
-  onSubmit() {
-  this.errorMessage = '';
-
-  if (this.signupForm.invalid) {
-    this.signupForm.markAllAsTouched();
-    return;
+  get name() {
+    return this.signupForm.get('name');
+  }
+  get email() {
+    return this.signupForm.get('email');
+  }
+  get password() {
+    return this.signupForm.get('password');
+  }
+  get confirm() {
+    return this.signupForm.get('confirm');
   }
 
-  const { name, email, password } = this.signupForm.value;
-  this.isLoading = true;
+  onSubmit() {
+    this.errorMessage = '';
 
-  this.userService.register(name, email, password)
-    .pipe(finalize(() => {
-      this.isLoading = false;
-    }))
-    .subscribe({
-      next: (user) => {
-        console.log('Registro exitoso:', user);
-        this.router.navigate(['/login']);
-      },
-      error: (err) => {
-        console.error('Error en subscribe:', err);
-        this.errorMessage = err?.message || 'Error al registrar';
-        this.cdRef.detectChanges();
-      }
-    });
-}
+    if (this.signupForm.invalid) {
+      this.signupForm.markAllAsTouched();
+      return;
+    }
 
+    const { name, email, password } = this.signupForm.value;
+    this.isLoading = true;
+
+    this.userService
+      .register(name, email, password)
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+        }),
+      )
+      .subscribe({
+        next: (user) => {
+          console.log('Registro exitoso:', user);
+          this.router.navigate(['/login']);
+          this.cdRef.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error en subscribe:', err);
+          this.errorMessage = err?.message || 'Error al registrar';
+          this.cdRef.detectChanges();
+        },
+      });
+  }
 }

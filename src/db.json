@@ -69,6 +69,20 @@
       "email": "esteba@gmail.com",
       "password": "1234567890",
       "createdAt": "2026-04-27T03:09:05.206Z"
+    },
+    {
+      "id": 1777511515971,
+      "name": "brayan",
+      "email": "brayan@gmail.com",
+      "password": "12345678",
+      "createdAt": "2026-04-30T01:11:55.971Z"
+    },
+    {
+      "id": 1777586003937,
+      "name": "carlos",
+      "email": "carlos@gmail.com",
+      "password": "1234567890",
+      "createdAt": "2026-04-30T21:53:23.937Z"
     }
   ]
 }

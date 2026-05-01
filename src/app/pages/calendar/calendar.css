@@ -255,7 +255,18 @@ h1 {
 }
 
 .btn-cancel:hover { background: #333; color: #fff; }
-
+.btn-delete {
+  background: #ef4444;
+  border: none;
+  border-radius: 7px;
+  color: #fff;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  width: auto;
+  margin: 0;
+  transition: background 0.2s;
+}
 .btn-save {
   background: #3b82f6;
   border: none;

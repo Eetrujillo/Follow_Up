@@ -76,6 +76,10 @@ h1 {
   background: #2a2a2a;
   margin: 0 4px;
 }
+.char-counter { color:#666; margin-right:12px; }
+.char-counter.over { color:#c00; font-weight:700; }
+.editor.over-limit { outline: 1px solid #f99; }
+
 
 .editor {
   width: 100%;
@@ -90,6 +94,7 @@ h1 {
   resize: none;
   box-sizing: border-box;
   font-family: sans-serif;
+  white-space: pre-wrap;
 }
 
 .editor::placeholder { color: #444; }

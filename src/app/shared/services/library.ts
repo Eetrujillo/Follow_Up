@@ -38,16 +38,7 @@ export class LibraryService {
 
   private loadFolders() {
     const saved = this.storage.get<Folder[]>(this.storageKey, [
-      { id: 1, name: 'Desarrollo Frontend',      documents: [], isNotesFolder: false },
-      { id: 2, name: 'Desarrollo Backend',       documents: [], isNotesFolder: false },
-      { id: 3, name: 'Bases de Datos',           documents: [], isNotesFolder: false },
-      { id: 4, name: 'Algoritmos',               documents: [], isNotesFolder: false },
-      { id: 5, name: 'Diseno UX/UI',             documents: [], isNotesFolder: false },
-      { id: 6, name: 'DevOps',                   documents: [], isNotesFolder: false },
-      { id: 7, name: 'Machine Learning',         documents: [], isNotesFolder: false },
-      { id: 8, name: 'Arquitectura de Software', documents: [], isNotesFolder: false },
-      // Carpeta especial de notas
-      { id: 9, name: 'Mis Notas', documents: [], isNotesFolder: true },
+      { id: 9, name: 'Mis Notas', documents: [], isNotesFolder: true }
     ]);
     this.foldersSubject.next(saved);
   }

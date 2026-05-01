@@ -9,10 +9,10 @@ import { takeWhile } from 'rxjs/operators';
 Chart.register(...registerables);
 
 @Component({
-  selector: 'app-dashboard', 
+  selector: 'app-dashboard',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './dashboard.html',  
+  templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
 })
 export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
@@ -29,12 +29,12 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
 
   activities = [
     { title: 'Notas de JavaScript',  time: 'Hace 2 horas' },
-    { title: 'Proyecto Final React',  time: 'Hace 5 horas' },
-    { title: 'Resumen de Algoritmos', time: 'Ayer'         },
-    { title: 'Guia de CSS Grid',      time: 'Hace 2 dias'  },
+    { title: 'Proyecto Final React', time: 'Hace 5 horas' },
+    { title: 'Resumen de Algoritmos', time: 'Ayer' },
+    { title: 'Guia de CSS Grid',     time: 'Hace 2 dias' },
   ];
 
-  segundos = 25 * 60; 
+  segundos = 25 * 60;
   isRunning = false;
   private timerSub: Subscription | null = null;
 
@@ -44,10 +44,25 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   constructor(private taskService: TaskService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
+    // Restaurar estado del Pomodoro si existe en localStorage
+    const saved = localStorage.getItem('pomodoro');
+    if (saved) {
+      const state = JSON.parse(saved);
+      this.segundos = state.segundos;
+      this.isRunning = state.isRunning;
+      this.updateTime();
+      if (this.isRunning) this.startTimer();
+    }
+
     this.taskSub = this.taskService.tasks$.subscribe(tasks => {
       this.tasks = tasks;
       if (this.donutChart) this.updateDonut();
     });
+  }
+
+  private savePomodoroState() {
+    const state = { segundos: this.segundos, isRunning: this.isRunning };
+    localStorage.setItem('pomodoro', JSON.stringify(state));
   }
 
   get progressPercent(): number {
@@ -69,10 +84,8 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     this.taskService.toggleTask(task.id);
   }
 
-  // --- TIMER GETTERS ---
   get statusText(): string { return this.isRunning ? 'En progreso' : 'En pausa'; }
 
-  // --- TIMER LOGIC ---
   toggleTimer() {
     if (this.isRunning) {
       this.pauseTimer();
@@ -84,13 +97,15 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   private startTimer() {
     if (this.isRunning) return;
     this.isRunning = true;
+    this.savePomodoroState();
 
     this.timerSub = interval(1000)
       .pipe(takeWhile(() => this.segundos > 0))
       .subscribe({
         next: () => {
-          this.segundos--; 
-          this.updateTime(); 
+          this.segundos--;
+          this.updateTime();
+          this.savePomodoroState();
         },
         complete: () => {
           this.stopTimer();
@@ -103,14 +118,16 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     this.isRunning = false;
     this.timerSub?.unsubscribe();
     this.timerSub = null;
+    this.savePomodoroState();
   }
 
   stopTimer() {
     this.timerSub?.unsubscribe();
     this.timerSub = null;
     this.isRunning = false;
-    this.segundos = 25 * 60; 
-    this.updateTime(); 
+    this.segundos = 25 * 60;
+    this.updateTime();
+    this.savePomodoroState();
   }
 
   private updateTime() {
@@ -126,6 +143,8 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy() {
     this.timerSub?.unsubscribe();
     this.taskSub?.unsubscribe();
+    // Al salir del componente, borrar estado del Pomodoro
+    localStorage.removeItem('pomodoro');
   }
 
   ngAfterViewInit() {
@@ -159,36 +178,36 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     this.donutChart.update();
   }
 
-createBar() {
-  const todayIndex = (new Date().getDay() + 6) % 7;
+  createBar() {
+    const todayIndex = (new Date().getDay() + 6) % 7;
 
-  const colors = ['#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a'];
-  colors[todayIndex] = '#3b82f6'; 
+    const colors = ['#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a'];
+    colors[todayIndex] = '#3b82f6';
 
-  this.barChart = new Chart(this.barCanvas.nativeElement, {
-    type: 'bar',
-    data: {
-      labels: ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'],
-      datasets: [{
-        data: [3, 5, 8, 2, 1, 0, 0],
-        backgroundColor: colors,
-        borderRadius: 4,
-        borderSkipped: false,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { enabled: false } },
-      scales: {
-        x: {
-          grid: { display: false },
-          ticks: { color: '#666', font: { size: 11 } },
-          border: { display: false }
-        },
-        y: { display: false }
+    this.barChart = new Chart(this.barCanvas.nativeElement, {
+      type: 'bar',
+      data: {
+        labels: ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'],
+        datasets: [{
+          data: [3, 5, 8, 2, 1, 0, 0],
+          backgroundColor: colors,
+          borderRadius: 4,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#666', font: { size: 11 } },
+            border: { display: false }
+          },
+          y: { display: false }
+        }
       }
-    }
-  });
-}
+    });
+  }
 }
