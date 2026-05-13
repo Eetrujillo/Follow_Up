@@ -8,8 +8,7 @@ import { User } from '../models/user.model';
   providedIn: 'root',
 })
 export class UserService {
-  private apiUrl =
-    'message": "You need to pass X-Master-Key or X-Access-Key in the header to read a private bin';
+  private apiUrl = 'https://api.jsonbin.io/v3/b/6a049e6e250b1311c3459717';
 
   constructor(private http: HttpClient) {}
 
