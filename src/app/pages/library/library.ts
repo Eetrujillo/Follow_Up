@@ -33,7 +33,7 @@ export class Library implements OnInit {
   ngOnInit() {
     this.libraryService.folders$.subscribe(folders => {
       this.folders = folders;
-      // Actualizar carpeta seleccionada si cambio
+
       if (this.selectedFolder) {
         this.selectedFolder = folders.find(f => f.id === this.selectedFolder!.id) || null;
       }

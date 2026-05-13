@@ -51,9 +51,9 @@ export class TaskService {
   }
 
   addTask(text: string, source: 'dashboard' | 'calendar', date?: string) {
-   const tasks = this.getTasks();
-   tasks.push({id: Date.now(), text, completed: false, source, date});
-   this.save(tasks);
+    const tasks = this.getTasks();
+    tasks.push({ id: Date.now(), text, completed: false, source, date });
+    this.save(tasks);
   }
 
   toggleTask(id: number) {

@@ -38,7 +38,7 @@ export class Calendar {
   newEventTitle = '';
   newEventColor = '#3b82f6';
 
-  editingEventId: number | null = null;   // Nuevo estado para edición
+  editingEventId: number | null = null;   
 
   colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
