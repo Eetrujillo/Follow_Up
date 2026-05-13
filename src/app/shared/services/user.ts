@@ -8,7 +8,7 @@ import { User } from '../models/user.model';
   providedIn: 'root',
 })
 export class UserService {
-  private apiUrl = 'https://api.jsonbin.io/v3/b/6a049e6e250b1311c3459717';
+  private apiUrl = 'https://api.jsonbin.io/v3/b/6a04ae5badc21f119a95e55d';
 
   constructor(private http: HttpClient) {}
 
