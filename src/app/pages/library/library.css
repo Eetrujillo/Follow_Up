@@ -22,8 +22,12 @@
   transition: color 0.2s;
 }
 
-.crumb:hover { color: #3b82f6; }
-.sep { color: #444; }
+.crumb:hover {
+  color: #3b82f6;
+}
+.sep {
+  color: #444;
+}
 
 .page-header {
   display: flex;
@@ -67,7 +71,9 @@ h1 {
   flex-shrink: 0;
 }
 
-.btn-add:hover { background: #2563eb; }
+.btn-add:hover {
+  background: #2563eb;
+}
 
 .btn-back {
   display: flex;
@@ -83,10 +89,15 @@ h1 {
   white-space: nowrap;
   margin: 0;
   width: auto;
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
 }
 
-.btn-back:hover { background: #333; color: #fff; }
+.btn-back:hover {
+  background: #333;
+  color: #fff;
+}
 
 .btn-save {
   background: #3b82f6;
@@ -102,7 +113,9 @@ h1 {
   transition: background 0.2s;
 }
 
-.btn-save:hover { background: #2563eb; }
+.btn-save:hover {
+  background: #2563eb;
+}
 
 .icon-btn {
   background: none;
@@ -117,8 +130,13 @@ h1 {
   transition: background 0.2s;
 }
 
-.icon-btn.del { color: #555; }
-.icon-btn.del:hover { background: #2a2a2a; color: #ef4444; }
+.icon-btn.del {
+  color: #555;
+}
+.icon-btn.del:hover {
+  background: #2a2a2a;
+  color: #ef4444;
+}
 
 /* Grid de carpetas */
 .folders-grid {
@@ -136,7 +154,9 @@ h1 {
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
 }
 
 .folder-card:hover {
@@ -191,7 +211,9 @@ h1 {
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
 }
 
 .doc-item:hover {
@@ -231,7 +253,6 @@ h1 {
   font-size: 14px;
 }
 
-
 .editor-box {
   background: #1e1e1e;
   border: 1px solid #2a2a2a;
@@ -254,13 +275,14 @@ h1 {
   font-family: sans-serif;
 }
 
-.editor::placeholder { color: #444; }
-
+.editor::placeholder {
+  color: #444;
+}
 
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -297,7 +319,9 @@ h1 {
   width: 100%;
 }
 
-.modal input:focus { border-color: #3b82f6; }
+.modal input:focus {
+  border-color: #3b82f6;
+}
 
 .modal-actions {
   display: flex;
@@ -318,13 +342,46 @@ h1 {
   transition: background 0.2s;
 }
 
-.btn-cancel:hover { background: #333; color: #fff; }
+.btn-cancel:hover {
+  background: #333;
+  color: #fff;
+}
+
+/* le puse estilo a el boton de editar */
+.btn-edit {
+  background: #f59e0b;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  margin: 0;
+  transition: background 0.2s;
+}
+
+.btn-edit:hover {
+  background: #d97706;
+}
+
+/* agrupe los botones en la esquina derecha */
+.doc-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
 
 @media (max-width: 1100px) {
-  .folders-grid { grid-template-columns: repeat(2, 1fr); }
+  .folders-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 600px) {
-  .folders-grid { grid-template-columns: 1fr; }
-  .page-wrapper { padding: 16px; }
+  .folders-grid {
+    grid-template-columns: 1fr;
+  }
+  .page-wrapper {
+    padding: 16px;
+  }
 }

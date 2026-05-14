@@ -1,14 +1,8 @@
 <div class="page-wrapper">
-
-  <!-- Breadcrumb dinamico -->
   <div class="breadcrumb">
-    <span class="crumb" (click)="view = 'folders'; selectedFolder = null">
-      Follow-up
-    </span>
+    <span class="crumb" (click)="view = 'folders'; selectedFolder = null"> Follow-up </span>
     <span class="sep">›</span>
-    <span class="crumb" (click)="view = 'folders'; selectedFolder = null">
-      Biblioteca
-    </span>
+    <span class="crumb" (click)="view = 'folders'; selectedFolder = null"> Biblioteca </span>
     <ng-container *ngIf="selectedFolder">
       <span class="sep">›</span>
       <span class="crumb" (click)="view = 'documents'; selectedDoc = null">
@@ -21,7 +15,6 @@
     </ng-container>
   </div>
 
-  <!-- ── Vista: Carpetas ── -->
   <ng-container *ngIf="view === 'folders'">
     <div class="page-header">
       <div>
@@ -32,12 +25,17 @@
     </div>
 
     <div class="folders-grid">
-      <div class="folder-card" *ngFor="let folder of folders"
-           (click)="openFolder(folder)">
+      <div class="folder-card" *ngFor="let folder of folders" (click)="openFolder(folder)">
         <div class="folder-left">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2">
-            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
           </svg>
           <div>
             <p class="folder-name">{{ folder.name }}</p>
@@ -46,130 +44,155 @@
         </div>
         <div class="folder-right">
           <button class="icon-btn del" (click)="deleteFolder(folder.id, $event)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"/>
-              <path d="M19 6l-1 14H6L5 6"/>
-              <path d="M10 11v6M14 11v6"/>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6l-1 14H6L5 6" />
+              <path d="M10 11v6M14 11v6" />
             </svg>
           </button>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2">
-            <polyline points="9 18 15 12 9 6"/>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="9 18 15 12 9 6" />
           </svg>
         </div>
       </div>
     </div>
   </ng-container>
 
-  <!-- ── Vista: Documentos ── -->
   <ng-container *ngIf="view === 'documents'">
     <div class="page-header">
       <div class="header-left">
         <button class="btn-back" (click)="goBack()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2">
-            <polyline points="15 18 9 12 15 6"/>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="15 18 9 12 15 6" />
           </svg>
           Volver
         </button>
         <div>
           <h1>{{ selectedFolder?.name }}</h1>
-          <p class="subtitle">{{ selectedFolder?.documents?.length }} documentos</p>
+          <p class="subtitle">{{ seleactedFolder?.documents?.length }} documentos</p>
         </div>
       </div>
       <button class="btn-add" (click)="openDocModal()">+ Nuevo documento</button>
     </div>
 
-    <!-- Sin documentos -->
     <div class="empty-state" *ngIf="selectedFolder?.documents?.length === 0">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
-           stroke="#444" stroke-width="1.5">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.5">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
       </svg>
       <p>No hay documentos en esta carpeta</p>
       <button class="btn-add" (click)="openDocModal()">Crear primer documento</button>
     </div>
 
-    <!-- Lista de documentos -->
     <div class="doc-list" *ngIf="selectedFolder && selectedFolder.documents.length > 0">
-      <div class="doc-item" *ngFor="let doc of selectedFolder.documents"
-           (click)="openDocument(doc)">
-        <div class="doc-left">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-          </svg>
-          <div>
-            <p class="doc-name">{{ doc.name }}</p>
-            <p class="doc-date">Creado el {{ doc.createdAt }}</p>
-          </div>
+      <div class="doc-item" *ngFor="let doc of selectedFolder.documents">
+        <div class="doc-left" (click)="openDocument(doc)">
+          <p class="doc-name">{{ doc.name }}</p>
+          <p class="doc-date">Creado el {{ doc.createdAt }}</p>
         </div>
-        <button class="icon-btn del" (click)="deleteDocument(doc.id, $event)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2">
-            <polyline points="3 6 5 6 21 6"/>
-            <path d="M19 6l-1 14H6L5 6"/>
-            <path d="M10 11v6M14 11v6"/>
-          </svg>
-        </button>
+        <div class="doc-actions">
+          <!--agregue el boton de editar -->
+          <button class="btn-edit" (click)="openDocument(doc)">Editar</button>
+          <!--movi el boton de eliminar a la esquina -->
+          <button class="btn-cancel" (click)="deleteDocument(doc.id, $event)">Eliminar</button>
+          <button class="btn-save" (click)="sendDocToCalendar(doc)">Programar en calendario</button>
+        </div>
       </div>
     </div>
   </ng-container>
 
-  <!-- ── Vista: Editor ── -->
   <ng-container *ngIf="view === 'editor'">
     <div class="page-header">
       <div class="header-left">
-        <button class="btn-back" (click)="goBack() ">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2">
-            <polyline points="15 18 9 12 15 6"/>
+        <button class="btn-back" (click)="goBack()">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="15 18 9 12 15 6" />
           </svg>
           Volver
         </button>
         <h1>{{ selectedDoc?.name }}</h1>
       </div>
-      <button class="btn-save" (click)="onSaveAndGoBack()" >Guardar</button>
+      <button class="btn-save" (click)="onSaveAndGoBack()">Guardar</button>
     </div>
 
     <div class="editor-box">
       <textarea
         class="editor"
         [(ngModel)]="editorContent"
-        placeholder="Empieza a escribir...">
-      </textarea>
+        placeholder="Empieza a escribir..."
+      ></textarea>
     </div>
   </ng-container>
 
-  <!-- Modal nueva carpeta -->
   <div class="modal-overlay" *ngIf="showFolderModal" (click)="showFolderModal = false">
     <div class="modal" (click)="$event.stopPropagation()">
       <h3>Nueva carpeta</h3>
-      <input type="text" placeholder="Nombre de la carpeta"
-             [(ngModel)]="newFolderName"
-             (keyup.enter)="saveFolder()" />
+      <input
+        type="text"
+        placeholder="Nombre de la carpeta"
+        [(ngModel)]="newFolderName"
+        (keyup.enter)="saveFolder()"
+      />
       <div class="modal-actions">
         <button class="btn-cancel" (click)="showFolderModal = false">Cancelar</button>
-        <button class="btn-save"   (click)="saveFolder()">Crear</button>
+        <button class="btn-save" (click)="saveFolder()">Crear</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal nuevo documento -->
   <div class="modal-overlay" *ngIf="showDocModal" (click)="showDocModal = false">
     <div class="modal" (click)="$event.stopPropagation()">
       <h3>Nuevo documento</h3>
-      <input type="text" placeholder="Nombre del documento"
-             [(ngModel)]="newDocName"
-             (keyup.enter)="saveDoc()" />
+      <input
+        type="text"
+        placeholder="Nombre del documento"
+        [(ngModel)]="newDocName"
+        (keyup.enter)="saveDoc()"
+      />
       <div class="modal-actions">
         <button class="btn-cancel" (click)="showDocModal = false">Cancelar</button>
-        <button class="btn-save"   (click)="saveDoc()">Crear</button>
+        <button class="btn-save" (click)="saveDoc()">Crear</button>
       </div>
     </div>
   </div>
 
+  <!-- modal para elegir la fecha antes de programarlo en el calendario -->
+  <div class="modal-overlay" *ngIf="showCalendarModal" (click)="showCalendarModal = false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h3>Seleccionar fecha</h3>
+      <input type="date" [(ngModel)]="selectedDate" />
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="showCalendarModal = false">Cancelar</button>
+        <button class="btn-save" (click)="confirmSendToCalendar()">Confirmar</button>
+      </div>
+    </div>
+  </div>
 </div>

@@ -10,32 +10,36 @@ import { LibraryService, Folder, Document } from '../../shared/services/library'
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './library.html',
-  styleUrl: './library.css'
+  styleUrl: './library.css',
 })
 export class Library implements OnInit {
-
   folders: Folder[] = [];
 
   view: 'folders' | 'documents' | 'editor' = 'folders';
 
   selectedFolder: Folder | null = null;
-  selectedDoc:    Document | null = null;
+  selectedDoc: Document | null = null;
 
   showFolderModal = false;
-  showDocModal    = false;
-  newFolderName   = '';
-  newDocName      = '';
+  showDocModal = false;
+  showCalendarModal = false; // nuevo modal para elegir fecha
+  newFolderName = '';
+  newDocName = '';
+  selectedDate: string = ''; // fecha seleccionada por el usuario
 
   editorContent = '';
 
-  constructor(private libraryService: LibraryService, private router: Router) {}
+  constructor(
+    private libraryService: LibraryService,
+    private router: Router,
+  ) {}
 
   ngOnInit() {
-    this.libraryService.folders$.subscribe(folders => {
+    this.libraryService.folders$.subscribe((folders) => {
       this.folders = folders;
 
       if (this.selectedFolder) {
-        this.selectedFolder = folders.find(f => f.id === this.selectedFolder!.id) || null;
+        this.selectedFolder = folders.find((f) => f.id === this.selectedFolder!.id) || null;
       }
     });
   }
@@ -46,7 +50,8 @@ export class Library implements OnInit {
   }
 
   openDocument(doc: Document) {
-    this.selectedDoc  = doc;
+    // este metodo sirve tanto para abrir como para editar
+    this.selectedDoc = doc;
     this.editorContent = doc.content;
     this.view = 'editor';
   }
@@ -94,18 +99,39 @@ export class Library implements OnInit {
     if (!this.selectedFolder) return;
     this.libraryService.deleteDocument(this.selectedFolder.id, docId);
   }
-onSaveAndGoBack() {
-  this.saveDocumentContent();
-  this.goBack();
-}
+
+  onSaveAndGoBack() {
+    this.saveDocumentContent();
+    this.goBack();
+  }
+
   saveDocumentContent() {
     if (!this.selectedFolder || !this.selectedDoc) return;
     this.libraryService.updateDocument(
       this.selectedFolder.id,
       this.selectedDoc.id,
-      this.editorContent
+      this.editorContent,
     );
-    
   }
-  
+
+  // ahora abre el modal para elegir la fecha
+  sendDocToCalendar(doc: Document) {
+    this.selectedDoc = doc;
+    this.showCalendarModal = true;
+  }
+
+  // aqui construi la fecha manualmente para evitar desfase de un día
+  confirmSendToCalendar() {
+    if (this.selectedDoc && this.selectedDate) {
+      const [yearStr, monthStr, dayStr] = this.selectedDate.split('-');
+      const year = parseInt(yearStr, 10);
+      const month = parseInt(monthStr, 10) - 1;
+      const day = parseInt(dayStr, 10);
+      const date = new Date(year, month, day, 12, 0, 0);
+      this.libraryService.addDocumentToCalendar(this.selectedDoc, date);
+      this.showCalendarModal = false;
+      this.selectedDoc = null;
+      this.selectedDate = '';
+    }
+  }
 }

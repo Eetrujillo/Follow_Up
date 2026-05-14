@@ -25,20 +25,19 @@ interface Day {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './calendar.html',
-  styleUrl: './calendar.css'
+  styleUrl: './calendar.css',
 })
 export class Calendar {
-
-  today       = new Date();
+  today = new Date();
   currentDate = new Date();
   errorMessage = '';
 
-  showModal     = false;
-  selectedDay   = 0;
+  showModal = false;
+  selectedDay = 0;
   newEventTitle = '';
   newEventColor = '#3b82f6';
 
-  editingEventId: number | null = null;   
+  editingEventId: number | null = null;
 
   colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -46,8 +45,9 @@ export class Calendar {
 
   constructor(
     private taskService: TaskService,
-    private storage: StorageService
+    private storage: StorageService,
   ) {
+    // inicializacion de eventos desde el StorageService
     this.events = this.storage.get<CalendarEvent[]>('calendar_events', []);
   }
 
@@ -56,10 +56,10 @@ export class Calendar {
   }
 
   get days(): Day[] {
-    const year   = this.currentDate.getFullYear();
-    const month  = this.currentDate.getMonth();
-    const first  = new Date(year, month, 1).getDay();
-    const total  = new Date(year, month + 1, 0).getDate();
+    const year = this.currentDate.getFullYear();
+    const month = this.currentDate.getMonth();
+    const first = new Date(year, month, 1).getDay();
+    const total = new Date(year, month + 1, 0).getDate();
     const offset = (first + 6) % 7;
     const days: Day[] = [];
 
@@ -73,8 +73,8 @@ export class Calendar {
         month === this.today.getMonth() &&
         year === this.today.getFullYear();
 
-      const dayEvents = this.events.filter(e =>
-        e.day === d && e.month === month && e.year === year
+      const dayEvents = this.events.filter(
+        (e) => e.day === d && e.month === month && e.year === year,
       );
 
       days.push({ number: d, isToday, isEmpty: false, events: dayEvents });
@@ -93,19 +93,19 @@ export class Calendar {
 
   openModal(day: Day) {
     if (day.isEmpty) return;
-    this.selectedDay        = day.number;
-    this.newEventTitle      = '';
-    this.newEventColor      = '#3b82f6';
-    this.editingEventId     = null; 
-    this.showModal          = true;
+    this.selectedDay = day.number;
+    this.newEventTitle = '';
+    this.newEventColor = '#3b82f6';
+    this.editingEventId = null;
+    this.showModal = true;
   }
 
   openEventModal(ev: CalendarEvent) {
-    this.selectedDay    = ev.day;
-    this.newEventTitle  = ev.title;
-    this.newEventColor  = ev.color;
+    this.selectedDay = ev.day;
+    this.newEventTitle = ev.title;
+    this.newEventColor = ev.color;
     this.editingEventId = ev.id;
-    this.showModal      = true;
+    this.showModal = true;
   }
 
   closeModal() {
@@ -122,43 +122,42 @@ export class Calendar {
     this.errorMessage = '';
 
     if (this.editingEventId) {
-      const idx = this.events.findIndex(ev => ev.id === this.editingEventId);
+      const idx = this.events.findIndex((ev) => ev.id === this.editingEventId);
       if (idx !== -1) {
+        // actualizacion del titulo y el color de un evento que ya existe
         this.events[idx].title = this.newEventTitle.trim();
         this.events[idx].color = this.newEventColor;
       }
     } else {
+      // para que se pueda hacer la creacion de un nuevo evento y registro en TaskService
       const newEvent: CalendarEvent = {
-        id:    Date.now(),
-        day:   this.selectedDay,
+        id: Date.now(),
+        day: this.selectedDay,
         month: this.currentDate.getMonth(),
-        year:  this.currentDate.getFullYear(),
+        year: this.currentDate.getFullYear(),
         title: this.newEventTitle.trim(),
-        color: this.newEventColor
+        color: this.newEventColor,
       };
 
       this.events.push(newEvent);
 
       const dateStr = `${this.selectedDay}/${this.currentDate.getMonth() + 1}/${this.currentDate.getFullYear()}`;
-      this.taskService.addTask(
-        `${this.newEventTitle.trim()} (${dateStr})`,
-        'calendar',
-        dateStr
-      );
+      this.taskService.addTask(`${this.newEventTitle.trim()} (${dateStr})`, 'calendar', dateStr);
     }
 
+    // cambie que se puediran guardar los eventos en el StorageService
     this.storage.set('calendar_events', this.events);
     this.closeModal();
   }
 
   deleteEvent(eventId: number, e?: MouseEvent) {
-  if (e) {
-    e.stopPropagation();
-    e.preventDefault();
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    // cambie que se eliminara el evento y que se actualizara en el StorageService
+    this.events = this.events.filter((ev) => ev.id !== eventId);
+    this.storage.set('calendar_events', this.events);
+    this.closeModal();
   }
-  this.events = this.events.filter(ev => ev.id !== eventId);
-  this.storage.set('calendar_events', this.events);
-  this.closeModal();
-}
-
 }
