@@ -12,35 +12,48 @@
 
     <div class="cal-header">
       <button class="nav-btn" (click)="prevMonth()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="15 18 9 12 15 6" />
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"/>
         </svg>
       </button>
       <span class="month-name">{{ monthName | titlecase }}</span>
       <button class="nav-btn" (click)="nextMonth()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="9 18 15 12 9 6" />
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"/>
         </svg>
       </button>
     </div>
 
     <div class="cal-grid">
-      <div class="day-name" *ngFor="let d of ['L','Ma','M','J','V','S','D']">
+      <div class="day-name"
+           *ngFor="let d of ['Lun','Mar','Mie','Jue','Vie','Sab','Dom']">
         {{ d }}
       </div>
 
-      <div *ngFor="let day of days" class="day-cell" [class.empty]="day.isEmpty" [class.today]="day.isToday"
-        [class.has-events]="day.events.length > 0" (click)="openModal(day)">
+      <div
+        *ngFor="let day of days"
+        class="day-cell"
+        [class.empty]="day.isEmpty"
+        [class.today]="day.isToday"
+        [class.has-events]="day.events.length > 0"
+        (click)="openModal(day)">
 
         <span class="day-number" *ngIf="!day.isEmpty">{{ day.number }}</span>
 
-        <div class="event-tag" *ngFor="let ev of day.events.slice(0, 2)" [style.background]="ev.color"
-          (click)="openEventModal(ev); $event.stopPropagation()" title="Clic para editar">
+        <!-- Mostrar solo 2 eventos -->
+        <div class="event-tag"
+             *ngFor="let ev of day.events.slice(0, 2)"
+             [style.background]="ev.color"
+             (click)="openEventModal(ev, $event)"
+             title="Clic para editar">
           {{ ev.title }}
         </div>
 
-
-        <span class="more-events" *ngIf="day.events.length > 2">
+        <!-- Botón para abrir modal con todos los eventos -->
+        <span class="more-events" *ngIf="day.events.length > 2"
+              (click)="openEventsList(day.events, $event)">
           +{{ day.events.length - 2 }} más
         </span>
 
@@ -49,6 +62,7 @@
 
   </div>
 
+  <!-- Modal para crear/editar evento -->
   <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
     <div class="modal" (click)="$event.stopPropagation()">
 
@@ -61,28 +75,50 @@
 
       <div class="modal-field">
         <label>Título del evento</label>
-        <input type="text" placeholder="Ej: Estudiar React" [(ngModel)]="newEventTitle" (keyup.enter)="saveEvent()"
+        <input
+          type="text"
+          placeholder="Ej: Estudiar React"
+          [(ngModel)]="newEventTitle"
+          (keyup.enter)="saveEvent()"
           autofocus />
       </div>
 
       <div class="modal-field">
         <label>Color</label>
         <div class="color-picker">
-          <span *ngFor="let c of colors" class="color-dot" [style.background]="c" [class.selected]="newEventColor === c"
+          <span
+            *ngFor="let c of colors"
+            class="color-dot"
+            [style.background]="c"
+            [class.selected]="newEventColor === c"
             (click)="newEventColor = c">
           </span>
         </div>
       </div>
 
       <div class="modal-actions">
-        <div class="error-msg" *ngIf="errorMessage">
-          {{ errorMessage }}
-        </div>
         <button class="btn-cancel" (click)="closeModal()">Cancelar</button>
-        <button class="btn-save" (click)="saveEvent()">{{ editingEventId ? 'Guardar cambios' : 'Guardar' }}</button>
-        <button *ngIf="editingEventId" class="btn-delete" (click)="deleteEvent(editingEventId)">Eliminar</button>
+        <button class="btn-delete" (click)="deleteEvent()" *ngIf="editingEventId">Eliminar</button>
+        <button class="btn-save"   (click)="saveEvent()">Guardar</button>
       </div>
 
+    </div>
+  </div>
+
+  <!-- Modal para ver todos los eventos del día -->
+  <div class="modal-overlay" *ngIf="showEventsModal" (click)="showEventsModal=false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Eventos del día</h3>
+        <button class="close-btn" (click)="showEventsModal=false">x</button>
+      </div>
+      <ul class="events-list">
+        <li *ngFor="let ev of selectedDayEvents">
+          <span [style.background]="ev.color" class="event-tag">{{ ev.title }}</span>
+          <!-- botón que reutiliza el modal de edición existente -->
+          <button class="btn-edit" (click)="editFromList(ev, $event)">Editar</button>
+        </li>
+      </ul>
     </div>
   </div>
 
