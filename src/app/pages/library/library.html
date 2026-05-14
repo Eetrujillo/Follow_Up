@@ -90,7 +90,7 @@
         </button>
         <div>
           <h1>{{ selectedFolder?.name }}</h1>
-          <p class="subtitle">{{ seleactedFolder?.documents?.length }} documentos</p>
+          <p class="subtitle">{{ selectedFolder?.documents?.length }} documentos</p>
         </div>
       </div>
       <button class="btn-add" (click)="openDocModal()">+ Nuevo documento</button>
@@ -112,10 +112,11 @@
           <p class="doc-date">Creado el {{ doc.createdAt }}</p>
         </div>
         <div class="doc-actions">
-          <!--agregue el boton de editar -->
+          <!-- agregue el boton de editar -->
           <button class="btn-edit" (click)="openDocument(doc)">Editar</button>
-          <!--movi el boton de eliminar a la esquina -->
+          <!-- movi el boton de eliminar a la esquina -->
           <button class="btn-cancel" (click)="deleteDocument(doc.id, $event)">Eliminar</button>
+          <!-- cambie el texto del boton a algo más profesional -->
           <button class="btn-save" (click)="sendDocToCalendar(doc)">Programar en calendario</button>
         </div>
       </div>
@@ -184,7 +185,7 @@
     </div>
   </div>
 
-  <!-- modal para elegir la fecha antes de programarlo en el calendario -->
+  <!-- agregue el modal para elegir la fecha antes de programarlo en el calendario -->
   <div class="modal-overlay" *ngIf="showCalendarModal" (click)="showCalendarModal = false">
     <div class="modal" (click)="$event.stopPropagation()">
       <h3>Seleccionar fecha</h3>
