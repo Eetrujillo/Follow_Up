@@ -25,20 +25,19 @@ interface Day {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './calendar.html',
-  styleUrl: './calendar.css'
+  styleUrls: ['./calendar.css']   // asegúrate que sea plural
 })
 export class Calendar {
-
   today       = new Date();
   currentDate = new Date();
-  errorMessage = '';
 
   showModal     = false;
+  showEventsModal = false;                 // ADDED: modal de lista
   selectedDay   = 0;
+  selectedDayEvents: CalendarEvent[] = []; // ADDED: lista de eventos del día
   newEventTitle = '';
   newEventColor = '#3b82f6';
-
-  editingEventId: number | null = null;   
+  editingEventId: number | null = null;
 
   colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -93,39 +92,43 @@ export class Calendar {
 
   openModal(day: Day) {
     if (day.isEmpty) return;
-    this.selectedDay        = day.number;
-    this.newEventTitle      = '';
-    this.newEventColor      = '#3b82f6';
-    this.editingEventId     = null; 
-    this.showModal          = true;
+    this.selectedDay   = day.number;
+    this.newEventTitle = '';
+    this.newEventColor = this.colors[0];
+    this.editingEventId = null;
+    this.showModal = true;
   }
 
-  openEventModal(ev: CalendarEvent) {
-    this.selectedDay    = ev.day;
-    this.newEventTitle  = ev.title;
-    this.newEventColor  = ev.color;
-    this.editingEventId = ev.id;
-    this.showModal      = true;
+  openEventModal(ev: CalendarEvent, e?: MouseEvent) {
+    e?.stopPropagation();
+    this.selectedDay     = ev.day;
+    this.newEventTitle   = ev.title;
+    this.newEventColor   = ev.color;
+    this.editingEventId  = ev.id;
+    this.showModal       = true;
+  }
+
+  // ADDED: abrir modal de lista de eventos
+  openEventsList(events: CalendarEvent[], e: MouseEvent) {
+    e.stopPropagation();
+    this.selectedDayEvents = events;
+    this.showEventsModal = true;
   }
 
   closeModal() {
     this.showModal = false;
     this.editingEventId = null;
+    this.newEventTitle = '';
   }
 
   saveEvent() {
-    if (!this.newEventTitle.trim()) {
-      this.errorMessage = 'Escribe un título para el evento';
-      return;
-    }
-
-    this.errorMessage = '';
+    if (!this.newEventTitle.trim()) return;
 
     if (this.editingEventId) {
-      const idx = this.events.findIndex(ev => ev.id === this.editingEventId);
-      if (idx !== -1) {
-        this.events[idx].title = this.newEventTitle.trim();
-        this.events[idx].color = this.newEventColor;
+      const existing = this.events.find(ev => ev.id === this.editingEventId);
+      if (existing) {
+        existing.title = this.newEventTitle.trim();
+        existing.color = this.newEventColor;
       }
     } else {
       const newEvent: CalendarEvent = {
@@ -136,29 +139,25 @@ export class Calendar {
         title: this.newEventTitle.trim(),
         color: this.newEventColor
       };
-
       this.events.push(newEvent);
-
-      const dateStr = `${this.selectedDay}/${this.currentDate.getMonth() + 1}/${this.currentDate.getFullYear()}`;
-      this.taskService.addTask(
-        `${this.newEventTitle.trim()} (${dateStr})`,
-        'calendar',
-        dateStr
-      );
     }
 
     this.storage.set('calendar_events', this.events);
     this.closeModal();
   }
 
-  deleteEvent(eventId: number, e?: MouseEvent) {
-  if (e) {
-    e.stopPropagation();
-    e.preventDefault();
+  deleteEvent() {
+    if (this.editingEventId) {
+      this.events = this.events.filter(ev => ev.id !== this.editingEventId);
+      this.storage.set('calendar_events', this.events);
+      this.closeModal();
+    }
   }
-  this.events = this.events.filter(ev => ev.id !== eventId);
-  this.storage.set('calendar_events', this.events);
-  this.closeModal();
+  // ADDED: editar evento desde el modal de lista
+editFromList(ev: CalendarEvent, e: MouseEvent) {
+  e.stopPropagation();
+  this.showEventsModal = false; 
+  this.openEventModal(ev, e);   
 }
 
 }
