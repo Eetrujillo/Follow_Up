@@ -224,57 +224,62 @@ export class Notepad implements AfterViewInit {
 
     this.generating = true;
     this.generateError = '';
-    this.cdr.detectChanges(); 
+    this.aiSuccessMessage = '';
+    this.cdr.detectChanges();
 
     this.aiService.generateTasksFromNotes(content).subscribe({
       next: (res) => {
+        console.log('1. Respuesta cruda de Cohere:', res);
 
         try {
           let raw = '';
-          if (typeof res?.message?.content === 'string') {
+          if (res?.message?.content && typeof res.message.content === 'string') {
             raw = res.message.content;
-          } else if (Array.isArray(res?.message?.content)) {
-            raw = res.message.content[0]?.text ?? '';
+          } else if (Array.isArray(res?.message?.content) && res.message.content[0]?.text) {
+            raw = res.message.content[0].text;
           }
 
+          console.log('2. Texto extraído de la IA:', raw);
 
           const lines = raw.split('\n')
             .map((l: string) => l.trim())
-            .filter((l: string) => l.startsWith('- '))
-            .map((l: string) => l.replace(/^-\s+/, '').trim())
-            .filter((l: string) => l.length > 0);
+            .filter((l: string) => l.length > 0)
+            .map((l: string) => l.replace(/^[-\*\d\.]+\s*/, '').trim());
 
+          console.log('3. Líneas de tareas procesadas:', lines);
 
           if (lines.length === 0) {
-            this.generateError = 'La IA respondió, pero el texto no tenía el formato de lista con guiones ("- ").';
+            this.generateError = 'No se pudieron estructurar las tareas del texto de la IA.';
           } else {
-            this.placeCaretAtEnd(this.editorRef.nativeElement);
+            const textoActual = this.editorRef.nativeElement.innerText;
+            const nuevoBloqueTareas = `\n\n--- TAREAS SUGERIDAS ---\n` + lines.map(l => `- ${l}`).join('\n');
             
+            this.editorRef.nativeElement.innerText = textoActual + nuevoBloqueTareas;
+            
+            this.generateError = '';
+            this.aiSuccessMessage = 'Tareas sugeridas añadidas al final de la nota. Revisa y guarda el documento.';
+
             this.onContentChange();
-            
+
+            setTimeout(() => {
+              this.aiSuccessMessage = '';
+              this.cdr.detectChanges();
+            }, 7000);
           }
+
         } catch (parseError) {
-          console.error('Error procesando el contenido:', parseError);
-          this.generateError = 'Ocurrió un error al procesar la respuesta de la IA.';
+          console.error('Error procesando el contenido en Vercel:', parseError);
+          this.generateError = 'Error de procesamiento visual al renderizar la IA.';
         } finally {
           this.generating = false;
-          this.cdr.detectChanges(); 
+          this.cdr.detectChanges();
         }
       },
-        error: (err) => {
+      error: (err) => {
         console.error('Error en la petición HTTP de Cohere:', err);
-        
-        // Si Cohere nos bloquea por límite de peticiones (Rate Limit)
-        if (err.status === 429) {
-          this.generateError = 'Límite de la IA excedido (máx. 5 consultas por minuto). Espera un momento.';
-        } else if (err.status === 401) {
-          this.generateError = 'Clave de IA inválida o expirada.';
-        } else {
-          this.generateError = 'No se pudo conectar con la IA. Revisa tu conexión.';
-        }
-        
+        this.generateError = 'No se pudo conectar con la IA. Inténtalo de nuevo.';
         this.generating = false;
-        this.cdr.detectChanges(); // Desbloquea el botón en Vercel inmediatamente
+        this.cdr.detectChanges();
       }
     });
   }
