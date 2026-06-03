@@ -228,7 +228,6 @@ export class Notepad implements AfterViewInit {
 
     this.aiService.generateTasksFromNotes(content).subscribe({
       next: (res) => {
-        console.log('1. Respuesta cruda de Cohere:', res);
 
         try {
           let raw = '';
@@ -238,7 +237,6 @@ export class Notepad implements AfterViewInit {
             raw = res.message.content[0]?.text ?? '';
           }
 
-          console.log('2. Texto extraído de la IA:', raw);
 
           const lines = raw.split('\n')
             .map((l: string) => l.trim())
@@ -246,16 +244,14 @@ export class Notepad implements AfterViewInit {
             .map((l: string) => l.replace(/^-\s+/, '').trim())
             .filter((l: string) => l.length > 0);
 
-          console.log('3. Líneas de tareas procesadas:', lines);
 
           if (lines.length === 0) {
             this.generateError = 'La IA respondió, pero el texto no tenía el formato de lista con guiones ("- ").';
           } else {
-            
             this.placeCaretAtEnd(this.editorRef.nativeElement);
             
             this.onContentChange();
-          
+            
           }
         } catch (parseError) {
           console.error('Error procesando el contenido:', parseError);
