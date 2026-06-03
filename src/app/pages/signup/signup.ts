@@ -2,14 +2,11 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
-import { UserService } from '../../shared/services/user';
-import { finalize } from 'rxjs/operators';
-import { ChangeDetectorRef } from '@angular/core';
+import { UserService } from '../../shared/services/user.service';
 
 @Component({
   selector: 'app-signup',
   standalone: true,
-
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './signup.html',
   styleUrl: './signup.css',
@@ -18,13 +15,11 @@ export class Signup {
   signupForm: FormGroup;
   errorMessage = '';
   isLoading = false;
-  verPasword = false;
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private userService: UserService,
-    private cdRef: ChangeDetectorRef,
   ) {
     this.signupForm = this.fb.group(
       {
@@ -41,9 +36,6 @@ export class Signup {
     const pass = group.get('password')?.value;
     const confirm = group.get('confirm')?.value;
     return pass === confirm ? null : { noMatch: true };
-  }
-  toggleOjo() {
-    this.verPasword = !this.password;
   }
 
   get name() {
@@ -70,24 +62,17 @@ export class Signup {
     const { name, email, password } = this.signupForm.value;
     this.isLoading = true;
 
-    this.userService
-      .register(name, email, password)
-      .pipe(
-        finalize(() => {
-          this.isLoading = false;
-        }),
-      )
-      .subscribe({
-        next: (user) => {
-          console.log('Registro exitoso:', user);
-          this.router.navigate(['/login']);
-          this.cdRef.detectChanges();
-        },
-        error: (err) => {
-          console.error('Error en subscribe:', err);
-          this.errorMessage = err?.message || 'Error al registrar';
-          this.cdRef.detectChanges();
-        },
-      });
+    this.userService.register(name, email, password).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.router.navigate(['/login'], {
+          queryParams: { registered: 'true' },
+        });
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = err?.message || 'Error al registrar';
+      },
+    });
   }
 }

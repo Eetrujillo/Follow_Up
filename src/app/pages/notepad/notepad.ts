@@ -1,9 +1,11 @@
-import { Component, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StorageService } from '../../shared/services/storage';
 import { LibraryService } from '../../shared/services/library';
 import { AuthService } from '../../shared/services/auth.service';
+import { AiService } from '../../shared/services/ai.service';
+import { TaskService } from '../../shared/services/task';
 
 @Component({
   selector: 'app-notepad',
@@ -23,6 +25,27 @@ export class Notepad implements AfterViewInit {
   charCount = 0;
   isOverLimit = false;
 
+  generating = false;
+  generateError = '';
+
+  constructor(
+    private storage: StorageService,
+    private libraryService: LibraryService,
+    private authService: AuthService,
+    private aiService: AiService,
+    public taskService: TaskService,
+    private cdr: ChangeDetectorRef,
+  ) {}
+
+  ngAfterViewInit() {
+    const saved = this.storage.get<string>(this.storageKey, '');
+    if (saved) {
+      this.editorRef.nativeElement.innerText = saved;
+    }
+    this.updateCharCount();
+    this.cdr.detectChanges();
+  }
+
   private get storageKey(): string {
     const user = this.authService.getCurrentUser();
     return `notepad_${user?.id || user?.email || 'guest'}`;
@@ -32,22 +55,6 @@ export class Notepad implements AfterViewInit {
     return !!this.editorRef?.nativeElement?.innerText?.trim();
   }
 
-  constructor(
-    private storage: StorageService,
-    private libraryService: LibraryService,
-    private authService: AuthService,
-  ) {}
-
-  ngAfterViewInit() {
-    // Cargar contenido guardado (texto plano)
-    const saved = this.storage.get<string>(this.storageKey, '');
-    if (saved) {
-      this.editorRef.nativeElement.innerText = saved;
-    }
-    this.updateCharCount();
-  }
-
-  // Actualiza contador y estado de límite
   private updateCharCount() {
     const text = this.editorRef.nativeElement.innerText || '';
     this.charCount = text.length;
@@ -69,20 +76,13 @@ export class Notepad implements AfterViewInit {
     return document.queryCommandState(command);
   }
 
-  onSelectionChange() {
-  }
-
-  // Guarda localmente como texto plano y mantiene el límite
   onContentChange() {
     const text = this.editorRef.nativeElement.innerText || '';
-
-    // Si supera el límite, recortar y colocar caret al final
     if (text.length > this.maxChars) {
       const truncated = text.substring(0, this.maxChars);
       this.editorRef.nativeElement.innerText = truncated;
       this.placeCaretAtEnd(this.editorRef.nativeElement);
     }
-
     this.updateCharCount();
     this.storage.set(this.storageKey, this.editorRef.nativeElement.innerText);
     this.saved = false;
@@ -93,7 +93,6 @@ export class Notepad implements AfterViewInit {
     this.showSaveModal = true;
   }
 
-  // Al guardar en biblioteca se convierte el HTML 
   saveToLibrary() {
     if (!this.noteName.trim()) return;
     const rawHtml = this.editorRef.nativeElement.innerHTML;
@@ -106,26 +105,27 @@ export class Notepad implements AfterViewInit {
 
   onEditorKeyDown(e: KeyboardEvent) {
     const key = e.key;
-
-    const controlKeys = [
-      'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight',
-      'ArrowUp', 'ArrowDown', 'Home', 'End', 'Tab', 'Escape'
-    ];
-
     if (key === 'Enter') {
       e.preventDefault();
-
       this.insertHtmlAtCursor('<br><br>');
       this.onContentChange();
       return;
     }
-
-    // Permitir teclas de control y combinaciones 
-    if (controlKeys.includes(key) || e.ctrlKey ) {
+    const controlKeys = [
+      'Backspace',
+      'Delete',
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowUp',
+      'ArrowDown',
+      'Home',
+      'End',
+      'Tab',
+      'Escape',
+    ];
+    if (controlKeys.includes(key) || e.ctrlKey || e.metaKey) {
       return;
     }
-
-    // Bloquear entrada imprimible si se alcanzó el límite
     const isPrintable = key.length === 1;
     if (isPrintable) {
       const current = this.editorRef.nativeElement.innerText || '';
@@ -134,13 +134,11 @@ export class Notepad implements AfterViewInit {
         return;
       }
     }
-
   }
 
-  // Manejo de pegado: insertar solo texto plano y truncar si es necesario
   onEditorPaste(e: ClipboardEvent) {
     e.preventDefault();
-    const pasteText = (e.clipboardData?.getData('text') || '');
+    const pasteText = e.clipboardData?.getData('text') || '';
     const current = this.editorRef?.nativeElement?.innerText || '';
     const available = Math.max(0, this.maxChars - current.length);
     if (available <= 0) return;
@@ -151,21 +149,13 @@ export class Notepad implements AfterViewInit {
     }
   }
 
-  // Inserta HTML en la posición del caret 
   private insertHtmlAtCursor(html: string) {
     const sel = window.getSelection();
-    if (!sel) {
+    if (!sel || sel.rangeCount === 0) {
       this.editorRef.nativeElement.insertAdjacentHTML('beforeend', html);
       this.placeCaretAtEnd(this.editorRef.nativeElement);
       return;
     }
-
-    if (sel.rangeCount === 0) {
-      this.editorRef.nativeElement.insertAdjacentHTML('beforeend', html);
-      this.placeCaretAtEnd(this.editorRef.nativeElement);
-      return;
-    }
-    // Crear un fragmento a partir del HTML y reemplazar la selección
     const range = sel.getRangeAt(0);
     const temp = document.createElement('div');
     temp.innerHTML = html;
@@ -176,10 +166,8 @@ export class Notepad implements AfterViewInit {
       nodes.push(node);
       frag.appendChild(node);
     }
-
     range.deleteContents();
     range.insertNode(frag);
-    // Mover caret después del contenido insertado
     const lastNode = nodes[nodes.length - 1];
     if (lastNode) {
       const newRange = document.createRange();
@@ -188,11 +176,9 @@ export class Notepad implements AfterViewInit {
       sel.removeAllRanges();
       sel.addRange(newRange);
     }
-
     this.editorRef.nativeElement.focus();
   }
 
-  // Inserta texto plano en la posición del caret
   private insertTextAtCursor(text: string) {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) {
@@ -204,8 +190,6 @@ export class Notepad implements AfterViewInit {
     range.deleteContents();
     const textNode = document.createTextNode(text);
     range.insertNode(textNode);
-
-    // Mover caret después del nodo insertado
     const newRange = document.createRange();
     newRange.setStartAfter(textNode);
     newRange.collapse(true);
@@ -226,12 +210,78 @@ export class Notepad implements AfterViewInit {
     }
   }
 
-  // Convierte HTML del editor a texto plano (reemplaza <br> y divs por saltos de línea)
   private htmlToPlainText(html: string): string {
     let text = html.replace(/<\/div>\s*<div>/gi, '\n');
     text = text.replace(/<br\s*\/?>/gi, '\n');
     text = text.replace(/<\/?[^>]+(>|$)/g, '');
     text = text.replace(/\n{3,}/g, '\n\n').trim();
     return text;
+  }
+
+  generateTasks() {
+    const content = this.editorRef.nativeElement.innerText.trim();
+    if (!content) return;
+
+    this.generating = true;
+    this.generateError = '';
+    this.cdr.detectChanges(); // Forzamos a Angular a mostrar "Generando..."
+
+    this.aiService.generateTasksFromNotes(content).subscribe({
+      next: (res) => {
+        console.log('1. Respuesta cruda de Cohere:', res);
+
+        try {
+          let raw = '';
+          if (typeof res?.message?.content === 'string') {
+            raw = res.message.content;
+          } else if (Array.isArray(res?.message?.content)) {
+            raw = res.message.content[0]?.text ?? '';
+          }
+
+          console.log('2. Texto extraído de la IA:', raw);
+
+          const lines = raw.split('\n')
+            .map((l: string) => l.trim())
+            .filter((l: string) => l.startsWith('- '))
+            .map((l: string) => l.replace(/^-\s+/, '').trim())
+            .filter((l: string) => l.length > 0);
+
+          console.log('3. Líneas de tareas procesadas:', lines);
+
+          if (lines.length === 0) {
+            this.generateError = 'La IA respondió, pero el texto no tenía el formato de lista con guiones ("- ").';
+          } else {
+            // ---- NUEVA LÓGICA DE INSERCIÓN EN EL BLOC DE NOTAS ----
+            
+            // 1. Llevamos el cursor automáticamente al final del texto existente
+            this.placeCaretAtEnd(this.editorRef.nativeElement);
+            
+            // 2. Preparamos el bloque de texto con un separador visual elegante
+            const textoAInsertar = `\n\n--- TAREAS SUGERIDAS ---\n${raw}`;
+            
+            // 3. Lo insertamos de forma segura usando tu función nativa de cursor
+            this.insertTextAtCursor(textoAInsertar);
+            
+            // 4. Avisamos al componente que el contenido cambió (actualiza contador y guarda en LocalStorage)
+            this.onContentChange();
+            
+            // NOTA: Hemos quitado "this.taskService.addTask" de aquí. 
+            // Ahora las tareas aparecen solo como texto en la pantalla y no se guardan solas.
+          }
+        } catch (parseError) {
+          console.error('Error procesando el contenido:', parseError);
+          this.generateError = 'Ocurrió un error al procesar la respuesta de la IA.';
+        } finally {
+          this.generating = false;
+          this.cdr.detectChanges(); // Desbloquea el botón
+        }
+      },
+      error: (err) => {
+        console.error('Error en la petición HTTP de Cohere:', err);
+        this.generateError = 'Error al generar tareas. Revisa la consola.';
+        this.generating = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 }

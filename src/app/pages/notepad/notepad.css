@@ -5,7 +5,52 @@
   color: #fff;
   font-family: sans-serif;
 }
+.notepad-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
 
+.btn-ai {
+  background-color: #1e293b; 
+  color: #ffffff;
+  border: none;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.btn-ai:hover:not(:disabled) {
+  background-color: #334155; 
+}
+
+.btn-ai:disabled {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  border: 1px solid #e2e8f0;
+  cursor: not-allowed;
+}
+
+.ai-message {
+  font-size: 13px;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.ai-message.error {
+  color: #dc2626; 
+}
+
+.ai-message.success {
+  color: #16a34a; 
+}
 .breadcrumb {
   font-size: 12px;
   color: #555;

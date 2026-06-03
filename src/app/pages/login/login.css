@@ -19,6 +19,17 @@
   padding: 0 24px;
 }
 
+.success-box {
+  background: #0f2a1a;
+  border: 1px solid #10b981;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #10b981;
+  font-size: 13px;
+  margin-bottom: 14px;
+  text-align: left;
+}
+
 .logo-box {
   color: #1d8cf8;
   font-size: 45px;

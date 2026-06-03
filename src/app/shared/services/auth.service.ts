@@ -1,22 +1,14 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable, throwError, of } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
-import { UserService } from './user';
-import { User } from '../models/user.model';
+import { map, catchError } from 'rxjs/operators';
+import { UserService, User } from './user.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private apiUrl = 'http://localhost:3000/users';
   private currentUser: User | null = null;
 
-  constructor(
-    private http:        HttpClient,
-    private userService: UserService
-  ) {}
+  constructor(private userService: UserService) {}
 
   login(email: string, password: string): Observable<boolean> {
     if (!email || !password) {
