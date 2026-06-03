@@ -224,7 +224,7 @@ export class Notepad implements AfterViewInit {
 
     this.generating = true;
     this.generateError = '';
-    this.cdr.detectChanges(); // Forzamos a Angular a mostrar "Generando..."
+    this.cdr.detectChanges(); 
 
     this.aiService.generateTasksFromNotes(content).subscribe({
       next: (res) => {
@@ -251,29 +251,18 @@ export class Notepad implements AfterViewInit {
           if (lines.length === 0) {
             this.generateError = 'La IA respondió, pero el texto no tenía el formato de lista con guiones ("- ").';
           } else {
-            // ---- NUEVA LÓGICA DE INSERCIÓN EN EL BLOC DE NOTAS ----
             
-            // 1. Llevamos el cursor automáticamente al final del texto existente
             this.placeCaretAtEnd(this.editorRef.nativeElement);
             
-            // 2. Preparamos el bloque de texto con un separador visual elegante
-            const textoAInsertar = `\n\n--- TAREAS SUGERIDAS ---\n${raw}`;
-            
-            // 3. Lo insertamos de forma segura usando tu función nativa de cursor
-            this.insertTextAtCursor(textoAInsertar);
-            
-            // 4. Avisamos al componente que el contenido cambió (actualiza contador y guarda en LocalStorage)
             this.onContentChange();
-            
-            // NOTA: Hemos quitado "this.taskService.addTask" de aquí. 
-            // Ahora las tareas aparecen solo como texto en la pantalla y no se guardan solas.
+          
           }
         } catch (parseError) {
           console.error('Error procesando el contenido:', parseError);
           this.generateError = 'Ocurrió un error al procesar la respuesta de la IA.';
         } finally {
           this.generating = false;
-          this.cdr.detectChanges(); // Desbloquea el botón
+          this.cdr.detectChanges(); 
         }
       },
       error: (err) => {
