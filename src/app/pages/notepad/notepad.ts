@@ -27,6 +27,7 @@ export class Notepad implements AfterViewInit {
 
   generating = false;
   generateError = '';
+  aiSuccessMessage = '';
 
   constructor(
     private storage: StorageService,
@@ -277,7 +278,13 @@ export class Notepad implements AfterViewInit {
       },
       error: (err) => {
         console.error('Error en la petición HTTP de Cohere:', err);
-        this.generateError = 'No se pudo conectar con la IA. Inténtalo de nuevo.';
+        if (err.status === 429) {
+          this.generateError = 'Límite de la IA excedido (máx. 5 consultas por minuto). Espera un momento.';
+        } else if (err.status === 401) {
+          this.generateError = 'Clave de IA inválida o expirada.';
+        } else {
+          this.generateError = 'No se pudo conectar con la IA. Inténtalo de nuevo.';
+        }
         this.generating = false;
         this.cdr.detectChanges();
       }
