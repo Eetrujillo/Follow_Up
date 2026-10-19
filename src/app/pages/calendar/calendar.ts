@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TaskService } from '../../shared/services/task';
 import { StorageService } from '../../shared/services/storage';
@@ -22,19 +22,18 @@ interface Day {
 
 @Component({
   selector: 'app-calendar',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule, TitleCasePipe],
   templateUrl: './calendar.html',
-  styleUrls: ['./calendar.css']   // asegúrate que sea plural
+  styleUrls: ['./calendar.css']
 })
 export class Calendar {
   today       = new Date();
   currentDate = new Date();
 
   showModal     = false;
-  showEventsModal = false;                 // ADDED: modal de lista
+  showEventsModal = false;
   selectedDay   = 0;
-  selectedDayEvents: CalendarEvent[] = []; // ADDED: lista de eventos del día
+  selectedDayEvents: CalendarEvent[] = [];
   newEventTitle = '';
   newEventColor = '#3b82f6';
   editingEventId: number | null = null;
@@ -43,10 +42,10 @@ export class Calendar {
 
   events: CalendarEvent[] = [];
 
-  constructor(
-    private taskService: TaskService,
-    private storage: StorageService
-  ) {
+  private readonly taskService = inject(TaskService);
+  private readonly storage = inject(StorageService);
+
+  constructor() {
     this.events = this.storage.get<CalendarEvent[]>('calendar_events', []);
   }
 
@@ -108,7 +107,6 @@ export class Calendar {
     this.showModal       = true;
   }
 
-  // ADDED: abrir modal de lista de eventos
   openEventsList(events: CalendarEvent[], e: MouseEvent) {
     e.stopPropagation();
     this.selectedDayEvents = events;
@@ -153,11 +151,10 @@ export class Calendar {
       this.closeModal();
     }
   }
-  // ADDED: editar evento desde el modal de lista
-editFromList(ev: CalendarEvent, e: MouseEvent) {
-  e.stopPropagation();
-  this.showEventsModal = false; 
-  this.openEventModal(ev, e);   
-}
+  editFromList(ev: CalendarEvent, e: MouseEvent) {
+    e.stopPropagation();
+    this.showEventsModal = false;
+    this.openEventModal(ev, e);
+  }
 
 }

@@ -11,7 +11,9 @@
       <p class="subtitle">Tu espacio personal.</p>
     </div>
     <div class="header-actions">
-      <span class="saved-msg" *ngIf="saved">Guardado en biblioteca</span>
+      @if (saved) {
+        <span class="saved-msg">Guardado en biblioteca</span>
+      }
       <div class="char-counter" [class.over]="isOverLimit">{{ charCount }} / {{ maxChars }}</div>
       <button class="btn-library" (click)="openSaveModal()" [disabled]="!hasContent || isOverLimit">
         Guardar en Biblioteca
@@ -24,30 +26,33 @@
       <!-- toolbar buttons -->
     </div>
 
-    <div #editor class="editor" contenteditable="true"
-         (input)="onContentChange()" (keydown)="onEditorKeyDown($event)"
-         (paste)="onEditorPaste($event)">
-    </div>
+    <div #editor class="editor" contenteditable="true" (input)="onContentChange()" (keydown)="onEditorKeyDown($event)" (paste)="onEditorPaste($event)"></div>
   </div>
 
   <div class="ai-actions" style="margin-top:10px;">
     <button class="btn-ai" (click)="generateTasks()" [disabled]="generating || isOverLimit">
-      <span *ngIf="!generating">Crear tareas con IA</span>
-      <span *ngIf="generating">Generando...</span>
+      @if (!generating) {
+        <span>Crear tareas con IA</span>
+      } @else {
+        <span>Generando...</span>
+      }
     </button>
-    <div class="ai-error" *ngIf="generateError" style="color:#b00020;margin-top:6px;">{{ generateError }}</div>
+    @if (generateError) {
+      <div class="ai-error" style="color:#b00020;margin-top:6px;">{{ generateError }}</div>
+    }
   </div>
 
-
-  <div class="modal-overlay" *ngIf="showSaveModal" (click)="showSaveModal = false">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <h3>Guardar en Biblioteca</h3>
-      <p class="modal-sub">La nota se guardará en la carpeta "Mis Notas"</p>
-      <input type="text" placeholder="Nombre de la nota" [(ngModel)]="noteName" (keyup.enter)="saveToLibrary()" />
-      <div class="modal-actions">
-        <button class="btn-cancel" (click)="showSaveModal = false">Cancelar</button>
-        <button class="btn-save" (click)="saveToLibrary()">Guardar</button>
+  @if (showSaveModal) {
+    <div class="modal-overlay" (click)="showSaveModal = false">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h3>Guardar en Biblioteca</h3>
+        <p class="modal-sub">La nota se guardará en la carpeta "Mis Notas"</p>
+        <input type="text" placeholder="Nombre de la nota" [(ngModel)]="noteName" (keyup.enter)="saveToLibrary()" />
+        <div class="modal-actions">
+          <button class="btn-cancel" (click)="showSaveModal = false">Cancelar</button>
+          <button class="btn-save" (click)="saveToLibrary()">Guardar</button>
+        </div>
       </div>
     </div>
-  </div>
+  }
 </div>

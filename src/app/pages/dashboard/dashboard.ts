@@ -32,6 +32,8 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     { title: 'Proyecto Final React', time: 'Hace 5 horas' },
     { title: 'Resumen de Algoritmos', time: 'Ayer' },
     { title: 'Guia de CSS Grid',     time: 'Hace 2 dias' },
+    { title: 'Resumen de Algoritmos', time: 'Ayer' },
+    { title: 'Guia de CSS Grid',     time: 'Hace 2 dias' },
   ];
 
   segundos = 25 * 60;

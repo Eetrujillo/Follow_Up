@@ -1,14 +1,13 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, throwError, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { UserService, User } from './user.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly userService = inject(UserService);
 
   private currentUser: User | null = null;
-
-  constructor(private userService: UserService) {}
 
   login(email: string, password: string): Observable<boolean> {
     if (!email || !password) {
@@ -16,7 +15,7 @@ export class AuthService {
     }
 
     return this.userService.authenticateUser(email, password).pipe(
-      map(user => {
+      map((user) => {
         if (user) {
           this.currentUser = user;
           localStorage.setItem('isLoggedIn', 'true');

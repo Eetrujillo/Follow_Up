@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
 import { StorageService } from './storage';
 import { AuthService } from './auth.service';
 
@@ -13,13 +13,13 @@ export interface Task {
 
 @Injectable({ providedIn: 'root' })
 export class TaskService {
-  private tasksSubject = new BehaviorSubject<Task[]>([]);
-  tasks$ = this.tasksSubject.asObservable();
+  private readonly storage = inject(StorageService);
+  private readonly authService = inject(AuthService);
 
-  constructor(
-    private storage: StorageService,
-    private authService: AuthService,
-  ) {
+  private readonly tasksSubject = new BehaviorSubject<Task[]>([]);
+  readonly tasks$: Observable<Task[]> = this.tasksSubject.asObservable();
+
+  constructor() {
     this.loadTasks();
   }
 
@@ -42,6 +42,7 @@ export class TaskService {
     ]);
     this.tasksSubject.next(saved);
   }
+
   reloadForUser() {
     this.loadTasks();
   }
@@ -50,20 +51,33 @@ export class TaskService {
     return this.tasksSubject.getValue();
   }
 
-  addTask(text: string, source: 'dashboard' | 'calendar', date?: string) {
-    const tasks = this.getTasks();
-    tasks.push({ id: Date.now(), text, completed: false, source, date });
+  async addTaskAsync(text: string, source: 'dashboard' | 'calendar', date?: string): Promise<Task> {
+    const task: Task = { id: Date.now(), text, completed: false, source, date };
+    const tasks = [...this.getTasks(), task];
     this.save(tasks);
+    return task;
+  }
+
+  addTask(text: string, source: 'dashboard' | 'calendar', date?: string) {
+    void this.addTaskAsync(text, source, date);
   }
 
   toggleTask(id: number) {
-    const tasks = this.getTasks().map(t => (t.id === id ? { ...t, completed: !t.completed } : t));
+    const tasks = this.getTasks().map((task) =>
+      task.id === id ? { ...task, completed: !task.completed } : task
+    );
     this.save(tasks);
   }
 
   deleteTask(id: number) {
-    const tasks = this.getTasks().filter(t => t.id !== id);
+    const tasks = this.getTasks().filter((task) => task.id !== id);
     this.save(tasks);
+  }
+
+  async syncWithBackend(): Promise<Task[]> {
+    const tasks = this.getTasks();
+    await firstValueFrom(this.tasks$);
+    return tasks;
   }
 
   private save(tasks: Task[]) {

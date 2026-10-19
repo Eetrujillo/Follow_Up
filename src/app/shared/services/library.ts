@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { StorageService } from './storage';
 import { AuthService } from './auth.service';
 
@@ -20,14 +20,13 @@ export interface Folder {
 
 @Injectable({ providedIn: 'root' })
 export class LibraryService {
+  private readonly storage = inject(StorageService);
+  private readonly authService = inject(AuthService);
 
-  private foldersSubject = new BehaviorSubject<Folder[]>([]);
-  folders$ = this.foldersSubject.asObservable();
+  private readonly foldersSubject = new BehaviorSubject<Folder[]>([]);
+  readonly folders$: Observable<Folder[]> = this.foldersSubject.asObservable();
 
-  constructor(
-    private storage:     StorageService,
-    private authService: AuthService
-  ) {
+  constructor() {
     this.loadFolders();
   }
 
@@ -38,7 +37,7 @@ export class LibraryService {
 
   private loadFolders() {
     const saved = this.storage.get<Folder[]>(this.storageKey, [
-      { id: 9, name: 'Mis Notas', documents: [], isNotesFolder: true }
+      { id: 9, name: 'Mis Notas', documents: [], isNotesFolder: true },
     ]);
     this.foldersSubject.next(saved);
   }
@@ -52,35 +51,37 @@ export class LibraryService {
   }
 
   getNotesFolder(): Folder | undefined {
-    return this.getFolders().find(f => f.isNotesFolder);
+    return this.getFolders().find((folder) => folder.isNotesFolder);
   }
 
   addFolder(name: string) {
-    const folders = this.getFolders();
-    folders.push({ id: Date.now(), name, documents: [], isNotesFolder: false });
+    const folders = [...this.getFolders(), { id: Date.now(), name, documents: [], isNotesFolder: false }];
     this.save(folders);
   }
 
   deleteFolder(folderId: number) {
-    // No permitir borrar la carpeta de notas
-    const folders = this.getFolders().filter(f =>
-      f.id !== folderId || f.isNotesFolder
-    );
+    const folders = this.getFolders().filter((folder) => folder.id !== folderId || folder.isNotesFolder);
     this.save(folders);
   }
 
   addDocument(folderId: number, name: string, content: string, isNote = false) {
-    const folders = this.getFolders().map(f => {
-      if (f.id === folderId) {
-        f.documents.push({
-          id: Date.now(),
-          name,
-          content,
-          createdAt: new Date().toLocaleDateString('es-ES'),
-          isNote
-        });
+    const folders = this.getFolders().map((folder) => {
+      if (folder.id === folderId) {
+        return {
+          ...folder,
+          documents: [
+            ...folder.documents,
+            {
+              id: Date.now(),
+              name,
+              content,
+              createdAt: new Date().toLocaleDateString('es-ES'),
+              isNote,
+            },
+          ],
+        };
       }
-      return f;
+      return folder;
     });
     this.save(folders);
   }
@@ -92,25 +93,33 @@ export class LibraryService {
   }
 
   updateDocument(folderId: number, docId: number, content: string) {
-    const folders = this.getFolders().map(f => {
-      if (f.id === folderId) {
-        f.documents = f.documents.map(d =>
-          d.id === docId ? { ...d, content } : d
-        );
-      }
-      return f;
+    const folders = this.getFolders().map((folder) => {
+      if (folder.id !== folderId) return folder;
+
+      return {
+        ...folder,
+        documents: folder.documents.map((document) =>
+          document.id === docId ? { ...document, content } : document
+        ),
+      };
     });
     this.save(folders);
   }
 
   deleteDocument(folderId: number, docId: number) {
-    const folders = this.getFolders().map(f => {
-      if (f.id === folderId) {
-        f.documents = f.documents.filter(d => d.id !== docId);
-      }
-      return f;
+    const folders = this.getFolders().map((folder) => {
+      if (folder.id !== folderId) return folder;
+
+      return {
+        ...folder,
+        documents: folder.documents.filter((document) => document.id !== docId),
+      };
     });
     this.save(folders);
+  }
+
+  async syncWithBackend(): Promise<Folder[]> {
+    return this.getFolders();
   }
 
   private save(folders: Folder[]) {

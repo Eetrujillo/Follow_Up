@@ -1,12 +1,10 @@
 <div class="dashboard-wrapper">
-
   <header>
     <p class="breadcrumb">Follow-up › <span>Panel Principal</span></p>
     <h1>Panel Principal</h1>
   </header>
 
   <div class="dashboard-grid">
-
     <section class="card card-progress">
       <h3 class="card-title">PROCESO DIARIO</h3>
       <div class="donut-wrap">
@@ -32,32 +30,35 @@
         <button (click)="addTask()">+</button>
       </div>
       <div class="task-list">
-        <div class="task-item" *ngFor="let task of tasks" [class.completed]="task.completed">
-          <input type="checkbox" [checked]="task.completed" (change)="onTaskChange(task)" />
-          <span>{{ task.text }}</span>
-          <button class="del-btn" (click)="deleteTask(task.id)">x</button>
-        </div>
+        @for (task of tasks; track task.id) {
+          <div class="task-item" [class.completed]="task.completed">
+            <input type="checkbox" [checked]="task.completed" (change)="onTaskChange(task)" />
+            <span>{{ task.text }}</span>
+            <button class="del-btn" (click)="deleteTask(task.id)">x</button>
+          </div>
+        }
       </div>
     </section>
 
     <section class="card card-recent">
       <h3 class="card-title">ACTIVIDAD RECIENTE</h3>
       <div class="activity-list">
-        <div class="activity-item" *ngFor="let act of activities">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-          </svg>
-          <span class="act-name">{{ act.title }}</span>
-          <span class="act-time">{{ act.time }}</span>
-        </div>
+        @for (act of activities; track act.title) {
+          <div class="activity-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+            <span class="act-name">{{ act.title }}</span>
+            <span class="act-time">{{ act.time }}</span>
+          </div>
+        }
       </div>
     </section>
 
     <section class="card card-focus">
       <h3 class="card-title">ZONA DE ENFOQUE</h3>
       <div class="timer-content">
-
         <div class="timer-status">
           <span class="dot" [class.pulse]="isRunning"></span>
           {{ statusText }}
@@ -71,13 +72,16 @@
 
         <div class="timer-actions">
           <button class="btn-round main" (click)="toggleTimer()">
-            <svg *ngIf="!isRunning" width="16" height="16" viewBox="0 0 24 24" fill="white">
-              <polygon points="5 3 19 12 5 21 5 3" />
-            </svg>
-            <svg *ngIf="isRunning" width="16" height="16" viewBox="0 0 24 24" fill="white">
-              <rect x="6" y="4" width="4" height="16" />
-              <rect x="14" y="4" width="4" height="16" />
-            </svg>
+            @if (!isRunning) {
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
+            } @else {
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                <rect x="6" y="4" width="4" height="16" />
+                <rect x="14" y="4" width="4" height="16" />
+              </svg>
+            }
           </button>
           <button class="btn-round" (click)="stopTimer()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -86,9 +90,7 @@
             </svg>
           </button>
         </div>
-
       </div>
     </section>
-
   </div>
 </div>

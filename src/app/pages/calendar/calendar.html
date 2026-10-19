@@ -27,43 +27,46 @@
     </div>
 
     <div class="cal-grid">
-      <div class="day-name"
-           *ngFor="let d of ['Lun','Mar','Mie','Jue','Vie','Sab','Dom']">
-        {{ d }}
-      </div>
+      @for (dayName of ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom']; track dayName) {
+        <div class="day-name">{{ dayName }}</div>
+      }
 
-      <div
-        *ngFor="let day of days"
-        class="day-cell"
-        [class.empty]="day.isEmpty"
-        [class.today]="day.isToday"
-        [class.has-events]="day.events.length > 0"
-        (click)="openModal(day)">
+      @for (day of days; track day.number + '-' + day.isEmpty) {
+        <div
+          class="day-cell"
+          [class.empty]="day.isEmpty"
+          [class.today]="day.isToday"
+          [class.has-events]="day.events.length > 0"
+          (click)="openModal(day)">
 
-        <span class="day-number" *ngIf="!day.isEmpty">{{ day.number }}</span>
+          @if (!day.isEmpty) {
+            <span class="day-number">{{ day.number }}</span>
+          }
 
-        <!-- Mostrar solo 2 eventos -->
-        <div class="event-tag"
-             *ngFor="let ev of day.events.slice(0, 2)"
-             [style.background]="ev.color"
-             (click)="openEventModal(ev, $event)"
-             title="Clic para editar">
-          {{ ev.title }}
+          @for (event of day.events.slice(0, 2); track event.id) {
+            <div class="event-tag"
+                 [style.background]="event.color"
+                 (click)="openEventModal(event, $event)"
+                 title="Clic para editar">
+              {{ event.title }}
+            </div>
+          }
+
+          @if (day.events.length > 2) {
+            <span class="more-events" (click)="openEventsList(day.events, $event)">
+              +{{ day.events.length - 2 }} más
+            </span>
+          }
+
         </div>
-
-        <!-- Botón para abrir modal con todos los eventos -->
-        <span class="more-events" *ngIf="day.events.length > 2"
-              (click)="openEventsList(day.events, $event)">
-          +{{ day.events.length - 2 }} más
-        </span>
-
-      </div>
+      }
     </div>
 
   </div>
 
   <!-- Modal para crear/editar evento -->
-  <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  @if (showModal) {
+    <div class="modal-overlay" (click)="closeModal()">
     <div class="modal" (click)="$event.stopPropagation()">
 
       <div class="modal-header">
@@ -86,40 +89,47 @@
       <div class="modal-field">
         <label>Color</label>
         <div class="color-picker">
-          <span
-            *ngFor="let c of colors"
-            class="color-dot"
-            [style.background]="c"
-            [class.selected]="newEventColor === c"
-            (click)="newEventColor = c">
-          </span>
+          @for (color of colors; track color) {
+            <span
+              class="color-dot"
+              [style.background]="color"
+              [class.selected]="newEventColor === color"
+              (click)="newEventColor = color">
+            </span>
+          }
         </div>
       </div>
 
       <div class="modal-actions">
         <button class="btn-cancel" (click)="closeModal()">Cancelar</button>
-        <button class="btn-delete" (click)="deleteEvent()" *ngIf="editingEventId">Eliminar</button>
+        @if (editingEventId) {
+          <button class="btn-delete" (click)="deleteEvent()">Eliminar</button>
+        }
         <button class="btn-save"   (click)="saveEvent()">Guardar</button>
       </div>
 
     </div>
-  </div>
+    </div>
+  }
 
   <!-- Modal para ver todos los eventos del día -->
-  <div class="modal-overlay" *ngIf="showEventsModal" (click)="showEventsModal=false">
+  @if (showEventsModal) {
+    <div class="modal-overlay" (click)="showEventsModal=false">
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>Eventos del día</h3>
         <button class="close-btn" (click)="showEventsModal=false">x</button>
       </div>
       <ul class="events-list">
-        <li *ngFor="let ev of selectedDayEvents">
-          <span [style.background]="ev.color" class="event-tag">{{ ev.title }}</span>
-          <!-- botón que reutiliza el modal de edición existente -->
-          <button class="btn-edit" (click)="editFromList(ev, $event)">Editar</button>
-        </li>
+        @for (event of selectedDayEvents; track event.id) {
+          <li>
+            <span [style.background]="event.color" class="event-tag">{{ event.title }}</span>
+            <button class="btn-edit" (click)="editFromList(event, $event)">Editar</button>
+          </li>
+        }
       </ul>
     </div>
-  </div>
+    </div>
+  }
 
 </div>

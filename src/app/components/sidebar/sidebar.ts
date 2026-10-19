@@ -1,4 +1,4 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, inject } from '@angular/core';
 import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,25 +13,22 @@ import { SearchService, SearchResult } from '../../shared/services/search';
   styleUrl: './sidebar.css'
 })
 export class Sidebar {
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
+  private readonly searchService = inject(SearchService);
 
-  isCollapsed   = false;
-  searchQuery   = '';
+  isCollapsed = false;
+  searchQuery = '';
   searchResults: SearchResult[] = [];
-  showResults   = false;
+  showResults = false;
 
   navItems = [
-   { label: 'Panel Principal', route: '/dashboard',  icon: '⊞' },
-    { label: 'Biblioteca',      route: '/library',    icon: '▣' },
-    { label: 'Calendario',      route: '/calendar',   icon: '▦' },
-    { label: 'Estadisticas',    route: '/statistics', icon: '▤' },
-    { label: 'Bloc de Notas',   route: '/notepad',    icon: '▧' },
+    { label: 'Panel Principal', route: '/dashboard', icon: '⊞' },
+    { label: 'Biblioteca', route: '/library', icon: '▣' },
+    { label: 'Calendario', route: '/calendar', icon: '▦' },
+    { label: 'Estadisticas', route: '/statistics', icon: '▤' },
+    { label: 'Bloc de Notas', route: '/notepad', icon: '▧' },
   ];
-
-  constructor(
-    private router:        Router,
-    private authService:   AuthService,
-    private searchService: SearchService
-  ) {}
 
   toggleSidebar() {
     this.isCollapsed = !this.isCollapsed;
@@ -40,11 +37,12 @@ export class Sidebar {
   onSearch() {
     if (!this.searchQuery.trim()) {
       this.searchResults = [];
-      this.showResults   = false;
+      this.showResults = false;
       return;
     }
+
     this.searchResults = this.searchService.search(this.searchQuery);
-    this.showResults   = true;
+    this.showResults = true;
   }
 
   goToResult(result: SearchResult) {
@@ -54,12 +52,11 @@ export class Sidebar {
   }
 
   clearSearch() {
-    this.searchQuery   = '';
+    this.searchQuery = '';
     this.searchResults = [];
-    this.showResults   = false;
+    this.showResults = false;
   }
 
-  // Cerrar resultados al hacer clic afuera
   @HostListener('document:click', ['$event'])
   onClickOutside(e: Event) {
     const target = e.target as HTMLElement;
