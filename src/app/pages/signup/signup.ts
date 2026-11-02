@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
-import { UserService } from '../../shared/services/user.service';
+import { AuthApiService } from '../../shared/services/auth-api.service';
 
 @Component({
   selector: 'app-signup',
@@ -19,7 +19,7 @@ export class Signup {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private userService: UserService,
+    private authApi: AuthApiService,
   ) {
     this.signupForm = this.fb.group(
       {
@@ -62,7 +62,7 @@ export class Signup {
     const { name, email, password } = this.signupForm.value;
     this.isLoading = true;
 
-    this.userService.register(name, email, password).subscribe({
+    this.authApi.register({ fullName: name, email, password }).subscribe({
       next: () => {
         this.isLoading = false;
         this.router.navigate(['/login'], {

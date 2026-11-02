@@ -1,46 +1,87 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, throwError, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
-import { UserService, User } from './user.service';
+import { Observable, catchError, map, of, switchMap, tap, throwError } from 'rxjs';
+import { AuthApiService } from './auth-api.service';
+import { SessionUser } from './session-user';
+import { TokenStorage } from './token-storage';
 
+const CURRENT_USER_KEY = 'current_user';
+
+/**
+ * Session facade over the backend. The JWT is the source of truth: `restore()`
+ * resolves the real user through `GET /auth/me` and drops a stale token.
+ */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly userService = inject(UserService);
-
-  private currentUser: User | null = null;
+  private readonly authApi = inject(AuthApiService);
+  private readonly tokenStorage = inject(TokenStorage);
+  private currentUser: SessionUser | null = null;
 
   login(email: string, password: string): Observable<boolean> {
     if (!email || !password) {
       return throwError(() => new Error('Correo y contrasena son obligatorios'));
     }
 
-    return this.userService.authenticateUser(email, password).pipe(
-      map((user) => {
-        if (user) {
-          this.currentUser = user;
-          localStorage.setItem('isLoggedIn', 'true');
-          localStorage.setItem('currentUser', JSON.stringify(user));
-          return true;
-        }
-        return false;
+    return this.authApi.login({ email, password }).pipe(
+      switchMap(() => this.authApi.me()),
+      tap((user) => this.setCurrentUser(user)),
+      map(() => true),
+      catchError(() => {
+        this.logout();
+        return of(false);
       }),
-      catchError(() => of(false))
+    );
+  }
+
+  restore(): Observable<SessionUser | null> {
+    if (!this.tokenStorage.get()) {
+      return of(null);
+    }
+
+    const saved = this.getCurrentUser();
+    if (saved) {
+      return of(saved);
+    }
+
+    return this.authApi.me().pipe(
+      tap((user) => this.setCurrentUser(user)),
+      catchError(() => {
+        this.logout();
+        return of(null);
+      }),
     );
   }
 
   logout(): void {
     this.currentUser = null;
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('currentUser');
+    this.authApi.logout();
+    localStorage.removeItem(CURRENT_USER_KEY);
   }
 
   isLoggedIn(): boolean {
-    return localStorage.getItem('isLoggedIn') === 'true';
+    return this.tokenStorage.get() !== null;
   }
 
-  getCurrentUser(): User | null {
-    if (this.currentUser) return this.currentUser;
-    const saved = localStorage.getItem('currentUser');
-    return saved ? JSON.parse(saved) : null;
+  getCurrentUser(): SessionUser | null {
+    if (this.currentUser) {
+      return this.currentUser;
+    }
+
+    const saved = localStorage.getItem(CURRENT_USER_KEY);
+    if (!saved) {
+      return null;
+    }
+
+    try {
+      this.currentUser = JSON.parse(saved) as SessionUser;
+      return this.currentUser;
+    } catch {
+      localStorage.removeItem(CURRENT_USER_KEY);
+      return null;
+    }
+  }
+
+  private setCurrentUser(user: SessionUser): void {
+    this.currentUser = user;
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
   }
 }

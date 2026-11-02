@@ -6,7 +6,6 @@ export interface ApiRequestOptions {
   headers?: HttpHeaders | Record<string, string>;
   context?: HttpContext;
   params?: HttpParams | Record<string, string | number | boolean>;
-  responseType?: 'json' | 'text' | 'blob' | 'arraybuffer';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -42,7 +41,6 @@ export class ApiService {
       headers: options.headers,
       context: options.context,
       params: options.params,
-      responseType: options.responseType || 'json',
     };
   }
 }
