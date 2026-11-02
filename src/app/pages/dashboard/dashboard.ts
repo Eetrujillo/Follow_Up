@@ -78,7 +78,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     this.newTaskText = '';
   }
 
-  deleteTask(id: number) {
+  deleteTask(id: string) {
     this.taskService.deleteTask(id);
   }
 

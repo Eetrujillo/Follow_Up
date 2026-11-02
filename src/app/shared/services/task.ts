@@ -1,50 +1,42 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
-import { StorageService } from './storage';
-import { AuthService } from './auth.service';
+import { BehaviorSubject, Observable, firstValueFrom, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { BackendTask, TasksApiService } from './tasks-api.service';
 
 export interface Task {
-  id: number;
+  id: string;
   text: string;
   completed: boolean;
   source: 'dashboard' | 'calendar';
   date?: string;
 }
 
+function toTask(task: BackendTask): Task {
+  return {
+    id: task.id,
+    text: task.description,
+    completed: task.isCompleted,
+    source: task.origin === 'CALENDAR' ? 'calendar' : 'dashboard',
+    date: task.dueDate ?? undefined,
+  };
+}
+
+/**
+ * Tasks now live in PostgreSQL behind the API. The public surface is unchanged so
+ * the pages keep working; only the storage moved.
+ */
 @Injectable({ providedIn: 'root' })
 export class TaskService {
-  private readonly storage = inject(StorageService);
-  private readonly authService = inject(AuthService);
-
+  private readonly api = inject(TasksApiService);
   private readonly tasksSubject = new BehaviorSubject<Task[]>([]);
   readonly tasks$: Observable<Task[]> = this.tasksSubject.asObservable();
 
-  constructor() {
-    this.loadTasks();
+  reloadForUser(): void {
+    this.reload();
   }
 
-  private StorageKey(): string {
-    const user = this.authService.getCurrentUser();
-    return `tasks_user_${user?.id || user?.email || 'guest'}`;
-  }
-
-  private loadTasks() {
-    const saved = this.storage.get<Task[]>(this.StorageKey(), [
-      { id: 1, text: 'Tarea de ejemplo', completed: false, source: 'dashboard' },
-      {
-        id: 2,
-        text: 'Evento de ejemplo',
-        completed: false,
-        source: 'calendar',
-        date: new Date().toISOString().split('T')[0],
-      },
-      { id: 3, text: 'Tarea completada', completed: true, source: 'dashboard' },
-    ]);
-    this.tasksSubject.next(saved);
-  }
-
-  reloadForUser() {
-    this.loadTasks();
+  reload(): void {
+    this.fetch().subscribe((tasks) => this.tasksSubject.next(tasks));
   }
 
   getTasks(): Task[] {
@@ -52,36 +44,51 @@ export class TaskService {
   }
 
   async addTaskAsync(text: string, source: 'dashboard' | 'calendar', date?: string): Promise<Task> {
-    const task: Task = { id: Date.now(), text, completed: false, source, date };
-    const tasks = [...this.getTasks(), task];
-    this.save(tasks);
+    const created = await firstValueFrom(
+      this.api.create({
+        description: text,
+        origin: source === 'calendar' ? 'CALENDAR' : 'DASHBOARD',
+        dueDate: date,
+      }),
+    );
+
+    const task = toTask(created);
+    this.tasksSubject.next([...this.getTasks(), task]);
     return task;
   }
 
-  addTask(text: string, source: 'dashboard' | 'calendar', date?: string) {
-    void this.addTaskAsync(text, source, date);
+  addTask(text: string, source: 'dashboard' | 'calendar', date?: string): void {
+    void this.addTaskAsync(text, source, date).catch(() => undefined);
   }
 
-  toggleTask(id: number) {
-    const tasks = this.getTasks().map((task) =>
-      task.id === id ? { ...task, completed: !task.completed } : task
-    );
-    this.save(tasks);
+  toggleTask(id: string): void {
+    const task = this.getTasks().find((current) => current.id === id);
+    if (!task) {
+      return;
+    }
+
+    this.api.update(id, { isCompleted: !task.completed }).subscribe({
+      next: () => this.reload(),
+      error: () => undefined,
+    });
   }
 
-  deleteTask(id: number) {
-    const tasks = this.getTasks().filter((task) => task.id !== id);
-    this.save(tasks);
+  deleteTask(id: string): void {
+    this.api.delete(id).subscribe({
+      next: () => this.tasksSubject.next(this.getTasks().filter((task) => task.id !== id)),
+      error: () => undefined,
+    });
   }
 
   async syncWithBackend(): Promise<Task[]> {
-    const tasks = this.getTasks();
-    await firstValueFrom(this.tasks$);
-    return tasks;
+    this.reload();
+    return this.getTasks();
   }
 
-  private save(tasks: Task[]) {
-    this.tasksSubject.next(tasks);
-    this.storage.set(this.StorageKey(), tasks);
+  private fetch(): Observable<Task[]> {
+    return this.api.getAll().pipe(
+      map((tasks) => tasks.map(toTask)),
+      catchError(() => of([])),
+    );
   }
 }

@@ -1,11 +1,10 @@
 import { Component, inject } from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TaskService } from '../../shared/services/task';
-import { StorageService } from '../../shared/services/storage';
+import { CalendarApiService } from '../../shared/services/calendar-api.service';
 
 interface CalendarEvent {
-  id: number;
+  id: string;
   day: number;
   month: number;
   year: number;
@@ -36,17 +35,37 @@ export class Calendar {
   selectedDayEvents: CalendarEvent[] = [];
   newEventTitle = '';
   newEventColor = '#3b82f6';
-  editingEventId: number | null = null;
+  editingEventId: string | null = null;
 
   colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
   events: CalendarEvent[] = [];
 
-  private readonly taskService = inject(TaskService);
-  private readonly storage = inject(StorageService);
+  private readonly calendarApi = inject(CalendarApiService);
 
   constructor() {
-    this.events = this.storage.get<CalendarEvent[]>('calendar_events', []);
+    this.reload();
+  }
+
+  private reload(): void {
+    this.calendarApi.getAll().subscribe({
+      next: (events) => {
+        this.events = events.map((event) => {
+          const date = new Date(event.eventDate);
+          return {
+            id: event.id,
+            day: date.getDate(),
+            month: date.getMonth(),
+            year: date.getFullYear(),
+            title: event.title,
+            color: event.colorHex,
+          };
+        });
+      },
+      error: () => {
+        this.events = [];
+      },
+    });
   }
 
   get monthName(): string {
@@ -120,36 +139,49 @@ export class Calendar {
   }
 
   saveEvent() {
-    if (!this.newEventTitle.trim()) return;
+    const title = this.newEventTitle.trim();
+    if (!title) return;
 
     if (this.editingEventId) {
-      const existing = this.events.find(ev => ev.id === this.editingEventId);
-      if (existing) {
-        existing.title = this.newEventTitle.trim();
-        existing.color = this.newEventColor;
-      }
-    } else {
-      const newEvent: CalendarEvent = {
-        id:    Date.now(),
-        day:   this.selectedDay,
-        month: this.currentDate.getMonth(),
-        year:  this.currentDate.getFullYear(),
-        title: this.newEventTitle.trim(),
-        color: this.newEventColor
-      };
-      this.events.push(newEvent);
+      this.calendarApi
+        .update(this.editingEventId, { title, colorHex: this.newEventColor })
+        .subscribe({
+          next: () => {
+            this.reload();
+            this.closeModal();
+          },
+          error: () => this.closeModal(),
+        });
+      return;
     }
 
-    this.storage.set('calendar_events', this.events);
-    this.closeModal();
+    this.calendarApi
+      .create({
+        title,
+        colorHex: this.newEventColor,
+        day: this.selectedDay,
+        month: this.currentDate.getMonth() + 1,
+        year: this.currentDate.getFullYear(),
+      })
+      .subscribe({
+        next: () => {
+          this.reload();
+          this.closeModal();
+        },
+        error: () => this.closeModal(),
+      });
   }
 
   deleteEvent() {
-    if (this.editingEventId) {
-      this.events = this.events.filter(ev => ev.id !== this.editingEventId);
-      this.storage.set('calendar_events', this.events);
-      this.closeModal();
-    }
+    if (!this.editingEventId) return;
+
+    this.calendarApi.delete(this.editingEventId).subscribe({
+      next: () => {
+        this.reload();
+        this.closeModal();
+      },
+      error: () => this.closeModal(),
+    });
   }
   editFromList(ev: CalendarEvent, e: MouseEvent) {
     e.stopPropagation();
