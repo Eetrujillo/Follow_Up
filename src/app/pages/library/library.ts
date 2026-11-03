@@ -1,10 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule, Router } from '@angular/router';
 
 import { LibraryService, Folder, Document } from '../../shared/services/library';
 
+/**
+ * Folders and documents come from the API. State that changes outside a DOM event
+ * (the folder list, the selected ids resolved from it) is a signal because the
+ * application runs zoneless.
+ */
 @Component({
   selector: 'app-library',
   standalone: true,
@@ -14,12 +19,20 @@ import { LibraryService, Folder, Document } from '../../shared/services/library'
 })
 export class Library implements OnInit {
 
-  folders: Folder[] = [];
+  private readonly libraryService = inject(LibraryService);
 
-  view: 'folders' | 'documents' | 'editor' = 'folders';
+  readonly folders = this.libraryService.folders;
+  readonly view = signal<'folders' | 'documents' | 'editor'>('folders');
+  readonly selectedFolderId = signal<string | null>(null);
+  readonly selectedDocId = signal<string | null>(null);
+  readonly errorMessage = signal('');
 
-  selectedFolder: Folder | null = null;
-  selectedDoc:    Document | null = null;
+  readonly selectedFolder = computed<Folder | null>(
+    () => this.folders().find((folder) => folder.id === this.selectedFolderId()) ?? null,
+  );
+  readonly selectedDoc = computed<Document | null>(
+    () => this.selectedFolder()?.documents.find((doc) => doc.id === this.selectedDocId()) ?? null,
+  );
 
   showFolderModal = false;
   showDocModal    = false;
@@ -28,37 +41,51 @@ export class Library implements OnInit {
 
   editorContent = '';
 
-  constructor(private libraryService: LibraryService, private router: Router) {}
-
   ngOnInit() {
-    this.libraryService.folders$.subscribe(folders => {
-      this.folders = folders;
-
-      if (this.selectedFolder) {
-        this.selectedFolder = folders.find(f => f.id === this.selectedFolder!.id) || null;
-      }
-    });
+    this.libraryService.reloadForUser();
   }
 
   openFolder(folder: Folder) {
-    this.selectedFolder = folder;
-    this.view = 'documents';
+    this.selectedFolderId.set(folder.id);
+    this.selectedDocId.set(null);
+    this.view.set('documents');
   }
 
   openDocument(doc: Document) {
-    this.selectedDoc  = doc;
+    this.selectedDocId.set(doc.id);
     this.editorContent = doc.content;
-    this.view = 'editor';
+    this.view.set('editor');
+  }
+
+  /** Breadcrumb "Follow-up" / "Biblioteca": back to the folder grid. */
+  goHome() {
+    if (this.view() === 'editor') {
+      this.saveDocumentContent();
+    }
+
+    this.view.set('folders');
+    this.selectedFolderId.set(null);
+    this.selectedDocId.set(null);
+  }
+
+  /** Breadcrumb "{{ folder.name }}": back to the document list. */
+  goToDocuments() {
+    if (this.view() === 'editor') {
+      this.saveDocumentContent();
+    }
+
+    this.selectedDocId.set(null);
+    this.view.set('documents');
   }
 
   goBack() {
-    if (this.view === 'editor') {
+    if (this.view() === 'editor') {
       this.saveDocumentContent();
-      this.view = 'documents';
-      this.selectedDoc = null;
-    } else if (this.view === 'documents') {
-      this.view = 'folders';
-      this.selectedFolder = null;
+      this.selectedDocId.set(null);
+      this.view.set('documents');
+    } else if (this.view() === 'documents') {
+      this.selectedFolderId.set(null);
+      this.view.set('folders');
     }
   }
 
@@ -68,14 +95,15 @@ export class Library implements OnInit {
   }
 
   saveFolder() {
-    if (!this.newFolderName.trim()) return;
-    this.libraryService.addFolder(this.newFolderName.trim());
-    this.showFolderModal = false;
+    const name = this.newFolderName.trim();
+    if (!name) return;
+
+    this.run(this.libraryService.addFolder(name), () => (this.showFolderModal = false));
   }
 
-  deleteFolder(id: number, e: MouseEvent) {
+  deleteFolder(id: string, e: MouseEvent) {
     e.stopPropagation();
-    this.libraryService.deleteFolder(id);
+    this.run(this.libraryService.deleteFolder(id));
   }
 
   openDocModal() {
@@ -84,28 +112,39 @@ export class Library implements OnInit {
   }
 
   saveDoc() {
-    if (!this.newDocName.trim() || !this.selectedFolder) return;
-    this.libraryService.addDocument(this.selectedFolder.id, this.newDocName.trim(), '');
-    this.showDocModal = false;
+    const folder = this.selectedFolder();
+    const name = this.newDocName.trim();
+    if (!name || !folder) return;
+
+    this.run(
+      this.libraryService.addDocument(folder.id, name, ''),
+      () => (this.showDocModal = false),
+    );
   }
 
-  deleteDocument(docId: number, e: MouseEvent) {
+  deleteDocument(docId: string, e: MouseEvent) {
     e.stopPropagation();
-    if (!this.selectedFolder) return;
-    this.libraryService.deleteDocument(this.selectedFolder.id, docId);
+    this.run(this.libraryService.deleteDocument(docId));
   }
-onSaveAndGoBack() {
-  this.saveDocumentContent();
-  this.goBack();
-}
+
+  onSaveAndGoBack() {
+    this.saveDocumentContent();
+    this.goBack();
+  }
+
   saveDocumentContent() {
-    if (!this.selectedFolder || !this.selectedDoc) return;
-    this.libraryService.updateDocument(
-      this.selectedFolder.id,
-      this.selectedDoc.id,
-      this.editorContent
-    );
-    
+    const doc = this.selectedDoc();
+    if (!doc) return;
+
+    this.run(this.libraryService.updateDocument(doc.id, this.editorContent));
   }
-  
+
+  /** One write against the API: clears the banner, then reports the failure if it comes. */
+  private run(request: Observable<unknown>, onSuccess?: () => void) {
+    this.errorMessage.set('');
+    request.subscribe({
+      next: () => onSuccess?.(),
+      error: () => this.errorMessage.set('No se pudo guardar en el servidor. Intenta de nuevo.'),
+    });
+  }
 }

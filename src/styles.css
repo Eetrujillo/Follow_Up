@@ -15,3 +15,14 @@ body {
   color: #ffffff;
 }
 
+
+/* Shared inline error banner for pages that write to the backend API. */
+.error-box {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border: 1px solid #7f1d1d;
+  border-radius: 8px;
+  background: #2a1214;
+  color: #fca5a5;
+  font-size: 0.85rem;
+}
