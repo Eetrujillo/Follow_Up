@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { provideZonelessChangeDetection } from '@angular/core';
 
 import { Sidebar } from './sidebar';
 
@@ -8,9 +10,9 @@ describe('Sidebar', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Sidebar]
-    })
-    .compileComponents();
+      imports: [Sidebar],
+      providers: [provideZonelessChangeDetection(), provideRouter([])],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(Sidebar);
     component = fixture.componentInstance;

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Sidebar } from './components/sidebar/sidebar';
@@ -13,13 +13,14 @@ import { Sidebar } from './components/sidebar/sidebar';
 export class App {
   private readonly router = inject(Router);
 
-  showSidebar = true;
+  /** A signal: the router event arrives outside a DOM event, and the app is zoneless. */
+  readonly showSidebar = signal(true);
   private readonly hiddenRoutes = ['/login', '/signup'];
 
   constructor() {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
-        this.showSidebar = !this.hiddenRoutes.includes(event.urlAfterRedirects);
+        this.showSidebar.set(!this.hiddenRoutes.includes(event.urlAfterRedirects));
       }
     });
   }
