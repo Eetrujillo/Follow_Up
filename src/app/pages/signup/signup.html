@@ -47,12 +47,12 @@
         }
       </div>
 
-      @if (errorMessage) {
-        <div class="error-box">{{ errorMessage }}</div>
+      @if (errorMessage()) {
+        <div class="error-box">{{ errorMessage() }}</div>
       }
 
-      <button type="submit" class="btn-submit" [disabled]="isLoading">
-        @if (!isLoading) {
+      <button type="submit" class="btn-submit" [disabled]="isLoading()">
+        @if (!isLoading()) {
           <span>Crear cuenta</span>
         } @else {
           <span>Registrando...</span>

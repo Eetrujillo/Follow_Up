@@ -1,10 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../shared/services/auth.service';
 import { TaskService } from '../../shared/services/task';
 
+/**
+ * The application runs zoneless, so every piece of state written from an async
+ * callback is a signal: mutating a plain field there would not schedule change
+ * detection and the view would keep showing "Cargando...".
+ */
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -15,9 +20,9 @@ import { TaskService } from '../../shared/services/task';
 export class Login implements OnInit {
   loginForm: FormGroup;
   verPassword = false;
-  errorMessage = '';
-  successMessage = '';
-  isLoading = false;
+  readonly errorMessage = signal('');
+  readonly successMessage = signal('');
+  readonly isLoading = signal(false);
 
   constructor(
     private fb: FormBuilder,
@@ -36,7 +41,7 @@ export class Login implements OnInit {
     // Mostrar mensaje si viene del registro
     this.route.queryParams.subscribe((params) => {
       if (params['registered']) {
-        this.successMessage = 'Cuenta creada. Ahora inicia sesion.';
+        this.successMessage.set('Cuenta creada. Ahora inicia sesion.');
       }
     });
   }
@@ -53,8 +58,8 @@ export class Login implements OnInit {
   }
 
   onSubmit() {
-    this.errorMessage = '';
-    this.successMessage = '';
+    this.errorMessage.set('');
+    this.successMessage.set('');
 
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
@@ -62,21 +67,21 @@ export class Login implements OnInit {
     }
 
     const { email, password } = this.loginForm.value;
-    this.isLoading = true;
+    this.isLoading.set(true);
 
     this.authService.login(email, password).subscribe({
       next: (success) => {
-        this.isLoading = false;
+        this.isLoading.set(false);
         if (success) {
           this.taskService.reloadForUser();
           this.router.navigate(['/dashboard']);
         } else {
-          this.errorMessage = 'Correo o contrasena incorrectos';
+          this.errorMessage.set('Correo o contrasena incorrectos');
         }
       },
       error: () => {
-        this.isLoading = false;
-        this.errorMessage = 'Error al conectar. Intenta de nuevo.';
+        this.isLoading.set(false);
+        this.errorMessage.set('Error al conectar. Intenta de nuevo.');
       },
     });
   }

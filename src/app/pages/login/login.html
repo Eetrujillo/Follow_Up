@@ -6,8 +6,8 @@
     <h1 class="titulo">Follow-up</h1>
     <p class="subtitulo">Inicia sesion para continuar</p>
 
-    @if (successMessage) {
-      <div class="success-box">{{ successMessage }}</div>
+    @if (successMessage()) {
+      <div class="success-box">{{ successMessage() }}</div>
     }
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
@@ -51,12 +51,12 @@
         }
       </div>
 
-      @if (errorMessage) {
-        <div class="error-box">{{ errorMessage }}</div>
+      @if (errorMessage()) {
+        <div class="error-box">{{ errorMessage() }}</div>
       }
 
-      <button type="submit" [disabled]="isLoading">
-        @if (!isLoading) {
+      <button type="submit" [disabled]="isLoading()">
+        @if (!isLoading()) {
           <span>Iniciar sesion</span>
         } @else {
           <span>Cargando...</span>
