@@ -11,11 +11,11 @@
       <p class="subtitle">Tu espacio personal.</p>
     </div>
     <div class="header-actions">
-      @if (saved) {
+      @if (saved()) {
         <span class="saved-msg">Guardado en biblioteca</span>
       }
-      <div class="char-counter" [class.over]="isOverLimit">{{ charCount }} / {{ maxChars }}</div>
-      <button class="btn-library" (click)="openSaveModal()" [disabled]="!hasContent || isOverLimit">
+      <div class="char-counter" [class.over]="isOverLimit()">{{ charCount() }} / {{ maxChars }}</div>
+      <button class="btn-library" (click)="openSaveModal()" [disabled]="!hasContent() || isOverLimit()">
         Guardar en Biblioteca
       </button>
     </div>
@@ -30,15 +30,21 @@
   </div>
 
   <div class="ai-actions" style="margin-top:10px;">
-    <button class="btn-ai" (click)="generateTasks()" [disabled]="generating || isOverLimit">
-      @if (!generating) {
+    <button class="btn-ai" (click)="generateTasks()" [disabled]="generating() || isOverLimit()">
+      @if (!generating()) {
         <span>Crear tareas con IA</span>
       } @else {
         <span>Generando...</span>
       }
     </button>
-    @if (generateError) {
-      <div class="ai-error" style="color:#b00020;margin-top:6px;">{{ generateError }}</div>
+    @if (aiSuccessMessage()) {
+      <div class="ai-success" style="color:#22c55e;margin-top:6px;">{{ aiSuccessMessage() }}</div>
+    }
+    @if (generateError()) {
+      <div class="ai-error" style="color:#b00020;margin-top:6px;">{{ generateError() }}</div>
+    }
+    @if (errorMessage()) {
+      <div class="error-box">{{ errorMessage() }}</div>
     }
   </div>
 

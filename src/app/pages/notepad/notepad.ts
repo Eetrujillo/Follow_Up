@@ -1,12 +1,24 @@
-import { Component, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  AfterViewInit,
+  OnDestroy,
+  ViewChild,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { StorageService } from '../../shared/services/storage';
 import { LibraryService } from '../../shared/services/library';
-import { AuthService } from '../../shared/services/auth.service';
+import { NotepadApiService } from '../../shared/services/notepad-api.service';
 import { AiService } from '../../shared/services/ai.service';
 import { TaskService } from '../../shared/services/task';
 
+const SAVE_DEBOUNCE_MS = 800;
+
+/**
+ * The draft lives in PostgreSQL through `/notepad`. Everything written from an
+ * HTTP callback is a signal, because the application runs zoneless.
+ */
 @Component({
   selector: 'app-notepad',
   standalone: true,
@@ -14,57 +26,46 @@ import { TaskService } from '../../shared/services/task';
   templateUrl: './notepad.html',
   styleUrl: './notepad.css',
 })
-export class Notepad implements AfterViewInit {
+export class Notepad implements AfterViewInit, OnDestroy {
   @ViewChild('editor', { static: true }) editorRef!: ElementRef<HTMLElement>;
 
-  saved = false;
+  readonly saved = signal(false);
+  readonly errorMessage = signal('');
   showSaveModal = false;
   noteName = '';
 
   maxChars = 3000;
-  charCount = 0;
-  isOverLimit = false;
+  readonly charCount = signal(0);
+  readonly isOverLimit = signal(false);
+  readonly hasContent = signal(false);
 
-  generating = false;
-  generateError = '';
-  aiSuccessMessage = '';
+  readonly generating = signal(false);
+  readonly generateError = signal('');
+  readonly aiSuccessMessage = signal('');
+
+  private saveTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
-    private storage: StorageService,
+    private notepadApi: NotepadApiService,
     private libraryService: LibraryService,
-    private authService: AuthService,
     private aiService: AiService,
     public taskService: TaskService,
-    private cdr: ChangeDetectorRef,
   ) {}
 
   ngAfterViewInit() {
-    const saved = this.storage.get<string>(this.storageKey, '');
-    if (saved) {
-      this.editorRef.nativeElement.innerText = saved;
-    }
-    this.updateCharCount();
-    this.cdr.detectChanges();
+    this.notepadApi.get().subscribe({
+      next: (draft) => {
+        if (draft.contentHtml) {
+          this.editorRef.nativeElement.innerHTML = draft.contentHtml;
+        }
+        this.updateCharCount();
+      },
+      error: () => this.errorMessage.set('No se pudo cargar la nota guardada.'),
+    });
   }
 
-  private get storageKey(): string {
-    const user = this.authService.getCurrentUser();
-    return `notepad_${user?.id || user?.email || 'guest'}`;
-  }
-
-  get hasContent(): boolean {
-    return !!this.editorRef?.nativeElement?.innerText?.trim();
-  }
-
-  private updateCharCount() {
-    const text = this.editorRef.nativeElement.innerText || '';
-    this.charCount = text.length;
-    this.isOverLimit = this.charCount > this.maxChars;
-    if (this.isOverLimit) {
-      this.editorRef.nativeElement.classList.add('over-limit');
-    } else {
-      this.editorRef.nativeElement.classList.remove('over-limit');
-    }
+  ngOnDestroy() {
+    this.flushDraft();
   }
 
   format(command: string, value?: string) {
@@ -78,15 +79,16 @@ export class Notepad implements AfterViewInit {
   }
 
   onContentChange() {
-    const text = this.editorRef.nativeElement.innerText || '';
+    const text = this.plainText();
     if (text.length > this.maxChars) {
       const truncated = text.substring(0, this.maxChars);
-      this.editorRef.nativeElement.innerText = truncated;
+      this.editorRef.nativeElement.textContent = truncated;
       this.placeCaretAtEnd(this.editorRef.nativeElement);
     }
+
     this.updateCharCount();
-    this.storage.set(this.storageKey, this.editorRef.nativeElement.innerText);
-    this.saved = false;
+    this.saved.set(false);
+    this.scheduleSave();
   }
 
   openSaveModal() {
@@ -95,13 +97,18 @@ export class Notepad implements AfterViewInit {
   }
 
   saveToLibrary() {
-    if (!this.noteName.trim()) return;
-    const rawHtml = this.editorRef.nativeElement.innerHTML;
-    const contentPlain = this.htmlToPlainText(rawHtml);
-    this.libraryService.saveNote(this.noteName.trim(), contentPlain);
-    this.showSaveModal = false;
-    this.saved = true;
-    setTimeout(() => (this.saved = false), 2000);
+    const name = this.noteName.trim();
+    if (!name) return;
+
+    this.errorMessage.set('');
+    this.libraryService.saveNote(name, this.plainText()).subscribe({
+      next: () => {
+        this.showSaveModal = false;
+        this.saved.set(true);
+        setTimeout(() => this.saved.set(false), 2000);
+      },
+      error: () => this.errorMessage.set('No se pudo guardar la nota en la biblioteca.'),
+    });
   }
 
   onEditorKeyDown(e: KeyboardEvent) {
@@ -129,7 +136,7 @@ export class Notepad implements AfterViewInit {
     }
     const isPrintable = key.length === 1;
     if (isPrintable) {
-      const current = this.editorRef.nativeElement.innerText || '';
+      const current = this.plainText();
       if (current.length >= this.maxChars) {
         e.preventDefault();
         return;
@@ -140,7 +147,7 @@ export class Notepad implements AfterViewInit {
   onEditorPaste(e: ClipboardEvent) {
     e.preventDefault();
     const pasteText = e.clipboardData?.getData('text') || '';
-    const current = this.editorRef?.nativeElement?.innerText || '';
+    const current = this.plainText();
     const available = Math.max(0, this.maxChars - current.length);
     if (available <= 0) return;
     const toInsert = pasteText.substring(0, available);
@@ -148,6 +155,109 @@ export class Notepad implements AfterViewInit {
       this.insertTextAtCursor(toInsert);
       this.onContentChange();
     }
+  }
+
+  generateTasks() {
+    const content = this.plainText().trim();
+    if (!content) return;
+
+    this.generating.set(true);
+    this.generateError.set('');
+    this.aiSuccessMessage.set('');
+
+    this.aiService.generateTasksFromNotes(content).subscribe({
+      next: (res) => {
+        try {
+          const raw = this.aiText(res);
+          const lines = raw
+            .split('\n')
+            .map((line) => line.trim())
+            .filter((line) => line.length > 0)
+            .map((line) => line.replace(/^[-*\d.]+\s*/, '').trim());
+
+          if (lines.length === 0) {
+            this.generateError.set('No se pudieron estructurar las tareas del texto de la IA.');
+          } else {
+            const textoActual = this.plainText();
+            const nuevoBloqueTareas = `\n\n--- TAREAS SUGERIDAS ---\n` + lines.map((l) => `- ${l}`).join('\n');
+
+            this.editorRef.nativeElement.textContent = textoActual + nuevoBloqueTareas;
+            this.aiSuccessMessage.set('Tareas sugeridas añadidas al final de la nota. Revisa y guarda el documento.');
+            this.onContentChange();
+
+            setTimeout(() => this.aiSuccessMessage.set(false as unknown as string), 7000);
+          }
+        } catch {
+          this.generateError.set('Error de procesamiento visual al renderizar la IA.');
+        } finally {
+          this.generating.set(false);
+        }
+      },
+      error: (err) => {
+        if (err?.status === 429) {
+          this.generateError.set('Límite de la IA excedido (máx. 5 consultas por minuto). Espera un momento.');
+        } else if (err?.status === 401) {
+          this.generateError.set('Clave de IA inválida o expirada.');
+        } else {
+          this.generateError.set('No se pudo conectar con la IA. Inténtalo de nuevo.');
+        }
+        this.generating.set(false);
+      },
+    });
+  }
+
+  private aiText(res: unknown): string {
+    const message = (res as { message?: { content?: unknown } } | null)?.message;
+    if (typeof message?.content === 'string') {
+      return message.content;
+    }
+    const parts = message?.content as { text?: string }[] | undefined;
+    if (Array.isArray(parts) && parts[0]?.text) {
+      return parts[0].text;
+    }
+    return '';
+  }
+
+  /**
+   * The editor's plain text. `innerText` is what a browser renders; jsdom does not
+   * implement it, so `textContent` is the fallback used by the tests.
+   */
+  private plainText(): string {
+    const editor = this.editorRef.nativeElement;
+    return editor.innerText ?? editor.textContent ?? '';
+  }
+
+  private updateCharCount() {
+    const text = this.plainText();
+    this.charCount.set(text.length);
+    this.isOverLimit.set(text.length > this.maxChars);
+    this.hasContent.set(text.trim().length > 0);
+
+    if (this.isOverLimit()) {
+      this.editorRef.nativeElement.classList.add('over-limit');
+    } else {
+      this.editorRef.nativeElement.classList.remove('over-limit');
+    }
+  }
+
+  /** Debounced upsert of the draft: one request per burst of typing. */
+  private scheduleSave() {
+    if (this.saveTimer) {
+      clearTimeout(this.saveTimer);
+    }
+
+    this.saveTimer = setTimeout(() => this.flushDraft(), SAVE_DEBOUNCE_MS);
+  }
+
+  private flushDraft() {
+    if (this.saveTimer) {
+      clearTimeout(this.saveTimer);
+      this.saveTimer = null;
+    }
+
+    this.notepadApi.save(this.editorRef.nativeElement.innerHTML).subscribe({
+      error: () => this.errorMessage.set('No se pudo guardar la nota en el servidor.'),
+    });
   }
 
   private insertHtmlAtCursor(html: string) {
@@ -209,85 +319,5 @@ export class Notepad implements AfterViewInit {
       sel.removeAllRanges();
       sel.addRange(range);
     }
-  }
-
-  private htmlToPlainText(html: string): string {
-    let text = html.replace(/<\/div>\s*<div>/gi, '\n');
-    text = text.replace(/<br\s*\/?>/gi, '\n');
-    text = text.replace(/<\/?[^>]+(>|$)/g, '');
-    text = text.replace(/\n{3,}/g, '\n\n').trim();
-    return text;
-  }
-
-  generateTasks() {
-    const content = this.editorRef.nativeElement.innerText.trim();
-    if (!content) return;
-
-    this.generating = true;
-    this.generateError = '';
-    this.aiSuccessMessage = '';
-    this.cdr.detectChanges();
-
-    this.aiService.generateTasksFromNotes(content).subscribe({
-      next: (res) => {
-        console.log('1. Respuesta cruda de Cohere:', res);
-
-        try {
-          let raw = '';
-          if (res?.message?.content && typeof res.message.content === 'string') {
-            raw = res.message.content;
-          } else if (Array.isArray(res?.message?.content) && res.message.content[0]?.text) {
-            raw = res.message.content[0].text;
-          }
-
-          console.log('2. Texto extraído de la IA:', raw);
-
-          const lines = raw.split('\n')
-            .map((l: string) => l.trim())
-            .filter((l: string) => l.length > 0)
-            .map((l: string) => l.replace(/^[-\*\d\.]+\s*/, '').trim());
-
-          console.log('3. Líneas de tareas procesadas:', lines);
-
-          if (lines.length === 0) {
-            this.generateError = 'No se pudieron estructurar las tareas del texto de la IA.';
-          } else {
-            const textoActual = this.editorRef.nativeElement.innerText;
-            const nuevoBloqueTareas = `\n\n--- TAREAS SUGERIDAS ---\n` + lines.map(l => `- ${l}`).join('\n');
-            
-            this.editorRef.nativeElement.innerText = textoActual + nuevoBloqueTareas;
-            
-            this.generateError = '';
-            this.aiSuccessMessage = 'Tareas sugeridas añadidas al final de la nota. Revisa y guarda el documento.';
-
-            this.onContentChange();
-
-            setTimeout(() => {
-              this.aiSuccessMessage = '';
-              this.cdr.detectChanges();
-            }, 7000);
-          }
-
-        } catch (parseError) {
-          console.error('Error procesando el contenido en Vercel:', parseError);
-          this.generateError = 'Error de procesamiento visual al renderizar la IA.';
-        } finally {
-          this.generating = false;
-          this.cdr.detectChanges();
-        }
-      },
-      error: (err) => {
-        console.error('Error en la petición HTTP de Cohere:', err);
-        if (err.status === 429) {
-          this.generateError = 'Límite de la IA excedido (máx. 5 consultas por minuto). Espera un momento.';
-        } else if (err.status === 401) {
-          this.generateError = 'Clave de IA inválida o expirada.';
-        } else {
-          this.generateError = 'No se pudo conectar con la IA. Inténtalo de nuevo.';
-        }
-        this.generating = false;
-        this.cdr.detectChanges();
-      }
-    });
   }
 }
