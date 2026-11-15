@@ -108,7 +108,7 @@ export class Notepad implements AfterViewInit {
     const key = e.key;
     if (key === 'Enter') {
       e.preventDefault();
-      this.insertHtmlAtCursor('<br><br>');
+      this.insertLineBreaks();
       this.onContentChange();
       return;
     }
@@ -150,25 +150,34 @@ export class Notepad implements AfterViewInit {
     }
   }
 
-  private insertHtmlAtCursor(html: string) {
+  /**
+   * Two line breaks, built as DOM nodes instead of parsed from an HTML string.
+   * The editor is contenteditable and holds user text, so nothing here should ever
+   * go through a parser: `innerHTML` on this element is one refactor away from
+   * becoming an injection point, and it is not worth keeping that door open to
+   * gain nothing.
+   */
+  private insertLineBreaks() {
+    this.insertNodesAtCursor([document.createElement('br'), document.createElement('br')]);
+  }
+
+  private insertNodesAtCursor(nodes: Node[]) {
+    const parent = this.editorRef.nativeElement;
     const sel = window.getSelection();
+
     if (!sel || sel.rangeCount === 0) {
-      this.editorRef.nativeElement.insertAdjacentHTML('beforeend', html);
-      this.placeCaretAtEnd(this.editorRef.nativeElement);
+      for (const node of nodes) parent.appendChild(node);
+      this.placeCaretAtEnd(parent);
       return;
     }
+
     const range = sel.getRangeAt(0);
-    const temp = document.createElement('div');
-    temp.innerHTML = html;
-    const frag = document.createDocumentFragment();
-    const nodes: ChildNode[] = [];
-    let node: ChildNode | null;
-    while ((node = temp.firstChild)) {
-      nodes.push(node);
-      frag.appendChild(node);
-    }
     range.deleteContents();
+
+    const frag = document.createDocumentFragment();
+    for (const node of nodes) frag.appendChild(node);
     range.insertNode(frag);
+
     const lastNode = nodes[nodes.length - 1];
     if (lastNode) {
       const newRange = document.createRange();
@@ -177,7 +186,8 @@ export class Notepad implements AfterViewInit {
       sel.removeAllRanges();
       sel.addRange(newRange);
     }
-    this.editorRef.nativeElement.focus();
+
+    parent.focus();
   }
 
   private insertTextAtCursor(text: string) {
