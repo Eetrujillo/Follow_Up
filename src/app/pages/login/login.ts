@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../shared/services/auth.service';
 import { TaskService } from '../../shared/services/task';
+import { LibraryService } from '../../shared/services/library';
 
 @Component({
   selector: 'app-login',
@@ -25,6 +26,7 @@ export class Login implements OnInit {
     private route: ActivatedRoute,
     private authService: AuthService,
     private taskService: TaskService,
+    private libraryService: LibraryService,
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -69,6 +71,9 @@ export class Login implements OnInit {
         this.isLoading = false;
         if (success) {
           this.taskService.reloadForUser();
+          // Every cached collection is keyed by user: reloading here is what keeps
+          // the previous account's documents off the screen after a session change.
+          this.libraryService.reloadForUser();
           this.router.navigate(['/dashboard']);
         } else {
           this.errorMessage = 'Correo o contrasena incorrectos';
