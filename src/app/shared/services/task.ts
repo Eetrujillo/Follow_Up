@@ -43,11 +43,10 @@ export class TaskService {
     return this.tasksSubject.getValue();
   }
 
-  async addTaskAsync(text: string, source: 'dashboard' | 'calendar', date?: string): Promise<Task> {
+  async addTaskAsync(text: string, date?: string): Promise<Task> {
     const created = await firstValueFrom(
       this.api.create({
         description: text,
-        origin: source === 'calendar' ? 'CALENDAR' : 'DASHBOARD',
         dueDate: date,
       }),
     );
@@ -57,8 +56,8 @@ export class TaskService {
     return task;
   }
 
-  addTask(text: string, source: 'dashboard' | 'calendar', date?: string): void {
-    void this.addTaskAsync(text, source, date).catch(() => undefined);
+  addTask(text: string, date?: string): void {
+    void this.addTaskAsync(text, date).catch(() => undefined);
   }
 
   toggleTask(id: string): void {

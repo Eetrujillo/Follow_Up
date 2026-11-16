@@ -74,7 +74,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
 
   addTask() {
     if (!this.newTaskText.trim()) return;
-    this.taskService.addTask(this.newTaskText.trim(), 'dashboard');
+    this.taskService.addTask(this.newTaskText.trim());
     this.newTaskText = '';
   }
 
