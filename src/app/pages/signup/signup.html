@@ -1,14 +1,12 @@
-<div class="auth-container">
+<div class="auth-wrap">
   <div class="auth-card">
-    <div class="auth-header">
-      <h1 class="auth-logo">Follow-up</h1>
-      <p class="auth-subtitle">Crea tu cuenta para empezar</p>
-    </div>
+    <h1 class="auth-title">Follow-up</h1>
+    <p class="auth-sub">Crea tu cuenta para empezar</p>
 
-    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label>Nombre completo</label>
-        <input type="text" placeholder="Tu nombre" formControlName="name" [class.input-error]="name?.invalid && name?.touched" />
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" aria-label="Formulario de registro">
+      <div class="fgroup">
+        <label for="signup-name">Nombre completo</label>
+        <input id="signup-name" class="field" type="text" placeholder="Tu nombre" autocomplete="name" formControlName="name" [class.input-error]="name?.invalid && name?.touched" />
         @if (name?.touched && name?.hasError('required')) {
           <span class="error">El nombre es obligatorio</span>
         }
@@ -17,9 +15,9 @@
         }
       </div>
 
-      <div class="form-group">
-        <label>Correo electronico</label>
-        <input type="email" placeholder="correo@ejemplo.com" formControlName="email" [class.input-error]="email?.invalid && email?.touched" />
+      <div class="fgroup">
+        <label for="signup-email">Correo electronico</label>
+        <input id="signup-email" class="field" type="email" placeholder="correo@ejemplo.com" autocomplete="email" formControlName="email" [class.input-error]="email?.invalid && email?.touched" />
         @if (email?.touched && email?.hasError('required')) {
           <span class="error">El correo es obligatorio</span>
         }
@@ -28,9 +26,9 @@
         }
       </div>
 
-      <div class="form-group">
-        <label>Contrasena</label>
-        <input type="password" placeholder="Minimo 8 caracteres" formControlName="password" [class.input-error]="password?.invalid && password?.touched" />
+      <div class="fgroup">
+        <label for="signup-pass">Contrasena</label>
+        <input id="signup-pass" class="field" type="password" placeholder="Minimo 8 caracteres" autocomplete="new-password" formControlName="password" [class.input-error]="password?.invalid && password?.touched" />
         @if (password?.touched && password?.hasError('required')) {
           <span class="error">La contrasena es obligatoria</span>
         }
@@ -39,30 +37,32 @@
         }
       </div>
 
-      <div class="form-group">
-        <label>Confirmar contrasena</label>
-        <input type="password" placeholder="Repite tu contrasena" formControlName="confirm" [class.input-error]="signupForm.hasError('noMatch') && confirm?.touched" />
+      <div class="fgroup">
+        <label for="signup-confirm">Confirmar contrasena</label>
+        <input id="signup-confirm" class="field" type="password" placeholder="Repite tu contrasena" autocomplete="new-password" formControlName="confirm" [class.input-error]="signupForm.hasError('noMatch') && confirm?.touched" />
         @if (signupForm.hasError('noMatch') && confirm?.touched) {
           <span class="error">Las contrasenas no coinciden</span>
         }
       </div>
 
       @if (errorMessage) {
-        <div class="error-box">{{ errorMessage }}</div>
+        <div class="error-box" role="alert">{{ errorMessage }}</div>
       }
 
-      <button type="submit" class="btn-submit" [disabled]="isLoading">
+      <button type="submit" class="btn btn--primary auth-submit" [disabled]="isLoading"
+              [attr.aria-busy]="isLoading ? 'true' : null">
         @if (!isLoading) {
           <span>Crear cuenta</span>
         } @else {
+          <span class="spinner" aria-hidden="true"></span>
           <span>Registrando...</span>
         }
       </button>
     </form>
 
-    <p class="auth-redirect">
+    <p class="auth-foot">
       Ya tienes cuenta?
-      <a routerLink="/login">Inicia sesion</a>
+      <a class="auth-link" routerLink="/login">Inicia sesion</a>
     </p>
   </div>
 </div>

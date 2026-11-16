@@ -23,11 +23,11 @@ export class Sidebar {
   showResults = false;
 
   navItems = [
-    { label: 'Panel Principal', route: '/dashboard', icon: '⊞' },
-    { label: 'Biblioteca', route: '/library', icon: '▣' },
-    { label: 'Calendario', route: '/calendar', icon: '▦' },
-    { label: 'Estadisticas', route: '/statistics', icon: '▤' },
-    { label: 'Bloc de Notas', route: '/notepad', icon: '▧' },
+    { label: 'Panel Principal', route: '/dashboard', icon: 'home' },
+    { label: 'Biblioteca', route: '/library', icon: 'folder' },
+    { label: 'Calendario', route: '/calendar', icon: 'calendar' },
+    { label: 'Estadisticas', route: '/statistics', icon: 'chart' },
+    { label: 'Bloc de Notas', route: '/notepad', icon: 'note' },
   ];
 
   toggleSidebar() {

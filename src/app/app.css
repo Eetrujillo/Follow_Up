@@ -1,19 +1,10 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  background-color: #161616;
-  font-family: sans-serif;
-  color: #ffffff;
-}
+/* Shell de la aplicación. Reset, body y tokens viven en styles.css. */
 
 .app-layout {
   display: flex;
   height: 100vh;
   overflow: hidden;
+  background: var(--canvas);
 }
 
 .main-content {

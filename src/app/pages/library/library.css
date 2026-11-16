@@ -1,266 +1,232 @@
 .page-wrapper {
   padding: 24px 32px;
-  min-height: 100vh;
-  background: #161616;
-  color: #fff;
-  font-family: sans-serif;
+  min-height: 100%;
   box-sizing: border-box;
 }
 
-.breadcrumb {
-  font-size: 12px;
-  color: #555;
-  margin-bottom: 16px;
+/* --- Migas de pan --------------------------------------------------------- */
+.crumbs {
   display: flex;
-  gap: 6px;
   align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
+  font-size: 13px;
+  margin-bottom: 20px;
 }
 
 .crumb {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-size: 13px;
+  color: var(--t2);
   cursor: pointer;
-  transition: color 0.2s;
+  border-radius: var(--r-ctl);
+  transition: color var(--fast) var(--ease);
 }
 
-.crumb:hover { color: #3b82f6; }
-.sep { color: #444; }
+.crumb:hover { color: var(--accent); }
+.crumb:active { color: var(--t1); }
 
+.crumb[aria-current] {
+  color: var(--t1);
+  cursor: default;
+}
+
+.crumb-sep { color: var(--t3); }
+
+/* --- Cabecera ------------------------------------------------------------- */
 .page-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 24px;
   gap: 16px;
+  margin-bottom: 24px;
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 16px;
+  min-width: 0;
 }
 
 h1 {
   font-size: 22px;
   font-weight: 600;
   margin: 0 0 4px;
+  color: var(--t1);
 }
 
 .subtitle {
-  color: #666;
+  color: var(--t3);
   font-size: 13px;
   margin: 0;
 }
 
-.btn-add {
-  background: #3b82f6;
-  border: none;
-  border-radius: 8px;
-  color: #fff;
-  padding: 9px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  margin: 0;
-  width: auto;
-  transition: background 0.2s;
-  flex-shrink: 0;
-}
-
-.btn-add:hover { background: #2563eb; }
-
-.btn-back {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: #2a2a2a;
-  border: none;
-  border-radius: 7px;
-  color: #888;
-  padding: 7px 12px;
-  font-size: 13px;
-  cursor: pointer;
-  white-space: nowrap;
-  margin: 0;
-  width: auto;
-  transition: background 0.2s, color 0.2s;
-}
-
-.btn-back:hover { background: #333; color: #fff; }
-
-.btn-save {
-  background: #3b82f6;
-  border: none;
-  border-radius: 8px;
-  color: #fff;
-  padding: 9px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  margin: 0;
-  width: auto;
-  transition: background 0.2s;
-}
-
-.btn-save:hover { background: #2563eb; }
-
-.icon-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  margin: 0;
-  width: auto;
-  transition: background 0.2s;
-}
-
-.icon-btn.del { color: #555; }
-.icon-btn.del:hover { background: #2a2a2a; color: #ef4444; }
-
-/* Grid de carpetas */
+/* --- Tarjetas de carpeta --------------------------------------------------- */
 .folders-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  gap: 16px;
 }
 
 .folder-card {
-  background: #1e1e1e;
-  border: 1px solid #2a2a2a;
-  border-radius: 10px;
-  padding: 18px 20px;
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  background: var(--s1);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-box);
+  padding: 16px;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+  transition:
+    background var(--fast) var(--ease),
+    border-color var(--fast) var(--ease),
+    transform var(--fast) var(--ease);
 }
 
 .folder-card:hover {
-  background: #252525;
-  border-color: #3b82f6;
+  background: var(--s2);
+  border-color: var(--hairline-2);
+  transform: translateY(-1px);
 }
 
-.folder-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  color: #888;
-  min-width: 0;
-}
-
-.folder-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #555;
-  flex-shrink: 0;
-}
+.folder-card:active { transform: scale(0.985); }
+.folder-card > .ic--lg { color: var(--t2); }
 
 .folder-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  color: #fff;
-  margin: 0 0 3px;
+  color: var(--t1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.folder-count {
+  font-size: 11px;
+  color: var(--t3);
+}
+
+/* La papelera aparece en hover y en :focus-within, nunca display:none. */
+.trash {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.folder-card:hover .trash,
+.folder-card:focus-within .trash {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.folder-card .trash {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+/* --- Filas de documento ---------------------------------------------------- */
+.doc-list {
+  background: var(--s1);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-box);
+  overflow: hidden;
+}
+
+.doc-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background var(--fast) var(--ease);
+}
+
+.doc-item + .doc-item { border-top: 1px solid var(--hairline); }
+.doc-item:hover { background: var(--s2); }
+.doc-item:active { background: var(--s3); }
+.doc-item > .ic { color: var(--t2); }
+
+.doc-name {
+  font-size: 13px;
+  color: var(--t1);
+  flex: 1;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.folder-docs {
-  font-size: 12px;
-  color: #666;
-  margin: 0;
-}
-
-.doc-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.doc-item {
-  background: #1e1e1e;
-  border: 1px solid #2a2a2a;
-  border-radius: 10px;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
-}
-
-.doc-item:hover {
-  background: #252525;
-  border-color: #3b82f6;
-}
-
-.doc-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  color: #888;
-  min-width: 0;
-}
-
-.doc-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: #fff;
-  margin: 0 0 3px;
-}
-
 .doc-date {
   font-size: 11px;
-  color: #666;
-  margin: 0;
+  color: var(--t3);
+  flex: none;
 }
 
+.doc-item .trash { flex: none; }
+
+.doc-item:hover .trash,
+.doc-item:focus-within .trash {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* --- Estado vacío ----------------------------------------------------------- */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 60px 0;
-  color: #555;
-  font-size: 14px;
+  gap: 12px;
+  padding: 40px 20px;
+  background: var(--s1);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-box);
+  color: var(--t2);
+  font-size: 13px;
 }
 
+.empty-state .ic--lg { color: var(--t3); }
+.empty-state p { margin: 0; }
 
+/* --- Editor ------------------------------------------------------------------ */
 .editor-box {
-  background: #1e1e1e;
-  border: 1px solid #2a2a2a;
-  border-radius: 10px;
+  background: var(--s1);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-box);
   overflow: hidden;
 }
 
 .editor {
   width: 100%;
-  min-height: calc(100vh - 200px);
+  min-height: calc(100vh - 220px);
   background: transparent;
   border: none;
-  outline: none;
-  color: #ccc;
-  font-size: 14px;
-  line-height: 1.8;
+  /* Sin outline:none: el textarea hereda el anillo de foco global (:focus-visible, 2px var(--accent)). */
+  color: var(--t1);
+  font-size: 13px;
+  line-height: 1.7;
+  font-family: var(--font-body);
   padding: 24px;
   resize: none;
   box-sizing: border-box;
-  font-family: sans-serif;
+  caret-color: var(--accent);
 }
 
-.editor::placeholder { color: #444; }
+.editor::placeholder { color: var(--t3); }
 
-
+/* --- Modal ------------------------------------------------------------------- */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -268,57 +234,64 @@ h1 {
 }
 
 .modal {
-  background: #1e1e1e;
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  padding: 24px;
   width: 100%;
   max-width: 360px;
+  background: var(--s2);
+  border: 1px solid var(--hairline-2);
+  border-radius: var(--r-box);
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.7);
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
+  animation: modal-in 180ms var(--ease);
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .modal h3 {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 500;
   margin: 0;
+  color: var(--t1);
 }
 
-.modal input {
-  background: #252525;
-  border: 1px solid #2e2e2e;
-  border-radius: 7px;
-  padding: 10px 12px;
-  color: #fff;
-  font-size: 13px;
-  outline: none;
-  box-sizing: border-box;
-  width: 100%;
+.modal-label {
+  font-size: 12px;
+  color: var(--t2);
 }
-
-.modal input:focus { border-color: #3b82f6; }
 
 .modal-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   justify-content: flex-end;
+  margin-top: 6px;
 }
 
-.btn-cancel {
-  background: #2a2a2a;
-  border: none;
-  border-radius: 7px;
-  color: #888;
-  padding: 8px 16px;
-  cursor: pointer;
+/* --- Toast de guardado -------------------------------------------------------- */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--s2);
+  border: 1px solid var(--hairline-2);
+  border-radius: var(--r-ctl);
+  color: var(--t1);
   font-size: 13px;
-  width: auto;
-  margin: 0;
-  transition: background 0.2s;
+  padding: 10px 16px;
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.7);
+  z-index: 120;
+  animation: modal-in 180ms var(--ease);
 }
 
-.btn-cancel:hover { background: #333; color: #fff; }
+.toast .ic--sm { color: var(--ok); }
 
 @media (max-width: 1100px) {
   .folders-grid { grid-template-columns: repeat(2, 1fr); }

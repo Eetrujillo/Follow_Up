@@ -154,6 +154,11 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     this.createBar();
   }
 
+  /** Lee un token CSS de :root para que la paleta de Chart.js siga al tema. */
+  private tokenColor(name: string): string {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
   createDonut() {
     const pct = this.progressPercent;
     this.donutChart = new Chart(this.donutCanvas.nativeElement, {
@@ -161,7 +166,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
       data: {
         datasets: [{
           data: [pct, 100 - pct],
-          backgroundColor: ['#3b82f6', '#2a2a2a'],
+          backgroundColor: [this.tokenColor('--accent'), this.tokenColor('--hairline-2')],
           borderWidth: 0,
           borderRadius: 4,
         }]
@@ -183,8 +188,8 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   createBar() {
     const todayIndex = (new Date().getDay() + 6) % 7;
 
-    const colors = ['#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a'];
-    colors[todayIndex] = '#3b82f6';
+    const colors = Array(7).fill(this.tokenColor('--data'));
+    colors[todayIndex] = this.tokenColor('--accent');
 
     this.barChart = new Chart(this.barCanvas.nativeElement, {
       type: 'bar',
@@ -204,7 +209,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: '#666', font: { size: 11 } },
+            ticks: { color: this.tokenColor('--t3'), font: { size: 11 } },
             border: { display: false }
           },
           y: { display: false }

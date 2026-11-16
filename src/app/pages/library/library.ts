@@ -1,4 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  Injector,
+  OnDestroy,
+  OnInit,
+  afterNextRender,
+  inject,
+  viewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -12,7 +22,7 @@ import { LibraryService, Folder, Document } from '../../shared/services/library'
   templateUrl: './library.html',
   styleUrl: './library.css'
 })
-export class Library implements OnInit {
+export class Library implements OnInit, OnDestroy {
 
   folders: Folder[] = [];
 
@@ -28,6 +38,13 @@ export class Library implements OnInit {
 
   editorContent = '';
 
+  savedToast = false;
+  private toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private readonly injector = inject(Injector);
+  readonly folderNameInput = viewChild<ElementRef<HTMLInputElement>>('folderNameInput');
+  readonly docNameInput    = viewChild<ElementRef<HTMLInputElement>>('docNameInput');
+
   constructor(private libraryService: LibraryService, private router: Router) {}
 
   ngOnInit() {
@@ -38,6 +55,34 @@ export class Library implements OnInit {
         this.selectedFolder = folders.find(f => f.id === this.selectedFolder!.id) || null;
       }
     });
+  }
+
+  ngOnDestroy() {
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+  }
+
+  /** Esc cierra el modal abierto (ningún efecto cuando no hay modal). */
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    if (this.showFolderModal) {
+      this.showFolderModal = false;
+    } else if (this.showDocModal) {
+      this.showDocModal = false;
+    }
+  }
+
+  /** Teclado para la tarjeta de carpeta: ignora eventos que vienen de la papelera. */
+  openFolderFromKey(e: Event, folder: Folder) {
+    if ((e.target as HTMLElement) !== (e.currentTarget as HTMLElement)) return;
+    e.preventDefault();
+    this.openFolder(folder);
+  }
+
+  /** Teclado para la fila de documento: ignora eventos que vienen de la papelera. */
+  openDocumentFromKey(e: Event, doc: Document) {
+    if ((e.target as HTMLElement) !== (e.currentTarget as HTMLElement)) return;
+    e.preventDefault();
+    this.openDocument(doc);
   }
 
   openFolder(folder: Folder) {
@@ -65,6 +110,7 @@ export class Library implements OnInit {
   openFolderModal() {
     this.newFolderName = '';
     this.showFolderModal = true;
+    afterNextRender(() => this.folderNameInput()?.nativeElement.focus(), { injector: this.injector });
   }
 
   saveFolder() {
@@ -81,6 +127,7 @@ export class Library implements OnInit {
   openDocModal() {
     this.newDocName = '';
     this.showDocModal = true;
+    afterNextRender(() => this.docNameInput()?.nativeElement.focus(), { injector: this.injector });
   }
 
   saveDoc() {
@@ -94,6 +141,7 @@ export class Library implements OnInit {
     if (!this.selectedFolder) return;
     this.libraryService.deleteDocument(this.selectedFolder.id, docId);
   }
+
 onSaveAndGoBack() {
   this.saveDocumentContent();
   this.goBack();
@@ -105,7 +153,13 @@ onSaveAndGoBack() {
       this.selectedDoc.id,
       this.editorContent
     );
-    
+    this.notifySaved();
   }
-  
+
+  private notifySaved() {
+    this.savedToast = true;
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => (this.savedToast = false), 2400);
+  }
+
 }

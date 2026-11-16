@@ -32,6 +32,11 @@ export class Statistics implements OnInit, AfterViewInit {
     { label: 'Objetivos',          percent: 0 },
   ];
 
+  /** Estado vacío: sin tareas y sin documentos no hay nada que graficar. */
+  get hasData(): boolean {
+    return this.totalTasks > 0 || this.totalDocs > 0;
+  }
+
   private get streakKey(): string {
     const user = this.authService.getCurrentUser();
     return `streak_${user?.id || user?.email || 'guest'}`;
@@ -102,7 +107,14 @@ export class Statistics implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.createWeeklyChart();
+    if (this.hasData) {
+      this.createWeeklyChart();
+    }
+  }
+
+  /** Lee un token CSS de :root para que la paleta de Chart.js siga al tema. */
+  private tokenColor(name: string): string {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   }
 
   createWeeklyChart() {
@@ -124,13 +136,16 @@ export class Statistics implements OnInit, AfterViewInit {
       data[idx]++;
     });
 
+    const colors = Array(7).fill(this.tokenColor('--data'));
+    colors[(new Date().getDay() + 6) % 7] = this.tokenColor('--accent');
+
     new Chart(this.weeklyCanvas.nativeElement, {
       type: 'bar',
       data: {
         labels: days,
         datasets: [{
           data,
-          backgroundColor: '#3b82f6',
+          backgroundColor: colors,
           borderRadius: 4,
           borderSkipped: false,
         }]
@@ -142,7 +157,7 @@ export class Statistics implements OnInit, AfterViewInit {
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: '#666', font: { size: 11 } },
+            ticks: { color: this.tokenColor('--t3'), font: { size: 11 } },
             border: { display: false }
           },
           y: {

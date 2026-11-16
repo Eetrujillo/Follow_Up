@@ -1,80 +1,190 @@
+/* Dashboard — «Instrumento». Solo tokens: ningún hex en este archivo. */
+
 .dashboard-wrapper {
-  padding: 24px 32px;
-  color: #fff;
-  font-family: sans-serif;
-  min-height: 107.6vh;
-  background: #161616;
-  box-sizing: border-box;
-  width: 100%;
-  overflow: hidden;
+  padding: 28px 36px;
+  min-width: 0;
+}
+
+.dashboard-head {
+  margin-bottom: 20px;
 }
 
 .breadcrumb {
   font-size: 12px;
-  color: #555;
-  margin-bottom: 6px;
+  color: var(--t3);
+  margin-bottom: 4px;
 }
 
 .breadcrumb span {
-  color: #888;
+  color: var(--t2);
+}
+
+.breadcrumb-sep {
+  margin: 0 4px;
 }
 
 h1 {
-  font-size: 22px;
-  font-weight: 600;
-  margin: 0 0 24px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--t1);
+  margin: 0;
 }
 
-/* Grid */
+/* Grilla: 3 columnas como el artboard (tareas abarca 2). En angosto, se apila. */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1.5fr) minmax(0, 1.5fr) minmax(0, 1fr);
-  grid-template-rows: auto auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
-  width: 100%;
-}
-
-.card-progress {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-.card-weekly {
-  grid-column: 2 / 6;
-  grid-row: 1;
+  align-content: start;
+  max-width: 960px;
 }
 
 .card-tasks {
-  grid-column: 1 / 3;
-  grid-row: 2;
+  grid-column: span 2;
 }
 
-.card-recent {
-  grid-column: 3 / 5;
-  grid-row: 2;
-}
+@media (max-width: 880px) {
+  .dashboard-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 
-.card-focus {
-  grid-column: 5;
-  grid-row: 2;
+  .card-tasks {
+    grid-column: auto;
+  }
 }
 
 .card {
-  background: #1e1e1e;
-  border: 1px solid #2a2a2a;
-  border-radius: 10px;
-  padding: 20px;
+  padding: 16px;
   min-width: 0;
   overflow: hidden;
 }
 
 .card-title {
-  font-size: 10px;
-  letter-spacing: 1px;
-  color: #666;
-  margin: 0 0 16px;
+  font-size: 12px;
   font-weight: 500;
+  color: var(--t2);
+  margin: 0 0 12px;
 }
+
+/* --- Tareas ---------------------------------------------------------------- */
+
+.task-add {
+  display: flex;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--hairline);
+  margin-bottom: 4px;
+}
+
+.task-add .field {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.task-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 4px 8px;
+  border-radius: var(--r-ctl);
+  transition: background var(--fast) var(--ease);
+}
+
+.task-row:hover {
+  background: var(--s2);
+}
+
+/* Checkbox SVG: el input real queda solo para lectores y teclado;
+   la marca se dibuja con stroke-dashoffset (momento autorado de la pantalla). */
+.task-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  cursor: pointer;
+  color: var(--t3);
+  border-radius: var(--r-ctl);
+  transition: color var(--fast) var(--ease);
+}
+
+.task-check:hover {
+  color: var(--t2);
+}
+
+.task-check:has(:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.task-check--on {
+  color: var(--accent);
+}
+
+.task-check__box {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.task-check__mark {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  transition: stroke-dashoffset 180ms var(--ease);
+}
+
+.task-check--on .task-check__mark {
+  stroke-dashoffset: 0;
+}
+
+/* La caja del nombre truncado es idéntica para tareas y actividad: una sola regla. */
+.task-row__txt,
+.act-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--t1);
+}
+
+.task-row__txt {
+  font-size: 13px;
+  text-decoration: line-through;
+  text-decoration-color: transparent;
+  transition: color var(--fast) var(--ease), text-decoration-color var(--fast) var(--ease);
+}
+
+.task-row--done .task-row__txt {
+  color: var(--t3);
+  text-decoration-color: currentColor;
+}
+
+/* El x aparece en hover y en :focus-within; nunca display:none,
+   así el control sigue en el orden de tabulación. */
+.task-row__del {
+  width: 26px;
+  height: 26px;
+  opacity: 0;
+}
+
+.task-row:hover .task-row__del,
+.task-row:focus-within .task-row__del {
+  opacity: 1;
+}
+
+.empty {
+  font-size: 12px;
+  color: var(--t3);
+  padding: 10px 8px;
+}
+
+/* --- Dona ------------------------------------------------------------------ */
 
 .donut-wrap {
   position: relative;
@@ -94,13 +204,17 @@ h1 {
 
 .donut-center strong {
   font-size: 20px;
+  font-weight: 500;
+  color: var(--t1);
   display: block;
 }
 
 .donut-center span {
   font-size: 10px;
-  color: #888;
+  color: var(--t3);
 }
+
+/* --- Barras semanales ------------------------------------------------------ */
 
 .bar-wrap {
   height: 110px;
@@ -113,132 +227,49 @@ h1 {
   height: 100% !important;
 }
 
-.add-task-box {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.add-task-box input {
-  flex: 1;
-  min-width: 0;
-  background: #252525;
-  border: 1px solid #2e2e2e;
-  border-radius: 6px;
-  padding: 7px 10px;
-  color: #fff;
-  font-size: 12px;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.add-task-box input:focus {
-  border-color: #3b82f6;
-}
-
-.add-task-box button {
-  background: #3b82f6;
-  border: none;
-  border-radius: 6px;
-  color: white;
-  font-size: 18px;
-  width: 32px;
-  flex-shrink: 0;
-  cursor: pointer;
-  padding: 0;
-  margin: 0;
-}
-
-.task-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.task-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  color: #ccc;
-  min-width: 0;
-}
-
-.task-item span {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.task-item input[type="checkbox"] {
-  accent-color: #3b82f6;
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
-  cursor: pointer;
-  padding: 0;
-}
-
-.task-item.completed span {
-  text-decoration: line-through;
-  color: #555;
-}
-
-.del-btn {
-  margin-left: auto;
-  flex-shrink: 0;
-  background: none;
-  border: none;
-  color: #444;
-  cursor: pointer;
-  font-size: 13px;
-  padding: 0 4px;
-  width: auto;
-  margin-top: 0;
-  transition: color 0.2s;
-}
-
-.del-btn:hover {
-  color: #e55;
-}
+/* --- Actividad reciente ---------------------------------------------------- */
 
 .activity-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
 }
 
-.activity-item {
+.activity-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 13px;
-  color: #ccc;
-  min-width: 0;
+  padding: 8px 0;
+  border-top: 1px solid var(--hairline);
+}
+
+.activity-row:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.activity-row .ic {
+  color: var(--t3);
 }
 
 .act-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 12px;
 }
 
 .act-time {
   font-size: 11px;
-  color: #555;
+  color: var(--t3);
   white-space: nowrap;
-  flex-shrink: 0;
+  flex: none;
 }
+
+/* --- Temporizador ---------------------------------------------------------- */
 
 .timer-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
+  padding: 6px 0;
 }
 
 .timer-status {
@@ -246,19 +277,19 @@ h1 {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #888;
+  color: var(--t3);
 }
 
 .dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #555;
-  flex-shrink: 0;
+  background: var(--t3);
+  flex: none;
 }
 
-.dot.pulse {
-  background: #3b82f6;
+.dot--pulse {
+  background: var(--accent);
   animation: pulse 1s infinite;
 }
 
@@ -275,43 +306,53 @@ h1 {
 }
 
 .timer-digits {
-  font-size: 30px;
-  font-weight: 700;
-  letter-spacing: 2px;
+  font-size: 28px;
+  letter-spacing: 0.02em;
+  color: var(--t1);
+}
+
+.card-focus--running .timer-digits {
+  color: var(--accent);
+}
+
+.card-focus--running .timer-status {
+  color: var(--t2);
 }
 
 .timer-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
 }
 
-.btn-round {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  display: flex;
+.timer-btn {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  margin: 0;
-  background: #2a2a2a;
-  color: #888;
-  flex-shrink: 0;
-  transition: background 0.2s;
+  border: 1px solid var(--hairline-2);
+  border-radius: var(--r-ctl);
+  background: var(--s2);
+  color: var(--t1);
+  cursor: pointer;
+  flex: none;
+  transition:
+    background var(--fast) var(--ease),
+    border-color var(--fast) var(--ease),
+    color var(--fast) var(--ease),
+    transform var(--fast) var(--ease);
 }
 
-.btn-round.main {
-  background: #3b82f6;
+.timer-btn:hover {
+  background: var(--s3);
 }
 
-.btn-round.main:hover {
-  background: #2563eb;
+.timer-btn:active {
+  transform: scale(0.985);
 }
 
-.btn-round:hover {
-  background: #333;
-  color: #fff;
+.timer-btn--main {
+  color: var(--accent);
 }

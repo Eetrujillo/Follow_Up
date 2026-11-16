@@ -1,4 +1,11 @@
-import { Component, inject } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  effect,
+  inject,
+  viewChild,
+} from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CalendarApiService } from '../../shared/services/calendar-api.service';
@@ -34,17 +41,33 @@ export class Calendar {
   selectedDay   = 0;
   selectedDayEvents: CalendarEvent[] = [];
   newEventTitle = '';
-  newEventColor = '#3b82f6';
+  // Estos hex espejan los tokens --ev-1..--ev-5 de frontend/src/styles.css: si cambian allá, hay que cambiarlos acá (el backend valida colorHex con @IsHexColor).
+  newEventColor = '#e0b155';
   editingEventId: string | null = null;
 
-  colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+  colors = ['#e0b155', '#e2836f', '#8fb3d9', '#98c29a', '#b899cc'];
+  colorNames = ['Ámbar', 'Rojo', 'Azul', 'Verde', 'Violeta'];
 
   events: CalendarEvent[] = [];
 
   private readonly calendarApi = inject(CalendarApiService);
 
+  readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
+  readonly listCloseBtn = viewChild<ElementRef<HTMLButtonElement>>('listCloseBtn');
+
   constructor() {
     this.reload();
+
+    // Foco inicial de los modales: input del evento, o botón de cierre del modal de lista.
+    effect(() => {
+      const input = this.titleInput();
+      const listClose = this.listCloseBtn();
+      if (input) {
+        input.nativeElement.focus();
+      } else if (listClose) {
+        listClose.nativeElement.focus();
+      }
+    });
   }
 
   private reload(): void {
@@ -70,6 +93,12 @@ export class Calendar {
 
   get monthName(): string {
     return this.currentDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+  }
+
+  get monthHasEvents(): boolean {
+    const month = this.currentDate.getMonth();
+    const year = this.currentDate.getFullYear();
+    return this.events.some((e) => e.month === month && e.year === year);
   }
 
   get days(): Day[] {
@@ -187,6 +216,15 @@ export class Calendar {
     e.stopPropagation();
     this.showEventsModal = false;
     this.openEventModal(ev, e);
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.showEventsModal) {
+      this.showEventsModal = false;
+    } else if (this.showModal) {
+      this.closeModal();
+    }
   }
 
 }

@@ -1,4 +1,14 @@
-import { Component, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  ViewChild,
+  ElementRef,
+  AfterViewInit,
+  ChangeDetectorRef,
+  HostListener,
+  afterNextRender,
+  inject,
+  Injector,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StorageService } from '../../shared/services/storage';
@@ -16,6 +26,7 @@ import { TaskService } from '../../shared/services/task';
 })
 export class Notepad implements AfterViewInit {
   @ViewChild('editor', { static: true }) editorRef!: ElementRef<HTMLElement>;
+  @ViewChild('noteNameInput') noteNameInput?: ElementRef<HTMLInputElement>;
 
   saved = false;
   showSaveModal = false;
@@ -28,6 +39,8 @@ export class Notepad implements AfterViewInit {
   generating = false;
   generateError = '';
   aiSuccessMessage = '';
+
+  private readonly injector = inject(Injector);
 
   constructor(
     private storage: StorageService,
@@ -68,13 +81,18 @@ export class Notepad implements AfterViewInit {
   }
 
   format(command: string, value?: string) {
-    document.execCommand(command, false, value);
+    // Guard de entorno (jsdom no implementa execCommand); en navegador es un no-op.
+    if (typeof document.execCommand === 'function') {
+      document.execCommand(command, false, value);
+    }
     this.editorRef.nativeElement.focus();
     this.onContentChange();
   }
 
   isActive(command: string): boolean {
-    return document.queryCommandState(command);
+    // Guard de entorno (jsdom no implementa queryCommandState); misma firma y
+    // mismo comportamiento en navegador.
+    return typeof document.queryCommandState === 'function' && document.queryCommandState(command);
   }
 
   onContentChange() {
@@ -92,6 +110,17 @@ export class Notepad implements AfterViewInit {
   openSaveModal() {
     this.noteName = '';
     this.showSaveModal = true;
+    // Mismo patrón que library.ts: el input del modal solo existe tras renderizarlo,
+    // así que el foco se programa para después del próximo render (no con setTimeout).
+    afterNextRender(() => this.noteNameInput?.nativeElement.focus(), { injector: this.injector });
+  }
+
+  /** Cierre accesible del modal de guardado (Esc). */
+  @HostListener('document:keydown.escape')
+  closeSaveModalOnEscape() {
+    if (this.showSaveModal) {
+      this.showSaveModal = false;
+    }
   }
 
   saveToLibrary() {

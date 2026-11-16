@@ -1,17 +1,325 @@
+/* =========================================================================
+   Follow-Up — tokens y capa base
+   Dirección «Instrumento» (design/ui-redesign/01-instrumento.html).
+   Regla: ningún componente declara un hex suelto. Todo rol pasa por un token.
+   ========================================================================= */
+
+:root {
+  /* Superficies: canvas < s1 < s2 < s3 */
+  --canvas: #0d0e0f;
+  --s1: #141617;
+  --s2: #1a1d1f;
+  --s3: #212527;
+
+  /* Líneas: la jerarquía se construye acá, no con sombras */
+  --hairline: rgba(255, 255, 255, 0.075);
+  --hairline-2: rgba(255, 255, 255, 0.12);
+
+  /* Texto: t1 primario, t2 secundario, t3 terciario (solo ≥15px sobre s1) */
+  --t1: #f0f2f3;
+  --t2: #a3abaf;
+  --t3: #798184;
+
+  /* Roles de estado, un tono cada uno */
+  --accent: #e0b155;
+  --accent-dim: rgba(224, 177, 85, 0.16);
+  --danger: #e2836f;
+  --danger-dim: rgba(226, 131, 111, 0.09);
+  --danger-line: rgba(226, 131, 111, 0.35);
+  --ok: #9cc49c;
+  --ok-dim: rgba(156, 196, 156, 0.12);
+
+  /* Datos y series: nunca compiten con el acento */
+  --data: #646d71;
+
+  /* Paleta de eventos del usuario (5 muestras fijas del calendario) */
+  --ev-1: #e0b155;
+  --ev-2: #e2836f;
+  --ev-3: #8fb3d9;
+  --ev-4: #98c29a;
+  --ev-5: #b899cc;
+
+  /* Forma y movimiento */
+  --r-ctl: 3px;
+  --r-box: 5px;
+  --ease: cubic-bezier(0.2, 0.8, 0.25, 1);
+  --fast: 140ms;
+  --slow: 260ms;
+
+  /* Tipografía del sistema, sin webfonts */
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Shell */
+  --sidebar-w: 180px;
+  --sidebar-collapsed: 58px;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html, body {
+html {
+  scrollbar-color: #3a4043 transparent;
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #33383b;
+  border-radius: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::selection {
+  background: rgba(224, 177, 85, 0.25);
+  color: var(--t1);
+}
+
+html,
+body {
   height: 100%;
   overflow: hidden;
 }
 
 body {
-  background-color: #161616;
-  font-family: sans-serif;
-  color: #ffffff;
+  background-color: var(--canvas);
+  color: var(--t1);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* Foco visible en todo control: la app no tenía ninguno. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-ctl);
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+a {
+  color: var(--t1);
+  text-decoration: underline;
+  text-decoration-color: var(--hairline-2);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color var(--fast) var(--ease);
+}
+a:hover {
+  text-decoration-color: var(--accent);
+}
+
+/* =========================================================================
+   Primitivas compartidas. Los componentes las consumen; no las redefinen.
+   ========================================================================= */
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Botón ---------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--hairline-2);
+  border-radius: var(--r-ctl);
+  background: transparent;
+  color: var(--t1);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--fast) var(--ease),
+    border-color var(--fast) var(--ease),
+    color var(--fast) var(--ease),
+    transform var(--fast) var(--ease);
+}
+.btn:hover {
+  background: var(--s3);
+  border-color: var(--hairline-2);
+}
+.btn:active {
+  transform: scale(0.985);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #17140c;
+}
+.btn--primary:hover {
+  background: #eec06a;
+  border-color: #eec06a;
+}
+.btn--primary:disabled:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn--quiet {
+  border-color: transparent;
+  color: var(--t2);
+}
+.btn--quiet:hover {
+  background: var(--s3);
+  color: var(--t1);
+}
+
+.btn--danger {
+  border-color: var(--danger-line);
+  color: var(--danger);
+}
+.btn--danger:hover {
+  background: var(--danger-dim);
+  border-color: var(--danger);
+}
+
+/* --- Botón de icono ------------------------------------------------------- */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--r-ctl);
+  background: transparent;
+  color: var(--t2);
+  cursor: pointer;
+  transition:
+    background var(--fast) var(--ease),
+    color var(--fast) var(--ease),
+    border-color var(--fast) var(--ease),
+    transform var(--fast) var(--ease),
+    opacity var(--fast) var(--ease);
+}
+.icon-btn:hover {
+  background: var(--s3);
+  color: var(--t1);
+}
+.icon-btn:active {
+  transform: scale(0.94);
+}
+.icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.icon-btn--danger:hover {
+  background: var(--danger-dim);
+  color: var(--danger);
+}
+
+/* --- Campos --------------------------------------------------------------- */
+.field {
+  width: 100%;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--hairline-2);
+  border-radius: var(--r-ctl);
+  /* Hundido sobre el canvas: más oscuro que cualquier superficie
+     (--s1..s3) donde la card lo contenga. */
+  background: var(--canvas);
+  color: var(--t1);
+  font: inherit;
+  font-size: 13px;
+  transition:
+    border-color var(--fast) var(--ease),
+    background var(--fast) var(--ease);
+}
+.field::placeholder {
+  color: var(--t2);
+}
+.field:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+/* Sin outline:none: el anillo global de :focus-visible aplica también acá;
+   el foco con puntero ya lo apaga el :focus:not(:focus-visible) global. */
+.field:focus,
+.field:focus-visible {
+  border-color: var(--accent);
+  background: var(--s2);
+}
+textarea.field {
+  height: auto;
+  padding: 10px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+/* --- Contenedor ----------------------------------------------------------- */
+.card {
+  background: var(--s1);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-box);
+}
+
+/* --- Iconos SVG (sprite en app.html, trazo 1.5, grilla 20) --------------- */
+.ic {
+  width: 16px;
+  height: 16px;
+  display: block;
+  flex: none;
+}
+.ic--sm {
+  width: 14px;
+  height: 14px;
+}
+.ic--lg {
+  width: 18px;
+  height: 18px;
+}
+
+/* --- Accesibilidad: solo para lectores de pantalla ----------------------- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Todo movimiento es opcional. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .btn:active,
+  .icon-btn:active {
+    transform: none;
+  }
+}

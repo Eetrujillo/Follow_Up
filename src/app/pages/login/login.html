@@ -1,19 +1,16 @@
-<div class="login-wrapper">
-  <div class="login-container">
-    <div class="logo-box">
-      @defer { ⚡ }
-    </div>
-    <h1 class="titulo">Follow-up</h1>
-    <p class="subtitulo">Inicia sesion para continuar</p>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h1 class="auth-title">Follow-up</h1>
+    <p class="auth-sub">Inicia sesion para continuar</p>
 
     @if (successMessage) {
-      <div class="success-box">{{ successMessage }}</div>
+      <div class="success-box" role="status">{{ successMessage }}</div>
     }
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      <div class="campo">
-        <label>Correo electronico</label>
-        <input type="email" placeholder="usuario@gmail.com" formControlName="email" [class.input-error]="email?.invalid && email?.touched" />
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" aria-label="Formulario de inicio de sesión">
+      <div class="fgroup">
+        <label for="login-email">Correo electronico</label>
+        <input id="login-email" class="field" type="email" placeholder="usuario@gmail.com" autocomplete="email" formControlName="email" [class.input-error]="email?.invalid && email?.touched" />
 
         @if (email?.touched && email?.hasError('required')) {
           <span class="error">El correo es obligatorio</span>
@@ -23,24 +20,28 @@
         }
       </div>
 
-      <div class="campo">
-        <label>Contraseña</label>
+      <div class="fgroup">
+        <label for="login-pass">Contraseña</label>
         <div class="password-wrapper">
-          <input [type]="verPassword ? 'text' : 'password'" placeholder="Mínimo 8 caracteres" formControlName="password" [class.input-error]="password?.invalid && password?.touched" />
+          <input id="login-pass" class="field" [type]="verPassword ? 'text' : 'password'" placeholder="Mínimo 8 caracteres" autocomplete="current-password" formControlName="password" [class.input-error]="password?.invalid && password?.touched" />
 
-          <span class="ojo" (click)="toggleOjo()">
+          <button type="button" class="ojo icon-btn" (click)="toggleOjo()"
+                  [attr.aria-label]="verPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                  [attr.aria-pressed]="verPassword">
             @if (verPassword) {
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
+              <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
+                   stroke-linecap="round" aria-hidden="true">
+                <path d="M3 3l14 14" />
+                <path d="M10 5c4.5 0 8 5 8 5a13.6 13.6 0 0 1-2.2 2.6M6.6 6.6A13 13 0 0 0 2 10s3.5 5 8 5c1.2 0 2.3-.3 3.3-.8" />
               </svg>
             } @else {
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
+              <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
+                   stroke-linecap="round" aria-hidden="true">
+                <path d="M2 10s3.5-5 8-5 8 5 8 5-3.5 5-8 5-8-5-8-5z" />
+                <circle cx="10" cy="10" r="2.5" />
               </svg>
             }
-          </span>
+          </button>
         </div>
 
         @if (password?.touched && password?.hasError('required')) {
@@ -52,21 +53,23 @@
       </div>
 
       @if (errorMessage) {
-        <div class="error-box">{{ errorMessage }}</div>
+        <div class="error-box" role="alert">{{ errorMessage }}</div>
       }
 
-      <button type="submit" [disabled]="isLoading">
+      <button type="submit" class="btn btn--primary auth-submit" [disabled]="isLoading"
+              [attr.aria-busy]="isLoading ? 'true' : null">
         @if (!isLoading) {
           <span>Iniciar sesion</span>
         } @else {
+          <span class="spinner" aria-hidden="true"></span>
           <span>Cargando...</span>
         }
       </button>
     </form>
 
-    <p class="pie">
+    <p class="auth-foot">
       ¿No tienes cuenta?
-      <span class="registro-link" routerLink="/signup">Registrate</span>
+      <a class="auth-link" routerLink="/signup">Registrate</a>
     </p>
   </div>
 </div>
