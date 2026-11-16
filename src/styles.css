@@ -323,3 +323,173 @@ textarea.field {
     transform: none;
   }
 }
+
+/* =========================================================================
+   Auth (login/signup) — dirección «Doble plano»
+   (design/login-auth/01-doble-plano.html, elegida por el humano).
+   Layout compartido por ambas páginas; lo específico de cada una vive en
+   su componente.
+   ========================================================================= */
+
+.auth {
+  display: grid;
+  grid-template-columns: minmax(320px, 2fr) minmax(0, 3fr);
+  min-height: 100%;
+}
+
+/* --- Panel de identidad --------------------------------------------------- */
+
+.auth-brand {
+  display: flex;
+  flex-direction: column;
+  background: var(--s1);
+  border-right: 1px solid var(--hairline);
+  padding: 48px 44px;
+}
+
+.auth-brand__mark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-brand__mark svg {
+  width: 26px;
+  height: 26px;
+  display: block;
+  color: var(--accent);
+}
+
+.auth-brand__mark span {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.auth-brand__hero {
+  margin: auto 0;
+  max-width: 360px;
+}
+
+.auth-brand__hero h2 {
+  font-size: 26px;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--t1);
+}
+
+.auth-brand__hero p {
+  margin-top: 10px;
+  color: var(--t2);
+  max-width: 32ch;
+}
+
+.auth-brand__row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--hairline);
+  color: var(--t2);
+  font-size: 13px;
+}
+
+.auth-brand__row:first-child {
+  border-top-color: var(--hairline-2);
+}
+
+.auth-brand__row svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  color: var(--t3);
+  flex: none;
+  align-self: center;
+}
+
+.auth-brand__row b {
+  color: var(--t1);
+  font-weight: 500;
+  flex: none;
+  width: 88px;
+}
+
+.auth-brand__row p {
+  font-size: 12px;
+}
+
+.auth-brand__foot {
+  color: var(--t3);
+  font-size: 12px;
+}
+
+/* --- Plano del formulario -------------------------------------------------- */
+
+.auth-pane {
+  display: grid;
+  place-items: center;
+  padding: 32px 40px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--s2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-box);
+  padding: 30px 30px 24px;
+  /* Momento autorado de la pantalla: la entrada de la card. */
+  animation: auth-in var(--slow) var(--ease);
+}
+
+@keyframes auth-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.auth-title {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--t1);
+  margin: 0 0 4px;
+}
+
+.auth-sub {
+  font-size: 12px;
+  color: var(--t2);
+  margin: 0 0 20px;
+}
+
+.auth-foot {
+  margin-top: 18px;
+  font-size: 12.5px;
+  color: var(--t2);
+  text-align: center;
+}
+
+.auth-link {
+  color: var(--t1);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--hairline-2);
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--fast) var(--ease);
+}
+
+.auth-link:hover {
+  text-decoration-color: var(--accent);
+}
+
+/* En pantallas angostas el panel de identidad desaparece: manda el control. */
+@media (max-width: 860px) {
+  .auth {
+    grid-template-columns: 1fr;
+  }
+  .auth-brand {
+    display: none;
+  }
+}

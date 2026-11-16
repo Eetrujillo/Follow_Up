@@ -1,75 +1,121 @@
-<div class="auth-wrap">
-  <div class="auth-card">
-    <h1 class="auth-title">Follow-up</h1>
-    <p class="auth-sub">Inicia sesion para continuar</p>
+<div class="auth">
+  <aside class="auth-brand">
+    <div class="auth-brand__mark">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+        <circle cx="10" cy="10" r="8" />
+        <path d="M10 5.5V10l3 2" />
+      </svg>
+      <span>Follow-Up</span>
+    </div>
 
-    @if (successMessage) {
-      <div class="success-box" role="status">{{ successMessage }}</div>
-    }
+    <div class="auth-brand__hero">
+      <h2>Tu semana, en una sola superficie.</h2>
+      <p>Tareas, calendario, biblioteca y notas conviven en el mismo tablero. Sin ruido, sin pestañas perdidas.</p>
+    </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" aria-label="Formulario de inicio de sesión">
-      <div class="fgroup">
-        <label for="login-email">Correo electronico</label>
-        <input id="login-email" class="field" type="email" placeholder="usuario@gmail.com" autocomplete="email" formControlName="email" [class.input-error]="email?.invalid && email?.touched" />
-
-        @if (email?.touched && email?.hasError('required')) {
-          <span class="error">El correo es obligatorio</span>
-        }
-        @if (email?.touched && email?.hasError('email')) {
-          <span class="error">Ingresa un correo valido</span>
-        }
+    <div class="auth-brand__list" role="list">
+      <div class="auth-brand__row" role="listitem">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <rect x="3" y="4" width="14" height="13" rx="1" />
+          <path d="M7 8h6M7 11h6" />
+        </svg>
+        <b>Biblioteca</b>
+        <p>Documentos y materiales, ordenados en carpetas</p>
       </div>
-
-      <div class="fgroup">
-        <label for="login-pass">Contraseña</label>
-        <div class="password-wrapper">
-          <input id="login-pass" class="field" [type]="verPassword ? 'text' : 'password'" placeholder="Mínimo 8 caracteres" autocomplete="current-password" formControlName="password" [class.input-error]="password?.invalid && password?.touched" />
-
-          <button type="button" class="ojo icon-btn" (click)="toggleOjo()"
-                  [attr.aria-label]="verPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
-                  [attr.aria-pressed]="verPassword">
-            @if (verPassword) {
-              <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
-                   stroke-linecap="round" aria-hidden="true">
-                <path d="M3 3l14 14" />
-                <path d="M10 5c4.5 0 8 5 8 5a13.6 13.6 0 0 1-2.2 2.6M6.6 6.6A13 13 0 0 0 2 10s3.5 5 8 5c1.2 0 2.3-.3 3.3-.8" />
-              </svg>
-            } @else {
-              <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
-                   stroke-linecap="round" aria-hidden="true">
-                <path d="M2 10s3.5-5 8-5 8 5 8 5-3.5 5-8 5-8-5-8-5z" />
-                <circle cx="10" cy="10" r="2.5" />
-              </svg>
-            }
-          </button>
-        </div>
-
-        @if (password?.touched && password?.hasError('required')) {
-          <span class="error">La contraseña es obligatoria</span>
-        }
-        @if (password?.touched && password?.hasError('minlength')) {
-          <span class="error">Minimo 8 caracteres</span>
-        }
+      <div class="auth-brand__row" role="listitem">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <rect x="3" y="4" width="14" height="13" rx="1" />
+          <path d="M3 8h14M7 2v4M13 2v4" />
+        </svg>
+        <b>Calendario</b>
+        <p>Tareas y eventos en la misma semana</p>
       </div>
+      <div class="auth-brand__row" role="listitem">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <path d="M5 3h8l3 3v11H5z" />
+          <path d="M8 9h5M8 12h5" />
+        </svg>
+        <b>Notas</b>
+        <p>Notas rápidas que se vuelven tareas con IA</p>
+      </div>
+    </div>
 
-      @if (errorMessage) {
-        <div class="error-box" role="alert">{{ errorMessage }}</div>
+    <p class="auth-brand__foot">follow-up.eetrujillo.dev</p>
+  </aside>
+
+  <main class="auth-pane">
+    <section class="auth-card" aria-labelledby="auth-title">
+      <h1 class="auth-title" id="auth-title">Inicia sesion</h1>
+      <p class="auth-sub">Inicia sesion para continuar</p>
+
+      @if (successMessage) {
+        <div class="success-box" role="status">{{ successMessage }}</div>
       }
 
-      <button type="submit" class="btn btn--primary auth-submit" [disabled]="isLoading"
-              [attr.aria-busy]="isLoading ? 'true' : null">
-        @if (!isLoading) {
-          <span>Iniciar sesion</span>
-        } @else {
-          <span class="spinner" aria-hidden="true"></span>
-          <span>Cargando...</span>
-        }
-      </button>
-    </form>
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" aria-label="Formulario de inicio de sesión">
+        <div class="fgroup">
+          <label for="login-email">Correo electronico</label>
+          <input id="login-email" class="field" type="email" placeholder="usuario@gmail.com" autocomplete="email" formControlName="email" [class.input-error]="email?.invalid && email?.touched" />
 
-    <p class="auth-foot">
-      ¿No tienes cuenta?
-      <a class="auth-link" routerLink="/signup">Registrate</a>
-    </p>
-  </div>
+          @if (email?.touched && email?.hasError('required')) {
+            <span class="error">El correo es obligatorio</span>
+          }
+          @if (email?.touched && email?.hasError('email')) {
+            <span class="error">Ingresa un correo valido</span>
+          }
+        </div>
+
+        <div class="fgroup">
+          <label for="login-pass">Contraseña</label>
+          <div class="password-wrapper">
+            <input id="login-pass" class="field" [type]="verPassword ? 'text' : 'password'" placeholder="Mínimo 8 caracteres" autocomplete="current-password" formControlName="password" [class.input-error]="password?.invalid && password?.touched" />
+
+            <button type="button" class="ojo icon-btn" (click)="toggleOjo()"
+                    [attr.aria-label]="verPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                    [attr.aria-pressed]="verPassword">
+              @if (verPassword) {
+                <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
+                     stroke-linecap="round" aria-hidden="true">
+                  <path d="M3 3l14 14" />
+                  <path d="M10 5c4.5 0 8 5 8 5a13.6 13.6 0 0 1-2.2 2.6M6.6 6.6A13 13 0 0 0 2 10s3.5 5 8 5c1.2 0 2.3-.3 3.3-.8" />
+                </svg>
+              } @else {
+                <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
+                     stroke-linecap="round" aria-hidden="true">
+                  <path d="M2 10s3.5-5 8-5 8 5 8 5-3.5 5-8 5-8-5-8-5z" />
+                  <circle cx="10" cy="10" r="2.5" />
+                </svg>
+              }
+            </button>
+          </div>
+
+          @if (password?.touched && password?.hasError('required')) {
+            <span class="error">La contraseña es obligatoria</span>
+          }
+          @if (password?.touched && password?.hasError('minlength')) {
+            <span class="error">Minimo 8 caracteres</span>
+          }
+        </div>
+
+        @if (errorMessage) {
+          <div class="error-box" role="alert">{{ errorMessage }}</div>
+        }
+
+        <button type="submit" class="btn btn--primary auth-submit" [disabled]="isLoading"
+                [attr.aria-busy]="isLoading ? 'true' : null">
+          @if (!isLoading) {
+            <span>Iniciar sesion</span>
+          } @else {
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Cargando...</span>
+          }
+        </button>
+      </form>
+
+      <p class="auth-foot">
+        ¿No tienes cuenta?
+        <a class="auth-link" routerLink="/signup">Registrate</a>
+      </p>
+    </section>
+  </main>
 </div>

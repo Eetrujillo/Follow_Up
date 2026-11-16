@@ -1,68 +1,114 @@
-<div class="auth-wrap">
-  <div class="auth-card">
-    <h1 class="auth-title">Follow-up</h1>
-    <p class="auth-sub">Crea tu cuenta para empezar</p>
+<div class="auth">
+  <aside class="auth-brand">
+    <div class="auth-brand__mark">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+        <circle cx="10" cy="10" r="8" />
+        <path d="M10 5.5V10l3 2" />
+      </svg>
+      <span>Follow-Up</span>
+    </div>
 
-    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" aria-label="Formulario de registro">
-      <div class="fgroup">
-        <label for="signup-name">Nombre completo</label>
-        <input id="signup-name" class="field" type="text" placeholder="Tu nombre" autocomplete="name" formControlName="name" [class.input-error]="name?.invalid && name?.touched" />
-        @if (name?.touched && name?.hasError('required')) {
-          <span class="error">El nombre es obligatorio</span>
-        }
-        @if (name?.touched && name?.hasError('minlength')) {
-          <span class="error">Minimo 2 caracteres</span>
-        }
+    <div class="auth-brand__hero">
+      <h2>Empieza tu primera semana.</h2>
+      <p>Una cuenta tuya: tus tareas, tus eventos y tu biblioteca, sin mezclar con nadie.</p>
+    </div>
+
+    <div class="auth-brand__list" role="list">
+      <div class="auth-brand__row" role="listitem">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <rect x="3" y="4" width="14" height="13" rx="1" />
+          <path d="M7 8h6M7 11h6" />
+        </svg>
+        <b>Biblioteca</b>
+        <p>Documentos y materiales, ordenados en carpetas</p>
       </div>
-
-      <div class="fgroup">
-        <label for="signup-email">Correo electronico</label>
-        <input id="signup-email" class="field" type="email" placeholder="correo@ejemplo.com" autocomplete="email" formControlName="email" [class.input-error]="email?.invalid && email?.touched" />
-        @if (email?.touched && email?.hasError('required')) {
-          <span class="error">El correo es obligatorio</span>
-        }
-        @if (email?.touched && email?.hasError('email')) {
-          <span class="error">Ingresa un correo valido</span>
-        }
+      <div class="auth-brand__row" role="listitem">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <rect x="3" y="4" width="14" height="13" rx="1" />
+          <path d="M3 8h14M7 2v4M13 2v4" />
+        </svg>
+        <b>Calendario</b>
+        <p>Tareas y eventos en la misma semana</p>
       </div>
-
-      <div class="fgroup">
-        <label for="signup-pass">Contrasena</label>
-        <input id="signup-pass" class="field" type="password" placeholder="Minimo 8 caracteres" autocomplete="new-password" formControlName="password" [class.input-error]="password?.invalid && password?.touched" />
-        @if (password?.touched && password?.hasError('required')) {
-          <span class="error">La contrasena es obligatoria</span>
-        }
-        @if (password?.touched && password?.hasError('minlength')) {
-          <span class="error">Minimo 8 caracteres</span>
-        }
+      <div class="auth-brand__row" role="listitem">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <path d="M5 3h8l3 3v11H5z" />
+          <path d="M8 9h5M8 12h5" />
+        </svg>
+        <b>Notas</b>
+        <p>Notas rápidas que se vuelven tareas con IA</p>
       </div>
+    </div>
 
-      <div class="fgroup">
-        <label for="signup-confirm">Confirmar contrasena</label>
-        <input id="signup-confirm" class="field" type="password" placeholder="Repite tu contrasena" autocomplete="new-password" formControlName="confirm" [class.input-error]="signupForm.hasError('noMatch') && confirm?.touched" />
-        @if (signupForm.hasError('noMatch') && confirm?.touched) {
-          <span class="error">Las contrasenas no coinciden</span>
+    <p class="auth-brand__foot">follow-up.eetrujillo.dev</p>
+  </aside>
+
+  <main class="auth-pane">
+    <section class="auth-card" aria-labelledby="auth-title">
+      <h1 class="auth-title" id="auth-title">Crea tu cuenta</h1>
+      <p class="auth-sub">Crea tu cuenta para empezar</p>
+
+      <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" aria-label="Formulario de registro">
+        <div class="fgroup">
+          <label for="signup-name">Nombre completo</label>
+          <input id="signup-name" class="field" type="text" placeholder="Tu nombre" autocomplete="name" formControlName="name" [class.input-error]="name?.invalid && name?.touched" />
+          @if (name?.touched && name?.hasError('required')) {
+            <span class="error">El nombre es obligatorio</span>
+          }
+          @if (name?.touched && name?.hasError('minlength')) {
+            <span class="error">Minimo 2 caracteres</span>
+          }
+        </div>
+
+        <div class="fgroup">
+          <label for="signup-email">Correo electronico</label>
+          <input id="signup-email" class="field" type="email" placeholder="correo@ejemplo.com" autocomplete="email" formControlName="email" [class.input-error]="email?.invalid && email?.touched" />
+          @if (email?.touched && email?.hasError('required')) {
+            <span class="error">El correo es obligatorio</span>
+          }
+          @if (email?.touched && email?.hasError('email')) {
+            <span class="error">Ingresa un correo valido</span>
+          }
+        </div>
+
+        <div class="fgroup">
+          <label for="signup-pass">Contrasena</label>
+          <input id="signup-pass" class="field" type="password" placeholder="Minimo 8 caracteres" autocomplete="new-password" formControlName="password" [class.input-error]="password?.invalid && password?.touched" />
+          @if (password?.touched && password?.hasError('required')) {
+            <span class="error">La contrasena es obligatoria</span>
+          }
+          @if (password?.touched && password?.hasError('minlength')) {
+            <span class="error">Minimo 8 caracteres</span>
+          }
+        </div>
+
+        <div class="fgroup">
+          <label for="signup-confirm">Confirmar contrasena</label>
+          <input id="signup-confirm" class="field" type="password" placeholder="Repite tu contrasena" autocomplete="new-password" formControlName="confirm" [class.input-error]="signupForm.hasError('noMatch') && confirm?.touched" />
+          @if (signupForm.hasError('noMatch') && confirm?.touched) {
+            <span class="error">Las contrasenas no coinciden</span>
+          }
+        </div>
+
+        @if (errorMessage) {
+          <div class="error-box" role="alert">{{ errorMessage }}</div>
         }
-      </div>
 
-      @if (errorMessage) {
-        <div class="error-box" role="alert">{{ errorMessage }}</div>
-      }
+        <button type="submit" class="btn btn--primary auth-submit" [disabled]="isLoading"
+                [attr.aria-busy]="isLoading ? 'true' : null">
+          @if (!isLoading) {
+            <span>Crear cuenta</span>
+          } @else {
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Registrando...</span>
+          }
+        </button>
+      </form>
 
-      <button type="submit" class="btn btn--primary auth-submit" [disabled]="isLoading"
-              [attr.aria-busy]="isLoading ? 'true' : null">
-        @if (!isLoading) {
-          <span>Crear cuenta</span>
-        } @else {
-          <span class="spinner" aria-hidden="true"></span>
-          <span>Registrando...</span>
-        }
-      </button>
-    </form>
-
-    <p class="auth-foot">
-      Ya tienes cuenta?
-      <a class="auth-link" routerLink="/login">Inicia sesion</a>
-    </p>
-  </div>
+      <p class="auth-foot">
+        Ya tienes cuenta?
+        <a class="auth-link" routerLink="/login">Inicia sesion</a>
+      </p>
+    </section>
+  </main>
 </div>
