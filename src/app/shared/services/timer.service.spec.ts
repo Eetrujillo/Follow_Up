@@ -78,4 +78,23 @@ describe('TimerService', () => {
     // countdown.
     expect(timerFor('bob').restore().segundos).toBe(25 * 60);
   });
+
+  it('resumes a running countdown from its epoch anchor', () => {
+    timerFor('alice').save({ segundos: 600, isRunning: true, startedAt: Date.now() - 60_000 });
+
+    const resumed = timerFor('alice').restore();
+    expect(resumed.segundos).toBeGreaterThanOrEqual(538);
+    expect(resumed.segundos).toBeLessThanOrEqual(540);
+    expect(resumed.isRunning).toBe(true);
+    expect(resumed.startedAt).not.toBeNull();
+  });
+
+  it('stops instead of going negative when the absence finished the countdown', () => {
+    timerFor('alice').save({ segundos: 30, isRunning: true, startedAt: Date.now() - 100_000 });
+
+    const resumed = timerFor('alice').restore();
+    expect(resumed.segundos).toBe(0);
+    expect(resumed.isRunning).toBe(false);
+    expect(resumed.startedAt).toBeNull();
+  });
 });

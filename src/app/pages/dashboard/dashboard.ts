@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
 import { TaskService, Task } from '../../shared/services/task';
+import { TimerService } from '../../shared/services/timer.service';
 import { Subscription, interval } from 'rxjs';
 import { takeWhile } from 'rxjs/operators';
 
@@ -43,18 +44,21 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   minutes: string = '25';
   secs: string = '00';
 
-  constructor(private taskService: TaskService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private taskService: TaskService,
+    private cdr: ChangeDetectorRef,
+    private timer: TimerService,
+  ) {}
 
   ngOnInit() {
-    // Restaurar estado del Pomodoro si existe en localStorage
-    const saved = localStorage.getItem('pomodoro');
-    if (saved) {
-      const state = JSON.parse(saved);
-      this.segundos = state.segundos;
-      this.isRunning = state.isRunning;
-      this.updateTime();
-      if (this.isRunning) this.startTimer();
-    }
+    // S7: resume the Pomodoro through TimerService — per-account state with an
+    // epoch anchor, so navigation never erases it and a running countdown
+    // discounts the time spent away before it continues ticking.
+    const state = this.timer.restore();
+    this.segundos = state.segundos;
+    this.isRunning = state.isRunning;
+    this.updateTime();
+    if (this.isRunning) this.startTimer();
 
     this.taskSub = this.taskService.tasks$.subscribe(tasks => {
       this.tasks = tasks;
@@ -63,8 +67,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private savePomodoroState() {
-    const state = { segundos: this.segundos, isRunning: this.isRunning };
-    localStorage.setItem('pomodoro', JSON.stringify(state));
+    this.timer.save({ segundos: this.segundos, isRunning: this.isRunning, startedAt: this.isRunning ? Date.now() : null });
   }
 
   get progressPercent(): number {
@@ -145,8 +148,9 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy() {
     this.timerSub?.unsubscribe();
     this.taskSub?.unsubscribe();
-    // Al salir del componente, borrar estado del Pomodoro
-    localStorage.removeItem('pomodoro');
+    // S7: leaving the page does not erase nor pause the countdown — the saved
+    // epoch anchor lets the next visit resume it with the real elapsed time.
+    this.savePomodoroState();
   }
 
   ngAfterViewInit() {
