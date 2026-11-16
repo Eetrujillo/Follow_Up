@@ -493,3 +493,15 @@ textarea.field {
     display: none;
   }
 }
+
+/* Teléfono: el split ya es una columna, pero 40px de padding lateral sobre 360
+   dejan la card en 280px y los campos quedan apretados contra el borde. Se
+   recupera ancho en los dos niveles de padding. */
+@media (max-width: 600px) {
+  .auth-pane {
+    padding: 20px 16px;
+  }
+  .auth-card {
+    padding: 26px 20px 20px;
+  }
+}

@@ -48,7 +48,7 @@ describe('Signup', () => {
     const btn = el.querySelector<HTMLButtonElement>('form button[type="submit"]');
     expect(btn!.disabled).toBe(false);
 
-    component.isLoading = true;
+    component.isLoading.set(true);
     fixture.changeDetectorRef.markForCheck();
     await fixture.whenStable();
 
@@ -75,7 +75,7 @@ describe('Signup', () => {
     expect(registerCalls).toEqual([
       { fullName: 'Ana Prueba', email: 'ana@test.com', password: '12345678' },
     ]);
-    expect(component.isLoading).toBe(false);
+    expect(component.isLoading()).toBe(false);
     expect(router.url).toContain('/login');
     expect(router.url).toContain('registered=true');
   });

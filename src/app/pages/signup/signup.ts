@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -13,8 +13,9 @@ import { AuthApiService } from '../../shared/services/auth-api.service';
 })
 export class Signup {
   signupForm: FormGroup;
-  errorMessage = '';
-  isLoading = false;
+  /* Zoneless: a callback mutation of a plain field never repaints. */
+  errorMessage = signal('');
+  isLoading = signal(false);
 
   constructor(
     private fb: FormBuilder,
@@ -52,7 +53,7 @@ export class Signup {
   }
 
   onSubmit() {
-    this.errorMessage = '';
+    this.errorMessage.set('');
 
     if (this.signupForm.invalid) {
       this.signupForm.markAllAsTouched();
@@ -60,18 +61,18 @@ export class Signup {
     }
 
     const { name, email, password } = this.signupForm.value;
-    this.isLoading = true;
+    this.isLoading.set(true);
 
     this.authApi.register({ fullName: name, email, password }).subscribe({
       next: () => {
-        this.isLoading = false;
+        this.isLoading.set(false);
         this.router.navigate(['/login'], {
           queryParams: { registered: 'true' },
         });
       },
       error: (err) => {
-        this.isLoading = false;
-        this.errorMessage = err?.message || 'Error al registrar';
+        this.isLoading.set(false);
+        this.errorMessage.set(err?.message || 'Error al registrar');
       },
     });
   }

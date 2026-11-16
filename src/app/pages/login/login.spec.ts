@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 
 import { Login } from './login';
@@ -73,7 +73,7 @@ describe('Login', () => {
     expect(btn!.textContent).toContain('Iniciar sesion');
     expect(btn!.disabled).toBe(false);
 
-    component.isLoading = true;
+    component.isLoading.set(true);
     fixture.changeDetectorRef.markForCheck();
     await fixture.whenStable();
 
@@ -107,8 +107,75 @@ describe('Login', () => {
     fixture.detectChanges();
 
     expect(loginCalls).toEqual([{ email: 'ana@test.com', password: '12345678' }]);
-    expect(component.errorMessage).toBe('Correo o contrasena incorrectos');
+    expect(component.errorMessage()).toBe('Correo o contrasena incorrectos');
     const box = el.querySelector('.error-box');
     expect(box?.textContent).toContain('Correo o contrasena incorrectos');
+  });
+});
+
+describe('Login error surfacing (zoneless)', () => {
+  beforeEach(async () => {
+    const authStub = { login: () => of(false) };
+    await TestBed.configureTestingModule({
+      imports: [Login],
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: authStub },
+        { provide: TaskService, useValue: { reloadForUser: () => {} } },
+        { provide: LibraryService, useValue: { reloadForUser: () => {} } },
+      ],
+    }).compileComponents();
+  });
+
+  afterEach(() => {
+    TestBed.resetTestingModule();
+  });
+
+  it('paints the credential error box after the failed response, with no extra gesture', async () => {
+    const fixture = TestBed.createComponent(Login);
+    const el = fixture.nativeElement as HTMLElement;
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    (el.querySelector<HTMLInputElement>('#login-email') as any).value = 'usuario@gmail.com';
+    (el.querySelector<HTMLInputElement>('#login-email') as any).dispatchEvent(new Event('input'));
+    (el.querySelector<HTMLInputElement>('#login-pass') as any).value = 'contrasena123';
+    (el.querySelector<HTMLInputElement>('#login-pass') as any).dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+
+    (el.querySelector<HTMLButtonElement>('button[type=submit]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    const box = el.querySelector('.error-box');
+    expect(box).toBeTruthy();
+    expect(box!.textContent).toContain('Correo o contrasena incorrectos');
+  });
+});
+
+describe('Login success notice (zoneless)', () => {
+  afterEach(() => {
+    TestBed.resetTestingModule();
+  });
+
+  it('shows the account-created box when the router arrives with registered=true', async () => {
+    await TestBed.configureTestingModule({
+      imports: [Login],
+      providers: [
+        provideRouter([]),
+        { provide: ActivatedRoute, useValue: { queryParams: of({ registered: 'true' }) } },
+        { provide: AuthService, useValue: { login: () => of(true) } },
+        { provide: TaskService, useValue: { reloadForUser: () => {} } },
+        { provide: LibraryService, useValue: { reloadForUser: () => {} } },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(Login);
+    const el = fixture.nativeElement as HTMLElement;
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const box = el.querySelector('.success-box');
+    expect(box).toBeTruthy();
+    expect(box!.textContent).toContain('Cuenta creada. Ahora inicia sesion.');
   });
 });

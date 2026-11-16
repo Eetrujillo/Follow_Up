@@ -5,7 +5,12 @@
 
 :host {
   display: block;
+  /* 100vh miente en un teléfono: incluye la franja que tapa la barra del
+     navegador, así que el pie de la card queda fuera del área visible y, como
+     el contenido cabe en ese alto, no hay scroll que lo alcance. dvh mide el
+     alto visible real; vh queda como respaldo. */
   height: 100vh;
+  height: 100dvh;
   overflow-y: auto;
   background: var(--canvas);
 }

@@ -48,8 +48,8 @@
       <h1 class="auth-title" id="auth-title">Inicia sesion</h1>
       <p class="auth-sub">Inicia sesion para continuar</p>
 
-      @if (successMessage) {
-        <div class="success-box" role="status">{{ successMessage }}</div>
+      @if (successMessage()) {
+        <div class="success-box" role="status">{{ successMessage() }}</div>
       }
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" aria-label="Formulario de inicio de sesión">
@@ -97,13 +97,13 @@
           }
         </div>
 
-        @if (errorMessage) {
-          <div class="error-box" role="alert">{{ errorMessage }}</div>
+        @if (errorMessage()) {
+          <div class="error-box" role="alert">{{ errorMessage() }}</div>
         }
 
-        <button type="submit" class="btn btn--primary auth-submit" [disabled]="isLoading"
-                [attr.aria-busy]="isLoading ? 'true' : null">
-          @if (!isLoading) {
+        <button type="submit" class="btn btn--primary auth-submit" [disabled]="isLoading()"
+                [attr.aria-busy]="isLoading() ? 'true' : null">
+          @if (!isLoading()) {
             <span>Iniciar sesion</span>
           } @else {
             <span class="spinner" aria-hidden="true"></span>
