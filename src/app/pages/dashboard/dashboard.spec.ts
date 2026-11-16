@@ -103,6 +103,9 @@ describe('Dashboard timer survival', () => {
       // One minute passed while the user was away: 540 must remain, not 600.
       expect(component.segundos).toBeGreaterThanOrEqual(538);
       expect(component.segundos).toBeLessThanOrEqual(540);
+      // The restored countdown must actually tick: the resume path starts the
+      // interval even though isRunning was already true from storage.
+      expect((component as unknown as { timerSub: unknown }).timerSub).toBeTruthy();
     } finally {
       fixture.destroy();
     }

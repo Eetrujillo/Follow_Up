@@ -100,7 +100,10 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private startTimer() {
-    if (this.isRunning) return;
+    // Guard on the live subscription, not on the flag: the resume path in
+    // ngOnInit sets isRunning from storage before starting the interval here,
+    // and a flag guard would return and freeze a restored countdown.
+    if (this.timerSub) return;
     this.isRunning = true;
     this.savePomodoroState();
 
