@@ -17,7 +17,11 @@ export class Sidebar {
   private readonly authService = inject(AuthService);
   private readonly searchService = inject(SearchService);
 
-  isCollapsed = false;
+  // Ancho por debajo del cual la barra de 180px deja el contenido sin aire
+  // (cabecera encimada, nombres de documento recortados a cero).
+  private static readonly RAIL_BREAKPOINT = 700;
+
+  isCollapsed = window.innerWidth <= Sidebar.RAIL_BREAKPOINT;
   searchQuery = '';
   searchResults: SearchResult[] = [];
   showResults = false;

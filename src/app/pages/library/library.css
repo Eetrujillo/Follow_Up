@@ -300,4 +300,30 @@ h1 {
 @media (max-width: 600px) {
   .folders-grid { grid-template-columns: 1fr; }
   .page-wrapper { padding: 16px; }
+
+  /* En una columna angosta la cabecera no cabe en una línea: .header-left tiene
+     min-width: 0, así que se encoge y su contenido (Volver + título) se pinta
+     encima del botón de acción. Se apila en vertical. */
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .header-left { flex-wrap: wrap; }
+
+  /* La fila del documento se queda con ~30px para el nombre y pierde el título:
+     el nombre pasa a su propia línea y la fecha queda debajo. */
+  .doc-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'icon name trash'
+      'icon date trash';
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 2px;
+  }
+  .doc-item > .ic { grid-area: icon; }
+  .doc-name { grid-area: name; }
+  .doc-date { grid-area: date; }
+  .doc-item .trash { grid-area: trash; }
 }
