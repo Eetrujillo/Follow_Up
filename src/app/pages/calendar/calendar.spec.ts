@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
 
 import { Calendar } from './calendar';
+import { BackendCalendarEvent, CalendarApiService } from '../../shared/services/calendar-api.service';
 
 // Contrato del backend: colorHex se valida con @IsHexColor() en
 // create-calendar-event.dto.ts y update-calendar-event.dto.ts.
@@ -46,5 +48,58 @@ describe('Calendar', () => {
     const swatch = fixture.nativeElement.querySelector('.swatch');
     expect(swatch).toBeTruthy();
     expect(swatch.getAttribute('aria-pressed')).toBe('true');
+  });
+});
+
+// El backend guarda eventDate como la medianoche UTC del día calendario elegido
+// (backend/src/calendar/calendar.service.ts: new Date(Date.UTC(year, month - 1, day))).
+const storedEvent = (id: string, eventDate: string): BackendCalendarEvent => ({
+  id,
+  title: `Evento ${id}`,
+  colorHex: '#e0b155',
+  eventDate,
+  linkedTaskId: null,
+  createdAt: eventDate,
+});
+
+describe('Calendar · día calendario guardado como medianoche UTC', () => {
+  let component: Calendar;
+  let fixture: ComponentFixture<Calendar>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({ imports: [Calendar] })
+      .overrideProvider(CalendarApiService, {
+        useValue: {
+          getAll: () =>
+            of([
+              storedEvent('mid-month', '2026-03-15T00:00:00.000Z'),
+              storedEvent('first-of-month', '2026-04-01T00:00:00.000Z'),
+            ]),
+          create: () => of({}),
+          update: () => of({}),
+        },
+      })
+      .compileComponents();
+
+    fixture = TestBed.createComponent(Calendar);
+    component = fixture.componentInstance;
+    await fixture.whenStable();
+  });
+
+  it('pinta el 15 de marzo en el 15 y no en el 14', () => {
+    component.currentDate = new Date(2026, 2, 1);
+
+    const days = component.days;
+    expect(days.find((d) => d.number === 15)!.events.map((e) => e.id)).toEqual(['mid-month']);
+    expect(days.find((d) => d.number === 14)!.events).toEqual([]);
+  });
+
+  it('pinta el 1 de abril en abril y no en el 31 de marzo', () => {
+    component.currentDate = new Date(2026, 3, 1);
+
+    expect(component.monthHasEvents).toBe(true);
+    expect(component.days.find((d) => d.number === 1)!.events.map((e) => e.id)).toEqual([
+      'first-of-month',
+    ]);
   });
 });

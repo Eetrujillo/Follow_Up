@@ -73,22 +73,34 @@ export class Calendar {
   private reload(): void {
     this.calendarApi.getAll().subscribe({
       next: (events) => {
-        this.events = events.map((event) => {
-          const date = new Date(event.eventDate);
-          return {
-            id: event.id,
-            day: date.getDate(),
-            month: date.getMonth(),
-            year: date.getFullYear(),
-            title: event.title,
-            color: event.colorHex,
-          };
-        });
+        this.events = events.map((event) => ({
+          id: event.id,
+          // eventDate llega como la medianoche UTC del día calendario elegido
+          // (backend/src/calendar/calendar.service.ts: Date.UTC(year, month - 1, day)).
+          // Hay que decodificarla con getters UTC: con los locales, en husos negativos
+          // (America/Lima, UTC-5) esa medianoche UTC es todavía el día anterior a las 19:00
+          // y el evento se pintaba una celda antes, o en el mes anterior si era día 1.
+          ...this.toCalendarDay(event.eventDate),
+          title: event.title,
+          color: event.colorHex,
+        }));
       },
       error: () => {
         this.events = [];
       },
     });
+  }
+
+  private toCalendarDay(eventDate: string): { day: number; month: number; year: number } {
+    const date = new Date(eventDate);
+    if (Number.isNaN(date.getTime())) {
+      return { day: 0, month: -1, year: 0 };
+    }
+    return {
+      day: date.getUTCDate(),
+      month: date.getUTCMonth(),
+      year: date.getUTCFullYear(),
+    };
   }
 
   get monthName(): string {
