@@ -1,5 +1,7 @@
 <div class="auth">
   <aside class="auth-brand">
+    <app-auth-hero />
+
     <div class="auth-brand__mark">
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
         <circle cx="10" cy="10" r="8" />
@@ -9,34 +11,42 @@
     </div>
 
     <div class="auth-brand__hero">
-      <h2>Tu semana, en una sola superficie.</h2>
+      <h2>
+        <span class="m-mask"><span>Tu semana, en una sola superficie.</span></span>
+      </h2>
       <p>Tareas, calendario, biblioteca y notas conviven en el mismo tablero. Sin ruido, sin pestañas perdidas.</p>
     </div>
 
     <div class="auth-brand__list" role="list">
-      <div class="auth-brand__row" role="listitem">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
-          <rect x="3" y="4" width="14" height="13" rx="1" />
-          <path d="M7 8h6M7 11h6" />
-        </svg>
-        <b>Biblioteca</b>
-        <p>Documentos y materiales, ordenados en carpetas</p>
+      <div class="m-mask" role="presentation">
+        <div class="auth-brand__row" role="listitem">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+            <rect x="3" y="4" width="14" height="13" rx="1" />
+            <path d="M7 8h6M7 11h6" />
+          </svg>
+          <b>Biblioteca</b>
+          <p>Documentos y materiales, ordenados en carpetas</p>
+        </div>
       </div>
-      <div class="auth-brand__row" role="listitem">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
-          <rect x="3" y="4" width="14" height="13" rx="1" />
-          <path d="M3 8h14M7 2v4M13 2v4" />
-        </svg>
-        <b>Calendario</b>
-        <p>Tareas y eventos en la misma semana</p>
+      <div class="m-mask" role="presentation">
+        <div class="auth-brand__row" role="listitem">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+            <rect x="3" y="4" width="14" height="13" rx="1" />
+            <path d="M3 8h14M7 2v4M13 2v4" />
+          </svg>
+          <b>Calendario</b>
+          <p>Tareas y eventos en la misma semana</p>
+        </div>
       </div>
-      <div class="auth-brand__row" role="listitem">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
-          <path d="M5 3h8l3 3v11H5z" />
-          <path d="M8 9h5M8 12h5" />
-        </svg>
-        <b>Notas</b>
-        <p>Notas rápidas que se vuelven tareas con IA</p>
+      <div class="m-mask" role="presentation">
+        <div class="auth-brand__row" role="listitem">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+            <path d="M5 3h8l3 3v11H5z" />
+            <path d="M8 9h5M8 12h5" />
+          </svg>
+          <b>Notas</b>
+          <p>Notas rápidas que se vuelven tareas con IA</p>
+        </div>
       </div>
     </div>
 
@@ -101,7 +111,7 @@
           <div class="error-box" role="alert">{{ errorMessage() }}</div>
         }
 
-        <button type="submit" class="btn btn--primary auth-submit" [disabled]="isLoading()"
+        <button type="submit" class="btn btn--primary auth-submit" [disabled]="isLoading()" data-magnetic
                 [attr.aria-busy]="isLoading() ? 'true' : null">
           @if (!isLoading()) {
             <span>Iniciar sesion</span>

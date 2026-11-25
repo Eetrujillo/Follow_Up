@@ -5,11 +5,12 @@ import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../shared/services/auth.service';
 import { TaskService } from '../../shared/services/task';
 import { LibraryService } from '../../shared/services/library';
+import { AuthHero } from '../../shared/motion/auth-hero';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, AuthHero],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
