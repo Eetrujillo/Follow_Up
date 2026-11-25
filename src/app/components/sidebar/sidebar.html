@@ -61,8 +61,11 @@
   </div>
 
   <nav class="sidebar-nav" aria-label="Navegación principal">
+    <!-- Marcador de tinta: la única FLIP del shell. La mueve el navegador en el
+         cambio de vista (view-transition-name), no una lectura de geometría. -->
+    <div class="nav-ink" #navInk aria-hidden="true"></div>
     @for (item of navItems; track item.route) {
-      <a [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+      <a [routerLink]="item.route" routerLinkActive="active" class="nav-item" #navItem>
         @switch (item.icon) {
           @case ('home') {
             <svg class="ic ic--lg" width="18" height="18" viewBox="0 0 20 20" fill="none"

@@ -1,5 +1,13 @@
-import { Component, HostListener, inject } from '@angular/core';
-import { RouterModule, Router } from '@angular/router';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  afterNextRender,
+  inject,
+  viewChild,
+  viewChildren,
+} from '@angular/core';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../shared/services/auth.service';
@@ -26,6 +34,9 @@ export class Sidebar {
   searchResults: SearchResult[] = [];
   showResults = false;
 
+  private readonly ink = viewChild<ElementRef<HTMLElement>>('navInk');
+  private readonly navRefs = viewChildren<ElementRef<HTMLElement>>('navItem');
+
   navItems = [
     { label: 'Panel Principal', route: '/dashboard', icon: 'home' },
     { label: 'Biblioteca', route: '/library', icon: 'folder' },
@@ -34,8 +45,48 @@ export class Sidebar {
     { label: 'Bloc de Notas', route: '/notepad', icon: 'note' },
   ];
 
+  constructor() {
+    afterNextRender(() => this.syncInk());
+    // RouterLinkActive se aplica durante la CD que sigue a NavigationEnd: la
+    // marca se reposiciona después, no antes.
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) setTimeout(() => this.syncInk(), 0);
+    });
+  }
+
+  /**
+   * Coloca el marcador sobre el ítem activo.
+   * Todas las lecturas en una pasada y después una sola escritura: nunca se
+   * lee geometría entre dos escrituras de estilo.
+   */
+  private syncInk(): void {
+    const ink = this.ink()?.nativeElement;
+    if (!ink) return;
+
+    const items = this.navRefs().map((ref) => ref.nativeElement);
+    if (!items.length) return;
+
+    const metrics = items.map((el) => ({
+      top: el.offsetTop,
+      height: el.offsetHeight,
+      active: el.classList.contains('active'),
+    }));
+    const active = metrics.find((m) => m.active);
+
+    if (!active) {
+      ink.style.opacity = '0';
+      return;
+    }
+    ink.style.height = `${active.height}px`;
+    ink.style.transform = `translateY(${active.top}px)`;
+    ink.style.opacity = '1';
+  }
+
   toggleSidebar() {
     this.isCollapsed = !this.isCollapsed;
+    // El riel no anima ancho (re-layout del shell entero): la geometría es
+    // instantánea y sólo las etiquetas se desvanecen.
+    setTimeout(() => this.syncInk(), 0);
   }
 
   onSearch() {
@@ -64,7 +115,10 @@ export class Sidebar {
   @HostListener('document:click', ['$event'])
   onClickOutside(e: Event) {
     const target = e.target as HTMLElement;
-    if (!target.closest('.sidebar-search-wrap')) {
+    // El contenedor real del buscador es `.search-wrap`; el selector anterior
+    // (`.sidebar-search-wrap`) no existía y el cierre por clic afuera nunca
+    // disparaba.
+    if (!target.closest('.search-wrap')) {
       this.showResults = false;
     }
   }

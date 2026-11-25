@@ -1,5 +1,7 @@
-/* Sidebar «Instrumento». La transición de ancho (--slow) es el único momento
-   autorado del shell; las etiquetas se desvanecen con opacity, sin reflow. */
+/* Sidebar «Instrumento». El riel NO anima ancho: animar `width` invalida el
+   layout del shell entero en cada frame. La geometría es instantánea y el
+   momento autorado es el desvanecido de las etiquetas (opacity) + el marcador
+   de tinta, que mueve el navegador con la View Transition del cambio de vista. */
 
 .sidebar {
   width: var(--sidebar-w);
@@ -11,7 +13,8 @@
   background: var(--s1);
   border-right: 1px solid var(--hairline);
   overflow: hidden;
-  transition: width var(--slow) var(--ease);
+  /* Nombre propio en la View Transition: el riel no se funde con la página. */
+  view-transition-name: shell;
 }
 
 .sidebar.collapsed {
@@ -163,10 +166,28 @@
 
 /* --- Navegación ------------------------------------------------------------- */
 .sidebar-nav {
+  position: relative;
   display: flex;
   flex-direction: column;
   flex: 1;
   gap: 2px;
+}
+
+/* Marcador de tinta: 2px sobre el ítem activo.
+   `view-transition-name` hace que el navegador lo interpole entre su posición
+   vieja y la nueva durante la navegación. Sin View Transitions salta directo,
+   que es el comportamiento correcto cuando no hay API. */
+.nav-ink {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 0;
+  border-radius: 1px;
+  background: var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  view-transition-name: nav-ink;
 }
 
 .nav-item {
@@ -185,12 +206,14 @@
   transition:
     background var(--fast) var(--ease),
     color var(--fast) var(--ease),
-    transform var(--fast) var(--ease);
+    transform var(--t-micro) var(--ease);
 }
 
 .nav-item:hover {
   background: var(--s2);
   color: var(--t1);
+  /* 2px, no 3: el riel tiene 8px de padding y el ítem va al 100% de ancho. */
+  transform: translateX(2px);
 }
 
 .nav-item.active {

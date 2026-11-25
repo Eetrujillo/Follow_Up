@@ -7,9 +7,14 @@
   background: var(--canvas);
 }
 
+/* `.main-content` lleva nombre propio de View Transition: el navegador lo saca
+   del fundido de la raíz y sólo mueve lo que cambió. El riel se nombra desde
+   sidebar.css, que es donde vive su regla base. */
 .main-content {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   min-width: 0;
+  view-transition-name: page;
+  scrollbar-gutter: stable;
 }
