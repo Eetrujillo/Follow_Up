@@ -36,18 +36,28 @@ h1 {
   margin: 0;
 }
 
-/* --- Métricas: primera con jerarquía propia, el resto como filas ---------- */
+/* --- Métricas: 12 columnas con una cifra focal y la lista como apoyo ------ */
 
 .stats-grid {
   display: grid;
-  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 16px;
   align-items: stretch;
   margin-bottom: 20px;
   max-width: 960px;
 }
 
+/* El escalonado de esta pantalla es algo más lento que el default compartido:
+   sólo se ajusta el paso, la curva y la duración siguen siendo del contrato. */
+.stats-grid {
+  --m-step: 60ms;
+}
+
+/* Banda de dos filas: el foco ocupa más superficie y la lista lo acompaña
+   sobre el mismo ritmo vertical, sin dejar una fila vacía al costado. */
 .stat-featured {
+  grid-column: span 5;
+  grid-row: span 2;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -55,8 +65,9 @@ h1 {
 }
 
 .stat-value {
-  font-size: 28px;
+  font-size: clamp(30px, 4vw, 44px);
   font-weight: 600;
+  line-height: 1.05;
   color: var(--t1);
   margin: 8px 0 4px;
 }
@@ -68,8 +79,11 @@ h1 {
 }
 
 .stat-rows {
+  grid-column: span 7;
+  grid-row: span 2;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   min-width: 0;
 }
 
@@ -86,10 +100,26 @@ h1 {
   border-top: 1px solid var(--hairline);
 }
 
+/* La cifra y sus etiquetas son hermanas: el count-up escribe sólo el número. */
+.stat-row-fig {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
 .stat-row-value {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 500;
   color: var(--t1);
+}
+
+.stat-row-unit {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--t2);
 }
 
 .stat-row-sub {
@@ -106,10 +136,17 @@ h1 {
   text-transform: uppercase;
 }
 
-/* En pantallas angostas la cifra destacada pasa arriba y las filas ocupan todo. */
-@media (max-width: 880px) {
+/* En pantallas angostas una sola columna, con la cifra focal primero:
+   es el primer hijo del grid, así que el orden del DOM ya es el correcto. */
+@media (max-width: 900px) {
   .stats-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stat-featured,
+  .stat-rows {
+    grid-column: 1 / -1;
+    grid-row: auto;
   }
 }
 
@@ -175,12 +212,16 @@ h1 {
   min-width: 0;
 }
 
+/* Momento autorado de la pantalla: el avance de las barras. Se dibuja sobre
+   transform para que ningún frame invalide layout; el porcentaje real sigue
+   viviendo en el texto de al lado y en aria-valuenow. */
 .progress-bar-fill {
   height: 100%;
   background: var(--data);
   border-radius: 3px;
-  /* Momento autorado de la pantalla: el ancho de las barras. */
-  transition: width var(--slow) var(--ease);
+  transform: scaleX(var(--fill, 0));
+  transform-origin: left center;
+  transition: transform var(--t-scene) var(--ease) var(--m-delay, 0ms);
 }
 
 .progress-pct {

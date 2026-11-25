@@ -1,10 +1,20 @@
-import { Component, AfterViewInit, ViewChild, ElementRef, OnInit } from '@angular/core';
+import {
+  Component,
+  AfterViewInit,
+  ViewChild,
+  ViewChildren,
+  QueryList,
+  ElementRef,
+  OnInit,
+  OnDestroy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
 import { TaskService } from '../../shared/services/task';
 import { LibraryService } from '../../shared/services/library';
 import { StorageService } from '../../shared/services/storage';
 import { AuthService } from '../../shared/services/auth.service';
+import { countUp, duration, prefersReducedMotion } from '../../shared/motion/motion';
 
 Chart.register(...registerables);
 
@@ -15,9 +25,16 @@ Chart.register(...registerables);
   templateUrl: './statistics.html',
   styleUrl: './statistics.css'
 })
-export class Statistics implements OnInit, AfterViewInit {
+export class Statistics implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild('weeklyCanvas') weeklyCanvas!: ElementRef;
+
+  // Cifras que hacen count-up. `data-count` guarda el valor real: el texto que
+  // escribe la animación termina exactamente en ese número.
+  @ViewChildren('countTarget') countTargets!: QueryList<ElementRef<HTMLElement>>;
+
+  private countObserver?: IntersectionObserver;
+  private countStops: Array<() => void> = [];
 
   totalTasks       = 0;
   completedTasks   = 0;
@@ -110,6 +127,46 @@ export class Statistics implements OnInit, AfterViewInit {
     if (this.hasData) {
       this.createWeeklyChart();
     }
+    this.queueCountUps();
+  }
+
+  ngOnDestroy() {
+    this.countObserver?.disconnect();
+    this.countStops.forEach(stop => stop());
+    this.countStops = [];
+  }
+
+  /**
+   * Las cifras ya están en el DOM con su valor real (visible por defecto).
+   * El conteo arranca sólo cuando el bloque entra en vista, y con movimiento
+   * reducido no hay conteo: `countUp` escribe el valor final de una vez.
+   */
+  private queueCountUps(): void {
+    const targets = (this.countTargets?.map(ref => ref.nativeElement) ?? []);
+    if (!targets.length) return;
+
+    if (prefersReducedMotion() || typeof IntersectionObserver === 'undefined') {
+      targets.forEach(el => this.runCountUp(el));
+      return;
+    }
+
+    this.countObserver = new IntersectionObserver(
+      entries => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          this.countObserver?.unobserve(entry.target);
+          this.runCountUp(entry.target as HTMLElement);
+        }
+      },
+      { threshold: 0.12 },
+    );
+
+    targets.forEach(el => this.countObserver!.observe(el));
+  }
+
+  private runCountUp(el: HTMLElement): void {
+    const to = Number(el.dataset['count'] ?? 0);
+    this.countStops.push(countUp(el, to, 900));
   }
 
   /** Lee un token CSS de :root para que la paleta de Chart.js siga al tema. */
@@ -153,6 +210,7 @@ export class Statistics implements OnInit, AfterViewInit {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: { duration: duration(700) },
         plugins: { legend: { display: false } },
         scales: {
           x: {

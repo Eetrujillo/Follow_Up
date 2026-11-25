@@ -1,330 +1,105 @@
-/* Dashboard — «Instrumento». Solo tokens: ningún hex en este archivo. */
+/* Dashboard — «Instrumento». Solo tokens: ningún hex suelto. */
 
-.dashboard-wrapper {
-  padding: 28px 36px;
-  min-width: 0;
-}
+.dashboard-wrapper { padding: 28px 36px; min-width: 0; }
+.dashboard-head { margin-bottom: 20px; }
+.breadcrumb { font-size: 12px; color: var(--t3); margin-bottom: 4px; }
+.breadcrumb span { color: var(--t2); }
+.breadcrumb-sep { margin: 0 4px; }
+h1 { font-size: 16px; font-weight: 500; color: var(--t1); margin: 0; }
 
-.dashboard-head {
-  margin-bottom: 20px;
-}
-
-.breadcrumb {
-  font-size: 12px;
-  color: var(--t3);
-  margin-bottom: 4px;
-}
-
-.breadcrumb span {
-  color: var(--t2);
-}
-
-.breadcrumb-sep {
-  margin: 0 4px;
-}
-
-h1 {
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--t1);
-  margin: 0;
-}
-
-/* Grilla: 3 columnas como el artboard (tareas abarca 2). En angosto, se apila. */
+/* 12 columnas: el pomodoro es el bloque focal (5×2). Entrada: .m-stagger. */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  align-content: start;
-  max-width: 960px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+  max-width: 1120px;
 }
 
-.card-tasks {
-  grid-column: span 2;
+.card-focus { grid-column: span 5; grid-row: span 2; position: relative; padding: 20px; }
+.card-tasks { grid-column: span 7; }
+.card-progress { grid-column: span 4; }
+.card-weekly { grid-column: span 3; }
+.card-recent { grid-column: span 12; }
+
+@media (max-width: 1100px) {
+  .card-focus, .card-tasks, .card-recent { grid-column: span 6; }
+  .card-progress, .card-weekly { grid-column: span 3; }
 }
 
-@media (max-width: 880px) {
-  .dashboard-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .card-tasks {
+/* Una columna: el temporizador lidera por `order`, no por el DOM. */
+@media (max-width: 860px) {
+  .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
+  .card-focus, .card-tasks, .card-progress, .card-weekly, .card-recent {
     grid-column: auto;
+    grid-row: auto;
   }
+  .card-focus { order: 1; }
+  .card-tasks { order: 2; }
+  .card-progress { order: 3; }
+  .card-weekly { order: 4; }
+  .card-recent { order: 5; }
 }
 
-.card {
-  padding: 16px;
-  min-width: 0;
-  overflow: hidden;
-}
+.card { padding: 16px; min-width: 0; overflow: hidden; }
+.card-title { font-size: 12px; font-weight: 500; color: var(--t2); margin: 0 0 12px; }
 
-.card-title {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--t2);
-  margin: 0 0 12px;
-}
+/* --- Tareas --- */
+.task-add { display: flex; gap: 8px; padding-bottom: 12px; margin-bottom: 4px; border-bottom: 1px solid var(--hairline); }
+.task-add .field { flex: 1; min-width: 0; }
+.task-list { display: flex; flex-direction: column; }
+.task-row { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 4px 8px; border-radius: var(--r-ctl); transition: background var(--fast) var(--ease); }
+.task-row:hover { background: var(--s2); }
 
-/* --- Tareas ---------------------------------------------------------------- */
+/* La marca se dibuja con stroke-dashoffset: el único trazo animado (S3). */
+.task-check { display: inline-flex; align-items: center; justify-content: center; flex: none; cursor: pointer; color: var(--t3); border-radius: var(--r-ctl); transition: color var(--fast) var(--ease); }
+.task-check:hover { color: var(--t2); }
+.task-check:has(:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.task-check--on { color: var(--accent); }
+.task-check__box { width: 16px; height: 16px; display: block; }
+.task-check__mark { stroke-dasharray: 20; stroke-dashoffset: 20; transition: stroke-dashoffset 180ms var(--ease); }
+.task-check--on .task-check__mark { stroke-dashoffset: 0; }
 
-.task-add {
-  display: flex;
-  gap: 8px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--hairline);
-  margin-bottom: 4px;
-}
-
-.task-add .field {
-  flex: 1;
-  min-width: 0;
-}
-
-.task-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.task-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  padding: 4px 8px;
-  border-radius: var(--r-ctl);
-  transition: background var(--fast) var(--ease);
-}
-
-.task-row:hover {
-  background: var(--s2);
-}
-
-/* Checkbox SVG: el input real queda solo para lectores y teclado;
-   la marca se dibuja con stroke-dashoffset (momento autorado de la pantalla). */
-.task-check {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  cursor: pointer;
-  color: var(--t3);
-  border-radius: var(--r-ctl);
-  transition: color var(--fast) var(--ease);
-}
-
-.task-check:hover {
-  color: var(--t2);
-}
-
-.task-check:has(:focus-visible) {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.task-check--on {
-  color: var(--accent);
-}
-
-.task-check__box {
-  width: 16px;
-  height: 16px;
-  display: block;
-}
-
-.task-check__mark {
-  stroke-dasharray: 20;
-  stroke-dashoffset: 20;
-  transition: stroke-dashoffset 180ms var(--ease);
-}
-
-.task-check--on .task-check__mark {
-  stroke-dashoffset: 0;
-}
-
-/* La caja del nombre truncado es idéntica para tareas y actividad: una sola regla. */
+/* Una caja truncada compartida por tareas y actividad. */
 .task-row__txt,
-.act-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--t1);
-}
+.act-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--t1); }
+.task-row__txt { font-size: 13px; text-decoration: line-through; text-decoration-color: transparent; transition: color var(--fast) var(--ease), text-decoration-color var(--fast) var(--ease); }
+.task-row--done .task-row__txt { color: var(--t3); text-decoration-color: currentColor; }
 
-.task-row__txt {
-  font-size: 13px;
-  text-decoration: line-through;
-  text-decoration-color: transparent;
-  transition: color var(--fast) var(--ease), text-decoration-color var(--fast) var(--ease);
-}
-
-.task-row--done .task-row__txt {
-  color: var(--t3);
-  text-decoration-color: currentColor;
-}
-
-/* El x aparece en hover y en :focus-within; nunca display:none,
-   así el control sigue en el orden de tabulación. */
-.task-row__del {
-  width: 26px;
-  height: 26px;
-  opacity: 0;
-}
-
+/* Nunca display:none: el control sigue en el orden de tabulación. */
+.task-row__del { width: 26px; height: 26px; opacity: 0; }
 .task-row:hover .task-row__del,
-.task-row:focus-within .task-row__del {
-  opacity: 1;
-}
+.task-row:focus-within .task-row__del { opacity: 1; }
+.empty { font-size: 12px; color: var(--t3); padding: 10px 8px; }
 
-.empty {
-  font-size: 12px;
-  color: var(--t3);
-  padding: 10px 8px;
-}
+.donut-wrap { position: relative; width: 130px; height: 130px; margin: 0 auto; }
+.donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
+.donut-center strong { font-size: 20px; font-weight: 500; color: var(--t1); display: block; }
+.donut-center span { font-size: 10px; color: var(--t3); }
 
-/* --- Dona ------------------------------------------------------------------ */
+.bar-wrap { height: 110px; position: relative; width: 100%; }
+.bar-wrap canvas { width: 100% !important; height: 100% !important; }
 
-.donut-wrap {
-  position: relative;
-  width: 130px;
-  height: 130px;
-  margin: 0 auto;
-}
+.activity-list { display: flex; flex-direction: column; }
+.activity-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--hairline); }
+.activity-row:first-child { border-top: none; padding-top: 0; }
+.activity-row .ic { color: var(--t3); }
+.act-name { font-size: 12px; }
+.act-time { font-size: 11px; color: var(--t3); white-space: nowrap; flex: none; }
 
-.donut-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  pointer-events: none;
-}
+/* --- Foco --- El acento de arriba es 1px por opacity, no un border: no empuja layout. */
+.card-focus::before { content: ''; position: absolute; inset: 0 0 auto; height: 1px; background: var(--accent); opacity: 0; transition: opacity var(--fast) var(--ease); }
+.card-focus--running::before { opacity: 1; }
+.timer-content { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 14px 0; }
+.timer-status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--t3); }
 
-.donut-center strong {
-  font-size: 20px;
-  font-weight: 500;
-  color: var(--t1);
-  display: block;
-}
-
-.donut-center span {
-  font-size: 10px;
-  color: var(--t3);
-}
-
-/* --- Barras semanales ------------------------------------------------------ */
-
-.bar-wrap {
-  height: 110px;
-  position: relative;
-  width: 100%;
-}
-
-.bar-wrap canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-/* --- Actividad reciente ---------------------------------------------------- */
-
-.activity-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.activity-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 0;
-  border-top: 1px solid var(--hairline);
-}
-
-.activity-row:first-child {
-  border-top: none;
-  padding-top: 0;
-}
-
-.activity-row .ic {
-  color: var(--t3);
-}
-
-.act-name {
-  font-size: 12px;
-}
-
-.act-time {
-  font-size: 11px;
-  color: var(--t3);
-  white-space: nowrap;
-  flex: none;
-}
-
-/* --- Temporizador ---------------------------------------------------------- */
-
-.timer-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 0;
-}
-
-.timer-status {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--t3);
-}
-
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--t3);
-  flex: none;
-}
-
-.dot--pulse {
-  background: var(--accent);
-  animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.3;
-  }
-}
-
-.timer-digits {
-  font-size: 28px;
-  letter-spacing: 0.02em;
-  color: var(--t1);
-}
-
-.card-focus--running .timer-digits {
-  color: var(--accent);
-}
-
-.card-focus--running .timer-status {
-  color: var(--t2);
-}
-
-.timer-actions {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
+/* Indicador de estado, no un loop (WCAG 2.2.2). */
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--t3); flex: none; transition: background-color var(--fast) var(--ease); }
+.dot--live { background: var(--accent); }
+.timer-digits { font-size: clamp(34px, 5vw, 52px); letter-spacing: 0.02em; color: var(--t1); }
+.card-focus--running .timer-digits { color: var(--accent); }
+.card-focus--running .timer-status { color: var(--t2); }
+.timer-actions { display: flex; gap: 10px; align-items: center; }
 .timer-btn {
   width: 34px;
   height: 34px;
@@ -338,21 +113,9 @@ h1 {
   color: var(--t1);
   cursor: pointer;
   flex: none;
-  transition:
-    background var(--fast) var(--ease),
-    border-color var(--fast) var(--ease),
-    color var(--fast) var(--ease),
-    transform var(--fast) var(--ease);
+  transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease),
+    color var(--fast) var(--ease), transform var(--fast) var(--ease);
 }
-
-.timer-btn:hover {
-  background: var(--s3);
-}
-
-.timer-btn:active {
-  transform: scale(0.985);
-}
-
-.timer-btn--main {
-  color: var(--accent);
-}
+.timer-btn:hover { background: var(--s3); }
+.timer-btn:active { transform: scale(0.985); }
+.timer-btn--main { color: var(--accent); }

@@ -12,7 +12,7 @@
     </div>
     <div class="header-actions">
       @if (saved) {
-        <span class="saved-msg" role="status">Guardado en biblioteca</span>
+        <span class="saved-msg m-reveal" role="status">Guardado en biblioteca</span>
       }
       <button class="btn" (click)="openSaveModal()" [disabled]="!hasContent || isOverLimit">
         <svg class="ic ic--sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"

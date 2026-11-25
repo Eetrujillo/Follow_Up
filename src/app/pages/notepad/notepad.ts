@@ -16,6 +16,7 @@ import { LibraryService } from '../../shared/services/library';
 import { AuthService } from '../../shared/services/auth.service';
 import { AiService } from '../../shared/services/ai.service';
 import { TaskService } from '../../shared/services/task';
+import { observeReveals } from '../../shared/motion/motion';
 
 @Component({
   selector: 'app-notepad',
@@ -130,6 +131,9 @@ export class Notepad implements AfterViewInit {
     this.libraryService.saveNote(this.noteName.trim(), contentPlain);
     this.showSaveModal = false;
     this.saved = true;
+    // El aviso entra con la clase compartida: el observer le pone .is-in cuando
+    // ya está en el DOM, después de este render.
+    afterNextRender(() => observeReveals(document), { injector: this.injector });
     setTimeout(() => (this.saved = false), 2000);
   }
 

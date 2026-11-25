@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Component,
   ElementRef,
   HostListener,
@@ -14,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 
 import { LibraryService, Folder, Document } from '../../shared/services/library';
+import { flip, observeReveals, prefersReducedMotion } from '../../shared/motion/motion';
 
 @Component({
   selector: 'app-library',
@@ -39,9 +41,16 @@ export class Library implements OnInit, OnDestroy {
   editorContent = '';
 
   savedToast = false;
+  /** Salida del aviso: la clase arranca la transición y `transitionend` desmonta. */
+  toastLeaving = false;
+
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
+  private stopReveals: () => void = () => {};
 
   private readonly injector = inject(Injector);
+  private readonly cdr = inject(ChangeDetectorRef);
+  readonly gridEl = viewChild<ElementRef<HTMLElement>>('folderGrid');
+  readonly docTitleEl = viewChild<ElementRef<HTMLElement>>('docTitle');
   readonly folderNameInput = viewChild<ElementRef<HTMLInputElement>>('folderNameInput');
   readonly docNameInput    = viewChild<ElementRef<HTMLInputElement>>('docNameInput');
 
@@ -59,6 +68,7 @@ export class Library implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.toastTimer) clearTimeout(this.toastTimer);
+    this.stopReveals();
   }
 
   /** Esc cierra el modal abierto (ningún efecto cuando no hay modal). */
@@ -75,19 +85,39 @@ export class Library implements OnInit, OnDestroy {
   openFolderFromKey(e: Event, folder: Folder) {
     if ((e.target as HTMLElement) !== (e.currentTarget as HTMLElement)) return;
     e.preventDefault();
-    this.openFolder(folder);
+    this.openFolder(folder, e.currentTarget as HTMLElement);
   }
 
-  /** Teclado para la fila de documento: ignora eventos que vienen de la papelera. */
-  openDocumentFromKey(e: Event, doc: Document) {
-    if ((e.target as HTMLElement) !== (e.currentTarget as HTMLElement)) return;
-    e.preventDefault();
-    this.openDocument(doc);
+  /** Click sobre la tarjeta: ella misma es el origen del morph. */
+  openFolderFromClick(e: MouseEvent, folder: Folder) {
+    this.openFolder(folder, e.currentTarget as HTMLElement);
   }
 
-  openFolder(folder: Folder) {
-    this.selectedFolder = folder;
-    this.view = 'documents';
+  /**
+   * Morph carpeta → documentos. El nombre de la transición sólo puede existir una
+   * vez en el documento: se pone en la tarjeta antes del snapshot viejo, el estado
+   * nuevo se commitea dentro del callback y el nombre se retira siempre al final.
+   * Sin la API, o con movimiento reducido, el estado cambia igual y sin morph.
+   */
+  openFolder(folder: Folder, card?: HTMLElement | null) {
+    if (!card || typeof document.startViewTransition !== 'function' || prefersReducedMotion()) {
+      this.showDocuments(folder, false);
+      return;
+    }
+
+    card.classList.add('m-morph');
+    const transition = document.startViewTransition(() => this.showDocuments(folder, true));
+    void transition.finished.finally(() => {
+      card.classList.remove('m-morph');
+      this.docTitleEl()?.nativeElement.classList.remove('m-morph');
+    });
+  }
+
+  /** Vuelve a la grilla desde las migas: mismas dos asignaciones que antes. */
+  openFoldersRoot() {
+    this.view = 'folders';
+    this.selectedFolder = null;
+    this.revealFolders();
   }
 
   openDocument(doc: Document) {
@@ -96,14 +126,20 @@ export class Library implements OnInit, OnDestroy {
     this.view = 'editor';
   }
 
+  /** Teclado para la fila de documento: mismo contrato que la tarjeta de carpeta. */
+  openDocumentFromKey(e: Event, doc: Document) {
+    if ((e.target as HTMLElement) !== (e.currentTarget as HTMLElement)) return;
+    e.preventDefault();
+    this.openDocument(doc);
+  }
+
   goBack() {
     if (this.view === 'editor') {
       this.saveDocumentContent();
       this.view = 'documents';
       this.selectedDoc = null;
     } else if (this.view === 'documents') {
-      this.view = 'folders';
-      this.selectedFolder = null;
+      this.openFoldersRoot();
     }
   }
 
@@ -119,9 +155,19 @@ export class Library implements OnInit, OnDestroy {
     this.showFolderModal = false;
   }
 
+  /** La grilla cierra el hueco con `transform`: FLIP sobre las tarjetas que quedan. */
   deleteFolder(id: number, e: MouseEvent) {
     e.stopPropagation();
-    this.libraryService.deleteFolder(id);
+    const grid = this.gridEl()?.nativeElement;
+    if (!grid) {
+      this.libraryService.deleteFolder(id);
+      return;
+    }
+    flip(grid, () => {
+      this.libraryService.deleteFolder(id);
+      // FLIP mide después de mutar: el DOM tiene que estar actualizado ya.
+      this.cdr.detectChanges();
+    });
   }
 
   openDocModal() {
@@ -142,10 +188,10 @@ export class Library implements OnInit, OnDestroy {
     this.libraryService.deleteDocument(this.selectedFolder.id, docId);
   }
 
-onSaveAndGoBack() {
-  this.saveDocumentContent();
-  this.goBack();
-}
+  onSaveAndGoBack() {
+    this.saveDocumentContent();
+    this.goBack();
+  }
   saveDocumentContent() {
     if (!this.selectedFolder || !this.selectedDoc) return;
     this.libraryService.updateDocument(
@@ -156,10 +202,48 @@ onSaveAndGoBack() {
     this.notifySaved();
   }
 
+  /** La duración de la salida del aviso la pone el token en CSS, no el TS. */
+  onToastExit(e: TransitionEvent) {
+    if (!this.toastLeaving || e.propertyName !== 'opacity') return;
+    this.toastLeaving = false;
+    this.savedToast = false;
+  }
+
+  private showDocuments(folder: Folder, morph: boolean) {
+    this.selectedFolder = folder;
+    this.view = 'documents';
+    // El snapshot nuevo se toma cuando resuelve el callback: la vista tiene que
+    // estar commiteada y el título es el destino del nombre de la transición.
+    this.cdr.detectChanges();
+    if (morph) this.docTitleEl()?.nativeElement.classList.add('m-morph');
+  }
+
+  /**
+   * Las tarjetas se re-crean al volver de una carpeta. El observer compartido sólo
+   * se re-arma en cada navegación de ruta, así que acá se vuelve a pedir: sin esto
+   * la grilla quedaría esperando el `.is-in` que reparte el escalonado.
+   */
+  private revealFolders() {
+    afterNextRender(() => {
+      this.stopReveals();
+      this.stopReveals = observeReveals();
+    }, { injector: this.injector });
+  }
+
   private notifySaved() {
     this.savedToast = true;
+    this.toastLeaving = false;
     if (this.toastTimer) clearTimeout(this.toastTimer);
-    this.toastTimer = setTimeout(() => (this.savedToast = false), 2400);
+    this.toastTimer = setTimeout(() => this.startToastExit(), 2400);
+  }
+
+  /** Sin capa de movimiento no hay transición que esperar: se desmonta en el acto. */
+  private startToastExit() {
+    if (prefersReducedMotion() || document.documentElement.dataset['motion'] !== 'on') {
+      this.savedToast = false;
+      return;
+    }
+    this.toastLeaving = true;
   }
 
 }

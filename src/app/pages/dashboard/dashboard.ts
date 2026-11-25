@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
 import { TaskService, Task } from '../../shared/services/task';
 import { TimerService } from '../../shared/services/timer.service';
+import { duration, flip } from '../../shared/motion/motion';
 import { Subscription, interval } from 'rxjs';
 import { takeWhile } from 'rxjs/operators';
 
@@ -20,6 +21,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
 
   @ViewChild('donutCanvas') donutCanvas!: ElementRef;
   @ViewChild('barCanvas')   barCanvas!: ElementRef;
+  @ViewChild('taskList')    taskListEl!: ElementRef<HTMLElement>;
 
   private donutChart!: Chart;
   private barChart!: Chart;
@@ -63,6 +65,25 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     this.taskSub = this.taskService.tasks$.subscribe(tasks => {
       this.tasks = tasks;
       if (this.donutChart) this.updateDonut();
+      this.revealTaskRows();
+    });
+  }
+
+  /**
+   * Las filas llegan por HTTP después de que App corrió su observer de navegación,
+   * así que nadie las va a revelar: cada emisión asienta las filas ya pintadas.
+   * Doble frame: el primero deja que el estado oculto llegue a pantalla, el
+   * segundo lo suelta para que la transición exista.
+   */
+  private revealTaskRows() {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const list: HTMLElement | undefined = this.taskListEl?.nativeElement;
+        if (!list) return;
+        for (const row of Array.from(list.children) as HTMLElement[]) {
+          row.classList.add('is-in');
+        }
+      });
     });
   }
 
@@ -82,6 +103,21 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   }
 
   deleteTask(id: string) {
+    const index = this.tasks.findIndex(task => task.id === id);
+    const list = this.taskListEl?.nativeElement;
+    if (index < 0 || !list) {
+      this.taskService.deleteTask(id);
+      return;
+    }
+
+    // FLIP: las filas que sobreviven cierran el hueco con transform, no de golpe.
+    // El modelo se reemplaza (no se muta el array del servicio) y se pinta dentro
+    // del callback: flip necesita medir el DOM en su estado final.
+    flip(list, () => {
+      this.tasks = this.tasks.filter(task => task.id !== id);
+      this.cdr.detectChanges();
+    });
+
     this.taskService.deleteTask(id);
   }
 
@@ -181,7 +217,8 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
       options: {
         cutout: '78%',
         plugins: { legend: { display: false }, tooltip: { enabled: false } },
-        animation: { duration: 500 }
+        // Leída al crear el gráfico; bajo reducción de movimiento vale 0.
+        animation: { duration: duration(700) }
       }
     });
   }
@@ -220,7 +257,8 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
             border: { display: false }
           },
           y: { display: false }
-        }
+        },
+        animation: { duration: duration(700) }
       }
     });
   }

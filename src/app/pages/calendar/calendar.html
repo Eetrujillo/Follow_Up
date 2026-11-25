@@ -35,41 +35,51 @@
       }
     </div>
 
-    <div class="cal-grid">
-      @for (day of days; track day.number + '-' + day.isEmpty + '-' + $index) {
-        @if (day.isEmpty) {
-          <div class="day-cell empty" aria-hidden="true"></div>
-        } @else {
-          <div
-            class="day-cell"
-            role="button"
-            tabindex="0"
-            [class.today]="day.isToday"
-            (click)="openModal(day)"
-            (keydown.enter)="openModal(day)"
-            (keydown.space)="$event.preventDefault(); openModal(day)">
+    <!-- Una fila por semana: es la unidad que asienta con el escalonado.
+         Las clases de sentido sólo existen bajo [data-motion='on']. -->
+    <div #weeksGrid
+         class="cal-weeks m-stagger"
+         [class.is-next]="dir === 'next'"
+         [class.is-prev]="dir === 'prev'"
+         [class.is-arriving]="arriving">
+      @for (week of weeks; track $index) {
+        <div class="cal-week-row">
+          @for (day of week; track $index) {
+            @if (day.isEmpty) {
+              <div class="day-cell empty" aria-hidden="true"></div>
+            } @else {
+              <div
+                class="day-cell m-press"
+                role="button"
+                tabindex="0"
+                [class.today]="day.isToday"
+                (click)="openModal(day)"
+                (keydown.enter)="openModal(day)"
+                (keydown.space)="$event.preventDefault(); openModal(day)">
 
-            <span class="day-number">{{ day.number }}</span>
+                <span class="day-number">{{ day.number }}</span>
 
-            @for (event of day.events.slice(0, 2); track event.id) {
-              <button type="button" class="ev-chip"
-                      (click)="openEventModal(event, $event)"
-                      title="Clic para editar">
-                <span class="ev-dot" [style.background]="event.color" aria-hidden="true"></span>
-                {{ event.title }}
-              </button>
+                @for (event of day.events.slice(0, 2); track event.id) {
+                  <button type="button" class="ev-chip"
+                          (click)="openEventModal(event, $event)"
+                          title="Clic para editar">
+                    <span class="ev-dot" [style.background]="event.color" aria-hidden="true"></span>
+                    {{ event.title }}
+                  </button>
+                }
+
+                @if (day.events.length > 2) {
+                  <button type="button" class="ev-more"
+                          (click)="openEventsList(day.events, $event)"
+                          [attr.aria-label]="'Ver los ' + day.events.length + ' eventos del día'">
+                    +{{ day.events.length - 2 }} más
+                  </button>
+                }
+
+              </div>
             }
-
-            @if (day.events.length > 2) {
-              <button type="button" class="ev-more"
-                      (click)="openEventsList(day.events, $event)"
-                      [attr.aria-label]="'Ver los ' + day.events.length + ' eventos del día'">
-                +{{ day.events.length - 2 }} más
-              </button>
-            }
-
-          </div>
-        }
+          }
+        </div>
       }
     </div>
 
@@ -83,6 +93,7 @@
   @if (showModal) {
     <div class="modal-overlay" (click)="closeModal()">
       <div class="modal" role="dialog" aria-modal="true" aria-labelledby="eventModalTitle"
+           [class.is-out]="modalOut"
            (click)="$event.stopPropagation()">
 
         <div class="modal-header">
@@ -150,7 +161,7 @@
             </svg>
           </button>
         </div>
-        <ul class="events-list">
+        <ul class="events-list" data-lenis-prevent>
           @for (event of selectedDayEvents; track event.id) {
             <li>
               <span class="ev-chip ev-chip--static">

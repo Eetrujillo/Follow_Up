@@ -1,8 +1,8 @@
 <div class="page-wrapper">
   <nav class="crumbs" aria-label="Migas de pan">
-    <button type="button" class="crumb" (click)="view = 'folders'; selectedFolder = null">Follow-up</button>
+    <button type="button" class="crumb" (click)="openFoldersRoot()">Follow-up</button>
     <span class="crumb-sep" aria-hidden="true">/</span>
-    <button type="button" class="crumb" (click)="view = 'folders'; selectedFolder = null">Biblioteca</button>
+    <button type="button" class="crumb" (click)="openFoldersRoot()">Biblioteca</button>
 
     @if (selectedFolder) {
       <span class="crumb-sep" aria-hidden="true">/</span>
@@ -28,19 +28,21 @@
       </button>
     </div>
 
-    <div class="folders-grid">
+    <div class="folders-grid m-stagger" #folderGrid>
       @for (folder of folders; track folder.id) {
         <div class="folder-card" role="button" tabindex="0"
              aria-label="Abrir carpeta {{ folder.name }}"
-             (click)="openFolder(folder)"
+             (click)="openFolderFromClick($event, folder)"
              (keydown.enter)="openFolderFromKey($event, folder)"
              (keydown.space)="openFolderFromKey($event, folder)">
           <svg class="ic ic--lg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M3.5 15.5V6h5l1.5 2h6.5v7.5z"/>
           </svg>
-          <span class="folder-name">{{ folder.name }}</span>
-          <span class="folder-count mono">{{ folder.documents.length }} documentos</span>
+          <div class="folder-meta">
+            <span class="folder-name">{{ folder.name }}</span>
+            <span class="folder-count mono">{{ folder.documents.length }} documentos</span>
+          </div>
           <button type="button" class="icon-btn icon-btn--danger trash"
                   (click)="deleteFolder(folder.id, $event)"
                   aria-label="Eliminar carpeta {{ folder.name }}">
@@ -63,7 +65,7 @@
           Volver
         </button>
         <div>
-          <h1>{{ selectedFolder?.name }}</h1>
+          <h1 #docTitle>{{ selectedFolder?.name }}</h1>
           <p class="subtitle">{{ selectedFolder?.documents?.length }} documentos</p>
         </div>
       </div>
@@ -132,44 +134,44 @@
     </div>
   }
 
-  @if (showFolderModal) {
-    <div class="modal-overlay" (click)="showFolderModal = false">
-      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="folder-modal-title"
-           (click)="$event.stopPropagation()">
-        <h3 id="folder-modal-title">Nueva carpeta</h3>
-        <label class="modal-label" for="folder-name-input">Nombre de la carpeta</label>
-        <input #folderNameInput id="folder-name-input" type="text" class="field"
-               placeholder="Nombre de la carpeta"
-               [(ngModel)]="newFolderName"
-               (keyup.enter)="saveFolder()" />
-        <div class="modal-actions">
-          <button type="button" class="btn btn--quiet" (click)="showFolderModal = false">Cancelar</button>
-          <button type="button" class="btn" (click)="saveFolder()">Crear</button>
-        </div>
+  <!-- Los dos modales quedan montados: la capa de movimiento necesita el elemento
+       en el DOM para poder transicionar la salida. Cerrado no es visible ni
+       enfocable, así que el foco no se escapa del modal abierto. -->
+  <div class="modal-overlay" [class.is-open]="showFolderModal" (click)="showFolderModal = false">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="folder-modal-title"
+         (click)="$event.stopPropagation()">
+      <h3 id="folder-modal-title">Nueva carpeta</h3>
+      <label class="modal-label" for="folder-name-input">Nombre de la carpeta</label>
+      <input #folderNameInput id="folder-name-input" type="text" class="field"
+             placeholder="Nombre de la carpeta"
+             [(ngModel)]="newFolderName"
+             (keyup.enter)="saveFolder()" />
+      <div class="modal-actions">
+        <button type="button" class="btn btn--quiet" (click)="showFolderModal = false">Cancelar</button>
+        <button type="button" class="btn" (click)="saveFolder()">Crear</button>
       </div>
     </div>
-  }
+  </div>
 
-  @if (showDocModal) {
-    <div class="modal-overlay" (click)="showDocModal = false">
-      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="doc-modal-title"
-           (click)="$event.stopPropagation()">
-        <h3 id="doc-modal-title">Nuevo documento</h3>
-        <label class="modal-label" for="doc-name-input">Nombre del documento</label>
-        <input #docNameInput id="doc-name-input" type="text" class="field"
-               placeholder="Nombre del documento"
-               [(ngModel)]="newDocName"
-               (keyup.enter)="saveDoc()" />
-        <div class="modal-actions">
-          <button type="button" class="btn btn--quiet" (click)="showDocModal = false">Cancelar</button>
-          <button type="button" class="btn" (click)="saveDoc()">Crear</button>
-        </div>
+  <div class="modal-overlay" [class.is-open]="showDocModal" (click)="showDocModal = false">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="doc-modal-title"
+         (click)="$event.stopPropagation()">
+      <h3 id="doc-modal-title">Nuevo documento</h3>
+      <label class="modal-label" for="doc-name-input">Nombre del documento</label>
+      <input #docNameInput id="doc-name-input" type="text" class="field"
+             placeholder="Nombre del documento"
+             [(ngModel)]="newDocName"
+             (keyup.enter)="saveDoc()" />
+      <div class="modal-actions">
+        <button type="button" class="btn btn--quiet" (click)="showDocModal = false">Cancelar</button>
+        <button type="button" class="btn" (click)="saveDoc()">Crear</button>
       </div>
     </div>
-  }
+  </div>
 
   @if (savedToast) {
-    <div class="toast" role="status" aria-live="polite">
+    <div class="toast" role="status" aria-live="polite" [class.is-out]="toastLeaving"
+         (transitionend)="onToastExit($event)">
       <svg class="ic ic--sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M4.5 10.5l3.5 3.5 7.5-8"/>

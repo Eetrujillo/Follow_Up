@@ -25,7 +25,6 @@ h1 {
   color: var(--t1);
 }
 
-/* Card */
 .calendar-card {
   background: var(--s1);
   border: 1px solid var(--hairline);
@@ -38,7 +37,7 @@ h1 {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .month-name {
@@ -48,70 +47,96 @@ h1 {
 }
 
 .cal-week,
-.cal-grid {
+.cal-week-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 4px;
 }
 
-.cal-week span {
-  font-size: 11px;
-  color: var(--t3);
-  text-align: center;
-  padding: 4px 0;
+.cal-week {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--s1);
+  padding: 4px 0 6px;
 }
 
-/* Celda de día (role="button": no puede ser <button> porque contiene chips) */
+.cal-week span { font-size: 11px; color: var(--t3); text-align: center; }
+
+.cal-weeks {
+  display: grid;
+  gap: 4px;
+  transition: opacity var(--slow) var(--ease), transform var(--slow) var(--ease);
+}
+
+/* Cambio de mes: --m-x marca el sentido; el entrante llega del opuesto. */
+.cal-weeks.is-next { --m-x: -1; }
+.cal-weeks.is-prev { --m-x: 1; }
+
+.cal-weeks.is-next,
+.cal-weeks.is-prev {
+  opacity: 0;
+  transform: translateX(calc(var(--m-x) * 16px));
+}
+
+.cal-weeks.is-arriving {
+  transform: translateX(calc(var(--m-x) * -16px));
+  transition: none;
+}
+
+/* Paso de las filas (mobile lo deja en 0). */
+@media (min-width: 861px) and (hover: hover) {
+  .calendar-card .cal-weeks.m-stagger { --m-step: 25ms; }
+}
+
+/* Celda: role="button" por los chips; aspecto fijo = columnas. */
 .day-cell {
+  aspect-ratio: 4 / 3;
   min-height: 64px;
   border: 1px solid var(--hairline);
   border-radius: var(--r-ctl);
   background: var(--canvas);
   padding: 6px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  align-content: start;
+  justify-items: start;
   gap: 3px;
-  align-items: flex-start;
   text-align: left;
   cursor: pointer;
-  transition:
-    border-color var(--fast) var(--ease),
-    background var(--fast) var(--ease),
-    transform var(--fast) var(--ease);
 }
 
-.day-cell:hover {
-  background: var(--s2);
+.day-cell:hover { background: var(--s2); }
+
+/* m-press sólo trae transform: se suman los colores. */
+.calendar-card .day-cell.m-press {
+  transition: border-color var(--fast) var(--ease), background var(--fast) var(--ease),
+    transform var(--t-press) var(--ease-lock);
 }
 
-.day-cell:active {
-  transform: scale(0.985);
-}
-
-.day-cell.today {
-  border-color: var(--accent);
-}
+/* Hoy: regla de 1px bajo el número. */
+.day-cell.today { border-color: transparent; }
 
 .day-cell.today .day-number {
   color: var(--accent);
   font-weight: 500;
+  padding-bottom: 1px;
+  border-bottom: 1px solid var(--accent);
 }
 
 .day-number {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-size: 11px;
+  line-height: 14px;
   color: var(--t2);
 }
 
-/* Celda vacía: fuera del flujo de interacción */
 .day-cell.empty {
   pointer-events: none;
   background: transparent;
   border-color: transparent;
 }
 
-/* Chip de evento */
 .ev-chip {
   display: inline-flex;
   align-items: center;
@@ -131,24 +156,14 @@ h1 {
   transition: background var(--fast) var(--ease);
 }
 
-.ev-chip:hover {
-  background: var(--s3);
-}
+.day-cell .ev-chip { width: 100%; }
 
-.ev-chip--static {
-  cursor: default;
-}
+.ev-chip:hover { background: var(--s3); }
+.ev-chip--static { cursor: default; }
 
-.ev-chip--static:hover {
-  background: var(--s2);
-}
+.ev-chip--static:hover { background: var(--s2); }
 
-.ev-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex: none;
-}
+.ev-dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
 
 .ev-more {
   border: none;
@@ -160,24 +175,16 @@ h1 {
   color: var(--t2);
   border-radius: var(--r-ctl);
   cursor: pointer;
-  transition:
-    color var(--fast) var(--ease),
-    background var(--fast) var(--ease);
+  transition: color var(--fast) var(--ease), background var(--fast) var(--ease);
 }
 
-.ev-more:hover {
-  color: var(--t1);
-  background: var(--s2);
-}
+/* El "+N" cierra en la fila 4. */
+.day-cell > .ev-more { grid-row: 4; }
 
-/* Estado vacío del mes */
-.cal-empty {
-  margin: 16px 0 0;
-  font-size: 12px;
-  color: var(--t3);
-}
+.ev-more:hover { color: var(--t1); background: var(--s2); }
 
-/* Modales */
+.cal-empty { margin: 16px 0 0; font-size: 12px; color: var(--t3); }
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -188,6 +195,7 @@ h1 {
   z-index: 100;
 }
 
+/* Entrada: @starting-style; salida: .is-out. */
 .modal {
   background: var(--s2);
   border: 1px solid var(--hairline-2);
@@ -195,20 +203,17 @@ h1 {
   padding: 24px;
   width: 100%;
   max-width: 360px;
-  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.7);
-  /* Momento autorado de la pantalla: entrada del modal */
-  animation: modal-in 180ms var(--ease);
+  transition: opacity var(--t-enter) var(--ease), transform var(--t-enter) var(--ease);
 }
 
-@keyframes modal-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@starting-style {
+  .modal { opacity: 0; transform: translateY(12px); }
+}
+
+.modal.is-out {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity var(--fast) var(--ease-exit), transform var(--fast) var(--ease-exit);
 }
 
 .modal-header {
@@ -218,23 +223,11 @@ h1 {
   margin-bottom: 12px;
 }
 
-.modal-header h3 {
-  font-size: 15px;
-  font-weight: 500;
-  margin: 0;
-  color: var(--t1);
-}
+.modal-header h3 { font-size: 15px; font-weight: 500; margin: 0; color: var(--t1); }
 
-.modal-day {
-  font-size: 12px;
-  color: var(--t3);
-  margin: 0 0 16px;
-}
+.modal-day { font-size: 12px; color: var(--t3); margin: 0 0 16px; }
 
-.modal-day strong {
-  color: var(--t1);
-  font-weight: 500;
-}
+.modal-day strong { color: var(--t1); font-weight: 500; }
 
 .modal-field {
   display: flex;
@@ -243,15 +236,9 @@ h1 {
   margin-bottom: 16px;
 }
 
-.modal-field label {
-  font-size: 12px;
-  color: var(--t2);
-}
+.modal-field label { font-size: 12px; color: var(--t2); }
 
-.color-picker {
-  display: flex;
-  gap: 6px;
-}
+.color-picker { display: flex; gap: 6px; }
 
 .swatch {
   width: 20px;
@@ -264,32 +251,17 @@ h1 {
   border-radius: var(--r-ctl);
   background: transparent;
   cursor: pointer;
-  transition:
-    border-color var(--fast) var(--ease),
-    transform var(--fast) var(--ease);
+  transition: border-color var(--fast) var(--ease), transform var(--fast) var(--ease);
 }
 
-.swatch:hover {
-  transform: scale(1.15);
-}
+.swatch:hover { transform: scale(1.15); }
 
-.swatch[aria-pressed="true"] {
-  border-color: var(--accent);
-}
+.swatch[aria-pressed="true"] { border-color: var(--accent); }
 
-.swatch .dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
+.swatch .dot { width: 10px; height: 10px; border-radius: 50%; }
 
-.modal-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
-/* Modal de lista de eventos */
 .events-list {
   list-style: none;
   padding: 0;

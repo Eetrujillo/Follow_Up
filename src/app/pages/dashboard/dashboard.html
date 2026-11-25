@@ -4,41 +4,12 @@
     <h1>Panel Principal</h1>
   </header>
 
-  <div class="dashboard-grid">
-    <section class="card card-tasks">
-      <h3 class="card-title">TAREAS PENDIENTES</h3>
-      <div class="task-add">
-        <input class="field" type="text" [(ngModel)]="newTaskText" (keyup.enter)="addTask()" placeholder="Nueva tarea..." aria-label="Nueva tarea" />
-        <button type="button" class="btn" (click)="addTask()" aria-label="Agregar tarea">
-          <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M10 5v10M5 10h10" /></svg>
-        </button>
-      </div>
-      <div class="task-list">
-        @for (task of tasks; track task.id) {
-          <div class="task-row" [class.task-row--done]="task.completed">
-            <label class="task-check" [class.task-check--on]="task.completed">
-              <input class="sr-only" type="checkbox" [checked]="task.completed" (change)="onTaskChange(task)" [attr.aria-label]="'Completar tarea: ' + task.text" />
-              <svg class="task-check__box" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="3.5" y="3.5" width="13" height="13" rx="2" />
-                <path class="task-check__mark" d="M6 10.5l3 3 5.5-6" />
-              </svg>
-            </label>
-            <span class="task-row__txt">{{ task.text }}</span>
-            <button type="button" class="icon-btn icon-btn--danger task-row__del" (click)="deleteTask(task.id)" [attr.aria-label]="'Eliminar tarea ' + task.text">
-              <svg class="ic ic--sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l8 8M14 6l-8 8" /></svg>
-            </button>
-          </div>
-        } @empty {
-          <p class="empty">No hay tareas todavía. Escribí una en «Nueva tarea...» y agregala con Enter o con el botón +.</p>
-        }
-      </div>
-    </section>
-
+  <div class="dashboard-grid m-stagger">
     <section class="card card-focus" [class.card-focus--running]="isRunning">
       <h3 class="card-title">ZONA DE ENFOQUE</h3>
       <div class="timer-content">
         <div class="timer-status">
-          <span class="dot" [class.dot--pulse]="isRunning" aria-hidden="true"></span>
+          <span class="dot" [class.dot--live]="isRunning" aria-hidden="true"></span>
           {{ statusText }}
         </div>
 
@@ -56,6 +27,35 @@
             <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 10a6 6 0 1 1-1.7-4.2M16 3.5V6h-2.5" /></svg>
           </button>
         </div>
+      </div>
+    </section>
+
+    <section class="card card-tasks">
+      <h3 class="card-title">TAREAS PENDIENTES</h3>
+      <div class="task-add">
+        <input class="field" type="text" [(ngModel)]="newTaskText" (keyup.enter)="addTask()" placeholder="Nueva tarea..." aria-label="Nueva tarea" />
+        <button type="button" class="btn" (click)="addTask()" aria-label="Agregar tarea">
+          <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M10 5v10M5 10h10" /></svg>
+        </button>
+      </div>
+      <div class="task-list" #taskList>
+        @for (task of tasks; track task.id) {
+          <div class="task-row m-reveal" [class.task-row--done]="task.completed">
+            <label class="task-check" [class.task-check--on]="task.completed">
+              <input class="sr-only" type="checkbox" [checked]="task.completed" (change)="onTaskChange(task)" [attr.aria-label]="'Completar tarea: ' + task.text" />
+              <svg class="task-check__box" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3.5" y="3.5" width="13" height="13" rx="2" />
+                <path class="task-check__mark" d="M6 10.5l3 3 5.5-6" />
+              </svg>
+            </label>
+            <span class="task-row__txt">{{ task.text }}</span>
+            <button type="button" class="icon-btn icon-btn--danger task-row__del" (click)="deleteTask(task.id)" [attr.aria-label]="'Eliminar tarea ' + task.text">
+              <svg class="ic ic--sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l8 8M14 6l-8 8" /></svg>
+            </button>
+          </div>
+        } @empty {
+          <p class="empty">No hay tareas todavía. Escribí una en «Nueva tarea...» y agregala con Enter o con el botón +.</p>
+        }
       </div>
     </section>
 
