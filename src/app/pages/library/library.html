@@ -1,19 +1,19 @@
 <div class="page-wrapper">
-  <div class="breadcrumb">
-    <span class="crumb" (click)="view = 'folders'; selectedFolder = null">Follow-up</span>
-    <span class="sep">›</span>
-    <span class="crumb" (click)="view = 'folders'; selectedFolder = null">Biblioteca</span>
+  <nav class="crumbs" aria-label="Migas de pan">
+    <button type="button" class="crumb" (click)="openFoldersRoot()">Follow-up</button>
+    <span class="crumb-sep" aria-hidden="true">/</span>
+    <button type="button" class="crumb" (click)="openFoldersRoot()">Biblioteca</button>
 
     @if (selectedFolder) {
-      <span class="sep">›</span>
-      <span class="crumb" (click)="view = 'documents'; selectedDoc = null">{{ selectedFolder.name }}</span>
+      <span class="crumb-sep" aria-hidden="true">/</span>
+      <button type="button" class="crumb" (click)="view = 'documents'; selectedDoc = null">{{ selectedFolder.name }}</button>
     }
 
     @if (selectedDoc) {
-      <span class="sep">›</span>
-      <span class="crumb">{{ selectedDoc.name }}</span>
+      <span class="crumb-sep" aria-hidden="true">/</span>
+      <span class="crumb" aria-current="page">{{ selectedDoc.name }}</span>
     }
-  </div>
+  </nav>
 
   @if (view === 'folders') {
     <div class="page-header">
@@ -21,36 +21,36 @@
         <h1>Biblioteca</h1>
         <p class="subtitle">Organiza tus materiales de estudio en carpetas tematicas.</p>
       </div>
-      <button class="btn-add" (click)="openFolderModal()">+ Nueva carpeta</button>
+      <button type="button" class="btn" (click)="openFolderModal()">
+        <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5v10M5 10h10"/></svg>
+        Nueva carpeta
+      </button>
     </div>
 
-    <div class="folders-grid">
+    <div class="folders-grid m-stagger" #folderGrid>
       @for (folder of folders; track folder.id) {
-        <div class="folder-card" (click)="openFolder(folder)">
-          <div class="folder-left">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2">
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-            </svg>
-            <div>
-              <p class="folder-name">{{ folder.name }}</p>
-              <p class="folder-docs">{{ folder.documents.length }} documentos</p>
-            </div>
+        <div class="folder-card" role="button" tabindex="0"
+             aria-label="Abrir carpeta {{ folder.name }}"
+             (click)="openFolderFromClick($event, folder)"
+             (keydown.enter)="openFolderFromKey($event, folder)"
+             (keydown.space)="openFolderFromKey($event, folder)">
+          <svg class="ic ic--lg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3.5 15.5V6h5l1.5 2h6.5v7.5z"/>
+          </svg>
+          <div class="folder-meta">
+            <span class="folder-name">{{ folder.name }}</span>
+            <span class="folder-count mono">{{ folder.documents.length }} documentos</span>
           </div>
-          <div class="folder-right">
-            <button class="icon-btn del" (click)="deleteFolder(folder.id, $event)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"/>
-                <path d="M19 6l-1 14H6L5 6"/>
-                <path d="M10 11v6M14 11v6"/>
-              </svg>
-            </button>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2">
-              <polyline points="9 18 15 12 9 6"/>
+          <button type="button" class="icon-btn icon-btn--danger trash"
+                  (click)="deleteFolder(folder.id, $event)"
+                  aria-label="Eliminar carpeta {{ folder.name }}">
+            <svg class="ic ic--sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4.5 6h11M8 6V4.5h4V6M6 6l.7 10h6.6L14 6M8.5 9v4M11.5 9v4"/>
             </svg>
-          </div>
+          </button>
         </div>
       }
     </div>
@@ -59,54 +59,54 @@
   @if (view === 'documents') {
     <div class="page-header">
       <div class="header-left">
-        <button class="btn-back" (click)="goBack()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
+        <button type="button" class="btn" (click)="goBack()">
+          <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l-5 5 5 5"/></svg>
           Volver
         </button>
         <div>
-          <h1>{{ selectedFolder?.name }}</h1>
+          <h1 #docTitle>{{ selectedFolder?.name }}</h1>
           <p class="subtitle">{{ selectedFolder?.documents?.length }} documentos</p>
         </div>
       </div>
-      <button class="btn-add" (click)="openDocModal()">+ Nuevo documento</button>
+      <button type="button" class="btn" (click)="openDocModal()">
+        <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5v10M5 10h10"/></svg>
+        Nuevo documento
+      </button>
     </div>
 
     @if (selectedFolder?.documents?.length === 0) {
       <div class="empty-state">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
-             stroke="#444" stroke-width="1.5">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
+        <svg class="ic ic--lg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5.5 3.5h6l3 3v10h-9zM11.5 3.5v3h3M8 10h4M8 12.5h4"/>
         </svg>
-        <p>No hay documentos en esta carpeta</p>
-        <button class="btn-add" (click)="openDocModal()">Crear primer documento</button>
+        <p>Esta carpeta está vacía</p>
+        <button type="button" class="btn" (click)="openDocModal()">Crear primer documento</button>
       </div>
     }
 
     @if (selectedFolder && selectedFolder.documents.length > 0) {
       <div class="doc-list">
         @for (doc of selectedFolder.documents; track doc.id) {
-          <div class="doc-item" (click)="openDocument(doc)">
-            <div class="doc-left">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-              </svg>
-              <div>
-                <p class="doc-name">{{ doc.name }}</p>
-                <p class="doc-date">Creado el {{ doc.createdAt }}</p>
-              </div>
-            </div>
-            <button class="icon-btn del" (click)="deleteDocument(doc.id, $event)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"/>
-                <path d="M19 6l-1 14H6L5 6"/>
-                <path d="M10 11v6M14 11v6"/>
+          <div class="doc-item" role="button" tabindex="0"
+               aria-label="Abrir documento {{ doc.name }}"
+               (click)="openDocument(doc)"
+               (keydown.enter)="openDocumentFromKey($event, doc)"
+               (keydown.space)="openDocumentFromKey($event, doc)">
+            <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5.5 3.5h6l3 3v10h-9zM11.5 3.5v3h3M8 10h4M8 12.5h4"/>
+            </svg>
+            <span class="doc-name">{{ doc.name }}</span>
+            <span class="doc-date mono">Creado el {{ doc.createdAt }}</span>
+            <button type="button" class="icon-btn icon-btn--danger trash"
+                    (click)="deleteDocument(doc.id, $event)"
+                    aria-label="Eliminar documento {{ doc.name }}">
+              <svg class="ic ic--sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4.5 6h11M8 6V4.5h4V6M6 6l.7 10h6.6L14 6M8.5 9v4M11.5 9v4"/>
               </svg>
             </button>
           </div>
@@ -118,46 +118,65 @@
   @if (view === 'editor') {
     <div class="page-header">
       <div class="header-left">
-        <button class="btn-back" (click)="goBack()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
+        <button type="button" class="btn" (click)="goBack()">
+          <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l-5 5 5 5"/></svg>
           Volver
         </button>
         <h1>{{ selectedDoc?.name }}</h1>
       </div>
-      <button class="btn-save" (click)="onSaveAndGoBack()">Guardar</button>
+      <button type="button" class="btn" (click)="onSaveAndGoBack()">Guardar</button>
     </div>
 
     <div class="editor-box">
-      <textarea class="editor" [(ngModel)]="editorContent" placeholder="Empieza a escribir..."></textarea>
+      <textarea class="editor" [(ngModel)]="editorContent" aria-label="Editor de documento"
+                placeholder="Empieza a escribir..."></textarea>
     </div>
   }
 
-  @if (showFolderModal) {
-    <div class="modal-overlay" (click)="showFolderModal = false">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <h3>Nueva carpeta</h3>
-        <input type="text" placeholder="Nombre de la carpeta" [(ngModel)]="newFolderName" (keyup.enter)="saveFolder()" />
-        <div class="modal-actions">
-          <button class="btn-cancel" (click)="showFolderModal = false">Cancelar</button>
-          <button class="btn-save" (click)="saveFolder()">Crear</button>
-        </div>
+  <!-- Los dos modales quedan montados: la capa de movimiento necesita el elemento
+       en el DOM para poder transicionar la salida. Cerrado no es visible ni
+       enfocable, así que el foco no se escapa del modal abierto. -->
+  <div class="modal-overlay" [class.is-open]="showFolderModal" (click)="showFolderModal = false">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="folder-modal-title"
+         (click)="$event.stopPropagation()">
+      <h3 id="folder-modal-title">Nueva carpeta</h3>
+      <label class="modal-label" for="folder-name-input">Nombre de la carpeta</label>
+      <input #folderNameInput id="folder-name-input" type="text" class="field"
+             placeholder="Nombre de la carpeta"
+             [(ngModel)]="newFolderName"
+             (keyup.enter)="saveFolder()" />
+      <div class="modal-actions">
+        <button type="button" class="btn btn--quiet" (click)="showFolderModal = false">Cancelar</button>
+        <button type="button" class="btn" (click)="saveFolder()">Crear</button>
       </div>
     </div>
-  }
+  </div>
 
-  @if (showDocModal) {
-    <div class="modal-overlay" (click)="showDocModal = false">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <h3>Nuevo documento</h3>
-        <input type="text" placeholder="Nombre del documento" [(ngModel)]="newDocName" (keyup.enter)="saveDoc()" />
-        <div class="modal-actions">
-          <button class="btn-cancel" (click)="showDocModal = false">Cancelar</button>
-          <button class="btn-save" (click)="saveDoc()">Crear</button>
-        </div>
+  <div class="modal-overlay" [class.is-open]="showDocModal" (click)="showDocModal = false">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="doc-modal-title"
+         (click)="$event.stopPropagation()">
+      <h3 id="doc-modal-title">Nuevo documento</h3>
+      <label class="modal-label" for="doc-name-input">Nombre del documento</label>
+      <input #docNameInput id="doc-name-input" type="text" class="field"
+             placeholder="Nombre del documento"
+             [(ngModel)]="newDocName"
+             (keyup.enter)="saveDoc()" />
+      <div class="modal-actions">
+        <button type="button" class="btn btn--quiet" (click)="showDocModal = false">Cancelar</button>
+        <button type="button" class="btn" (click)="saveDoc()">Crear</button>
       </div>
+    </div>
+  </div>
+
+  @if (savedToast) {
+    <div class="toast" role="status" aria-live="polite" [class.is-out]="toastLeaving"
+         (transitionend)="onToastExit($event)">
+      <svg class="ic ic--sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4.5 10.5l3.5 3.5 7.5-8"/>
+      </svg>
+      Documento guardado
     </div>
   }
 </div>

@@ -2,8 +2,11 @@
 
   <div class="breadcrumb">
     <span>Follow-up</span>
-    <span class="sep">›</span>
-    <span>Calendario</span>
+    <svg class="ic breadcrumb__sep" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M8 5l5 5-5 5"/>
+    </svg>
+    <span aria-current="page">Calendario</span>
   </div>
 
   <h1>Calendario</h1>
@@ -11,124 +14,165 @@
   <div class="calendar-card">
 
     <div class="cal-header">
-      <button class="nav-btn" (click)="prevMonth()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2">
-          <polyline points="15 18 9 12 15 6"/>
+      <button type="button" class="icon-btn" (click)="prevMonth()" aria-label="Mes anterior">
+        <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 5l-5 5 5 5"/>
         </svg>
       </button>
       <span class="month-name">{{ monthName | titlecase }}</span>
-      <button class="nav-btn" (click)="nextMonth()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2">
-          <polyline points="9 18 15 12 9 6"/>
+      <button type="button" class="icon-btn" (click)="nextMonth()" aria-label="Mes siguiente">
+        <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 5l5 5-5 5"/>
         </svg>
       </button>
     </div>
 
-    <div class="cal-grid">
+    <div class="cal-week">
       @for (dayName of ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom']; track dayName) {
-        <div class="day-name">{{ dayName }}</div>
+        <span>{{ dayName }}</span>
       }
+    </div>
 
-      @for (day of days; track day.number + '-' + day.isEmpty) {
-        <div
-          class="day-cell"
-          [class.empty]="day.isEmpty"
-          [class.today]="day.isToday"
-          [class.has-events]="day.events.length > 0"
-          (click)="openModal(day)">
+    <!-- Una fila por semana: es la unidad que asienta con el escalonado.
+         Las clases de sentido sólo existen bajo [data-motion='on']. -->
+    <div #weeksGrid
+         class="cal-weeks m-stagger"
+         [class.is-next]="dir === 'next'"
+         [class.is-prev]="dir === 'prev'"
+         [class.is-arriving]="arriving">
+      @for (week of weeks; track $index) {
+        <div class="cal-week-row">
+          @for (day of week; track $index) {
+            @if (day.isEmpty) {
+              <div class="day-cell empty" aria-hidden="true"></div>
+            } @else {
+              <div
+                class="day-cell m-press"
+                role="button"
+                tabindex="0"
+                [class.today]="day.isToday"
+                (click)="openModal(day)"
+                (keydown.enter)="openModal(day)"
+                (keydown.space)="$event.preventDefault(); openModal(day)">
 
-          @if (!day.isEmpty) {
-            <span class="day-number">{{ day.number }}</span>
+                <span class="day-number">{{ day.number }}</span>
+
+                @for (event of day.events.slice(0, 2); track event.id) {
+                  <button type="button" class="ev-chip"
+                          (click)="openEventModal(event, $event)"
+                          title="Clic para editar">
+                    <span class="ev-dot" [style.background]="event.color" aria-hidden="true"></span>
+                    {{ event.title }}
+                  </button>
+                }
+
+                @if (day.events.length > 2) {
+                  <button type="button" class="ev-more"
+                          (click)="openEventsList(day.events, $event)"
+                          [attr.aria-label]="'Ver los ' + day.events.length + ' eventos del día'">
+                    +{{ day.events.length - 2 }} más
+                  </button>
+                }
+
+              </div>
+            }
           }
-
-          @for (event of day.events.slice(0, 2); track event.id) {
-            <div class="event-tag"
-                 [style.background]="event.color"
-                 (click)="openEventModal(event, $event)"
-                 title="Clic para editar">
-              {{ event.title }}
-            </div>
-          }
-
-          @if (day.events.length > 2) {
-            <span class="more-events" (click)="openEventsList(day.events, $event)">
-              +{{ day.events.length - 2 }} más
-            </span>
-          }
-
         </div>
       }
     </div>
+
+    @if (!monthHasEvents) {
+      <p class="cal-empty">No hay eventos este mes. Haz clic en un día para agregar uno.</p>
+    }
 
   </div>
 
   <!-- Modal para crear/editar evento -->
   @if (showModal) {
     <div class="modal-overlay" (click)="closeModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="eventModalTitle"
+           [class.is-out]="modalOut"
+           (click)="$event.stopPropagation()">
 
-      <div class="modal-header">
-        <h3>{{ editingEventId ? 'Editar evento' : 'Agregar evento' }}</h3>
-        <button class="close-btn" (click)="closeModal()">x</button>
-      </div>
-
-      <p class="modal-day">Día seleccionado: <strong>{{ selectedDay }}</strong></p>
-
-      <div class="modal-field">
-        <label>Título del evento</label>
-        <input
-          type="text"
-          placeholder="Ej: Estudiar React"
-          [(ngModel)]="newEventTitle"
-          (keyup.enter)="saveEvent()"
-          autofocus />
-      </div>
-
-      <div class="modal-field">
-        <label>Color</label>
-        <div class="color-picker">
-          @for (color of colors; track color) {
-            <span
-              class="color-dot"
-              [style.background]="color"
-              [class.selected]="newEventColor === color"
-              (click)="newEventColor = color">
-            </span>
-          }
+        <div class="modal-header">
+          <h3 id="eventModalTitle">{{ editingEventId ? 'Editar evento' : 'Agregar evento' }}</h3>
+          <button type="button" class="icon-btn" (click)="closeModal()" aria-label="Cerrar">
+            <svg class="ic ic--sm" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+                 stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+              <path d="M6 6l8 8M14 6l-8 8"/>
+            </svg>
+          </button>
         </div>
-      </div>
 
-      <div class="modal-actions">
-        <button class="btn-cancel" (click)="closeModal()">Cancelar</button>
-        @if (editingEventId) {
-          <button class="btn-delete" (click)="deleteEvent()">Eliminar</button>
-        }
-        <button class="btn-save"   (click)="saveEvent()">Guardar</button>
-      </div>
+        <p class="modal-day">Día seleccionado: <strong>{{ selectedDay }}</strong></p>
 
-    </div>
+        <div class="modal-field">
+          <label for="event-title">Título del evento</label>
+          <input
+            #titleInput
+            id="event-title"
+            type="text"
+            class="field"
+            placeholder="Ej: Estudiar React"
+            [(ngModel)]="newEventTitle"
+            (keyup.enter)="saveEvent()" />
+        </div>
+
+        <div class="modal-field">
+          <label>Color</label>
+          <div class="color-picker" role="group" aria-label="Color del evento">
+            @for (color of colors; track color; let i = $index) {
+              <button type="button" class="swatch"
+                      [attr.aria-pressed]="newEventColor === color"
+                      [attr.aria-label]="colorNames[i]"
+                      (click)="newEventColor = color">
+                <span class="dot" [style.background]="color" aria-hidden="true"></span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn--quiet" (click)="closeModal()">Cancelar</button>
+          @if (editingEventId) {
+            <button type="button" class="btn btn--danger" (click)="deleteEvent()">Eliminar</button>
+          }
+          <button type="button" class="btn btn--primary" (click)="saveEvent()">Guardar</button>
+        </div>
+
+      </div>
     </div>
   }
 
   <!-- Modal para ver todos los eventos del día -->
   @if (showEventsModal) {
     <div class="modal-overlay" (click)="showEventsModal=false">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Eventos del día</h3>
-        <button class="close-btn" (click)="showEventsModal=false">x</button>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="eventsModalTitle"
+           (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3 id="eventsModalTitle">Eventos del día</h3>
+          <button #listCloseBtn type="button" class="icon-btn" (click)="showEventsModal=false"
+                  aria-label="Cerrar">
+            <svg class="ic ic--sm" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+                 stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+              <path d="M6 6l8 8M14 6l-8 8"/>
+            </svg>
+          </button>
+        </div>
+        <ul class="events-list" data-lenis-prevent>
+          @for (event of selectedDayEvents; track event.id) {
+            <li>
+              <span class="ev-chip ev-chip--static">
+                <span class="ev-dot" [style.background]="event.color" aria-hidden="true"></span>
+                {{ event.title }}
+              </span>
+              <button type="button" class="btn btn--quiet" (click)="editFromList(event, $event)">Editar</button>
+            </li>
+          }
+        </ul>
       </div>
-      <ul class="events-list">
-        @for (event of selectedDayEvents; track event.id) {
-          <li>
-            <span [style.background]="event.color" class="event-tag">{{ event.title }}</span>
-            <button class="btn-edit" (click)="editFromList(event, $event)">Editar</button>
-          </li>
-        }
-      </ul>
-    </div>
     </div>
   }
 

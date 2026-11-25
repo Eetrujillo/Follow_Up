@@ -1,128 +1,242 @@
-:host {
-  --bg-sidebar: #1c1c1c;
-  --bg-hover: #2a2a2a;
-  --bg-active: #2d2d2d;
-  --text-primary: #ffffff;
-  --text-muted: #888888;
-  --accent: #3b82f6;
-  --border: #2e2e2e;
-  --sidebar-width: 180px;
-  --sidebar-collapsed: 58px;
-  --transition: 0.25s ease;
-}
+/* Sidebar «Instrumento». El riel NO anima ancho: animar `width` invalida el
+   layout del shell entero en cada frame. La geometría es instantánea y el
+   momento autorado es el desvanecido de las etiquetas (opacity) + el marcador
+   de tinta, que mueve el navegador con la View Transition del cambio de vista. */
 
 .sidebar {
-  width: var(--sidebar-width);
-  min-height: 100vh;
-  background-color: var(--bg-sidebar);
+  width: var(--sidebar-w);
+  flex: none;
   display: flex;
   flex-direction: column;
-  padding: 16px 0;
-  transition: width var(--transition);
+  gap: 4px;
+  padding: 12px 8px;
+  background: var(--s1);
+  border-right: 1px solid var(--hairline);
   overflow: hidden;
-  border-right: 1px solid var(--border);
-  flex-shrink: 0;
+  /* Nombre propio en la View Transition: el riel no se funde con la página. */
+  view-transition-name: shell;
 }
 
 .sidebar.collapsed {
   width: var(--sidebar-collapsed);
 }
 
-.sidebar-header {
+/* --- Cabecera: marca + toggle --------------------------------------------- */
+.sidebar-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 14px;
-  margin-bottom: 18px;
+  gap: 4px;
+  min-height: 30px;
+  padding: 0 4px 4px;
 }
 
-.sidebar-logo {
-  color: var(--text-primary);
-  font-size: 14px;
-  font-weight: 600;
+.brand {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--t1);
   white-space: nowrap;
+  transition: opacity var(--fast) var(--ease);
 }
 
 .collapse-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 11px;
-  padding: 4px;
-  transition: color var(--transition);
-  flex-shrink: 0;
+  color: var(--t3);
 }
 
-.collapse-btn:hover { color: var(--text-primary); }
+.collapse-btn .ic {
+  transition: transform var(--slow) var(--ease);
+}
 
-.sidebar-search {
+/* Variante local de .icon-btn para el buscador (la primitiva vive en styles.css). */
+.icon-btn--sm {
+  width: 22px;
+  height: 22px;
+}
+
+/* --- Buscador -------------------------------------------------------------- */
+.search-wrap {
+  position: relative;
+  transition: opacity var(--fast) var(--ease), visibility var(--fast);
+}
+
+.search {
   display: flex;
   align-items: center;
-  margin: 0 10px 14px;
-  background: #252525;
-  border-radius: 6px;
-  padding: 6px 10px;
-  gap: 7px;
-  color: var(--text-muted);
+  gap: 6px;
+  padding: 2px 4px 2px 8px;
+  background: var(--canvas);
+  border: 1px solid var(--hairline-2);
+  border-radius: var(--r-ctl);
+  color: var(--t3);
+  transition: border-color var(--fast) var(--ease);
 }
 
-.sidebar-search input {
-  background: none;
+.search:focus-within {
+  border-color: var(--accent);
+}
+
+/* Sin outline:none: el anillo :focus-visible global queda en pie. */
+.search input {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 0;
   border: none;
-  outline: none;
-  color: var(--text-muted);
-  font-size: 12px;
+  background: none;
+  color: var(--t1);
+  font: inherit;
+  font-size: 13px;
+}
+
+.search input::placeholder {
+  color: var(--t3);
+}
+
+.search-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 200;
+  padding: 4px;
+  background: var(--s2);
+  border: 1px solid var(--hairline-2);
+  border-radius: var(--r-box);
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.result-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   width: 100%;
+  padding: 6px 10px;
+  border: none;
+  border-radius: var(--r-ctl);
+  background: none;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: background var(--fast) var(--ease);
 }
 
-.search-shortcut {
-  font-size: 10px;
+.result-item:hover {
+  background: var(--s3);
+}
+
+.result-item:active {
+  background: var(--s3);
+}
+
+.result-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.result-type {
+  flex: none;
+  font-size: 11px;
+  color: var(--t3);
+}
+
+.result-title {
+  font-size: 12px;
+  color: var(--t1);
   white-space: nowrap;
-  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+.result-sub {
+  font-size: 11px;
+  color: var(--t3);
+}
+
+.no-results {
+  margin: 0;
+  padding: 12px;
+  font-size: 12px;
+  color: var(--t3);
+  text-align: center;
+}
+
+/* --- Navegación ------------------------------------------------------------- */
 .sidebar-nav {
+  position: relative;
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 0 8px;
   gap: 2px;
+}
+
+/* Marcador de tinta: 2px sobre el ítem activo.
+   `view-transition-name` hace que el navegador lo interpole entre su posición
+   vieja y la nueva durante la navegación. Sin View Transitions salta directo,
+   que es el comportamiento correcto cuando no hay API. */
+.nav-ink {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 0;
+  border-radius: 1px;
+  background: var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  view-transition-name: nav-ink;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  text-decoration: none;
-  color: var(--text-muted);
+  width: 100%;
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: var(--r-ctl);
+  color: var(--t2);
   font-size: 13px;
-  transition: background var(--transition), color var(--transition);
+  text-decoration: none;
   white-space: nowrap;
+  overflow: hidden;
+  transition:
+    background var(--fast) var(--ease),
+    color var(--fast) var(--ease),
+    transform var(--t-micro) var(--ease);
 }
 
 .nav-item:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+  background: var(--s2);
+  color: var(--t1);
+  /* 2px, no 3: el riel tiene 8px de padding y el ítem va al 100% de ancho. */
+  transform: translateX(2px);
 }
 
 .nav-item.active {
-  background: var(--bg-active);
-  color: var(--text-primary);
+  background: var(--s2);
+  color: var(--t1);
 }
 
-.nav-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
+.nav-item.active .ic {
+  color: var(--accent);
 }
 
+.nav-item:active {
+  transform: scale(0.985);
+}
+
+.nav-label {
+  transition: opacity var(--fast) var(--ease);
+}
+
+/* --- Pie: cerrar sesión ------------------------------------------------------ */
 .sidebar-footer {
-  padding: 12px 8px 0;
-  border-top: 1px solid var(--border);
+  padding-top: 4px;
+  border-top: 1px solid var(--hairline);
 }
 
 .logout-btn {
@@ -130,98 +244,49 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  background: none;
+  min-height: 34px;
+  padding: 0 10px;
   border: none;
-  color: var(--text-muted);
+  border-radius: var(--r-ctl);
+  background: none;
+  color: var(--t2);
+  font: inherit;
   font-size: 13px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  text-align: left;
   white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    background var(--fast) var(--ease),
+    color var(--fast) var(--ease),
+    transform var(--fast) var(--ease);
 }
 
 .logout-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-.sidebar-search-wrap {
-  position: relative;
-  margin: 0 10px 14px;
+  background: var(--s2);
+  color: var(--t1);
 }
 
-.clear-btn {
-  background: none;
-  border: none;
-  color: #666;
-  cursor: pointer;
-  font-size: 13px;
-  padding: 0;
-  margin: 0;
-  width: auto;
-  line-height: 1;
+.logout-btn:active {
+  transform: scale(0.985);
 }
 
-.clear-btn:hover { color: #fff; }
-
-.search-results {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  background: #252525;
-  border: 1px solid #2e2e2e;
-  border-radius: 8px;
-  overflow: hidden;
-  z-index: 200;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+/* --- Colapsado: etiquetas se desvanecen (opacity, sin reflow) ----------------- */
+.sidebar.collapsed .brand,
+.sidebar.collapsed .nav-label {
+  opacity: 0;
 }
 
-.result-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  cursor: pointer;
-  transition: background 0.15s;
+.sidebar.collapsed .search-wrap {
+  opacity: 0;
+  visibility: hidden;
 }
 
-.result-item:hover { background: #2e2e2e; }
-
-.result-type {
-  font-size: 9px;
-  text-transform: uppercase;
-  color: #3b82f6;
-  background: rgba(59,130,246,0.1);
-  border-radius: 4px;
-  padding: 2px 6px;
-  white-space: nowrap;
-  flex-shrink: 0;
+.sidebar.collapsed .collapse-btn .ic {
+  transform: rotate(180deg);
 }
 
-.result-info {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.result-title {
-  font-size: 12px;
-  color: #fff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.result-sub {
-  font-size: 10px;
-  color: #666;
-}
-
-.no-results {
-  padding: 12px;
-  font-size: 12px;
-  color: #666;
-  text-align: center;
-  margin: 0;
+.sidebar.collapsed .nav-item,
+.sidebar.collapsed .logout-btn {
+  padding-left: 12px;
 }

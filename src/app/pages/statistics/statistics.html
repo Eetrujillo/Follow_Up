@@ -1,58 +1,66 @@
-<div class="page-wrapper">
-  <div class="breadcrumb">
-    <span>Follow-up</span>
-    <span class="sep">›</span>
-    <span>Estadisticas</span>
-  </div>
+<div class="statistics-wrapper">
+  <header class="statistics-head">
+    <p class="breadcrumb">Follow-up <span class="breadcrumb-sep" aria-hidden="true">/</span> <span>Estadisticas</span></p>
+    <h1>Estadisticas</h1>
+    <p class="subtitle">Resumen de tu progreso y habitos de estudio.</p>
+  </header>
 
-  <h1>Estadisticas</h1>
-  <p class="subtitle">Resumen de tu progreso y habitos de estudio.</p>
-
-  <div class="stats-grid">
-    <div class="stat-card">
+  <section class="stats-grid m-stagger">
+    <div class="card stat-featured">
       <p class="stat-label">TAREAS TOTALES</p>
-      <p class="stat-value">{{ totalTasks }}</p>
+      <p class="stat-value mono" #countTarget [attr.data-count]="totalTasks">{{ totalTasks }}</p>
       <p class="stat-sub">{{ completedTasks }} completadas</p>
     </div>
 
-    <div class="stat-card">
-      <p class="stat-label">RACHA ACTUAL</p>
-      <p class="stat-value">{{ studyStreak }}</p>
-      <p class="stat-sub">dias consecutivos</p>
+    <div class="stat-rows">
+      <div class="stat-row">
+        <span class="stat-label">RACHA ACTUAL</span>
+        <span class="stat-row-fig">
+          <span class="stat-row-value mono" #countTarget [attr.data-count]="studyStreak">{{ studyStreak }}</span>
+          <span class="stat-row-sub">dias consecutivos</span>
+        </span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">DOCUMENTOS</span>
+        <span class="stat-row-fig">
+          <span class="stat-row-value mono" #countTarget [attr.data-count]="totalDocs">{{ totalDocs }}</span>
+          <span class="stat-row-sub">en tu biblioteca</span>
+        </span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">OBJETIVOS</span>
+        <span class="stat-row-fig">
+          <span class="stat-row-value mono" #countTarget [attr.data-count]="objectivePercent">{{ objectivePercent }}</span>
+          <span class="stat-row-unit">%</span>
+          <span class="stat-row-sub">completados este mes</span>
+        </span>
+      </div>
     </div>
+  </section>
 
-    <div class="stat-card">
-      <p class="stat-label">DOCUMENTOS</p>
-      <p class="stat-value">{{ totalDocs }}</p>
-      <p class="stat-sub">en tu biblioteca</p>
-    </div>
-
-    <div class="stat-card">
-      <p class="stat-label">OBJETIVOS</p>
-      <p class="stat-value">{{ objectivePercent }}%</p>
-      <p class="stat-sub">completados este mes</p>
-    </div>
-  </div>
-
-  <div class="card" style="margin-bottom: 16px;">
+  <section class="card stat-activity m-reveal">
     <h3 class="card-title">ACTIVIDAD SEMANAL</h3>
-    <div style="height: 140px;">
-      <canvas #weeklyCanvas></canvas>
-    </div>
-  </div>
+    @if (hasData) {
+      <div class="chart-wrap">
+        <canvas #weeklyCanvas></canvas>
+      </div>
+    } @else {
+      <p class="empty">Todavia no hay actividad registrada. Completa tareas o crea documentos en la Biblioteca para ver tus estadisticas.</p>
+    }
+  </section>
 
-  <div class="card">
+  <section class="card m-reveal">
     <h3 class="card-title">RESUMEN SEMANAL</h3>
     <div class="progress-list">
       @for (item of weekly; track item.label) {
         <div class="progress-row">
           <span class="progress-label">{{ item.label }}</span>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill" [style.width.%]="item.percent"></div>
+          <div class="progress-bar-bg" role="progressbar" [attr.aria-label]="item.label" [attr.aria-valuenow]="item.percent" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-bar-fill" [style.--fill]="item.percent / 100"></div>
           </div>
-          <span class="progress-pct">{{ item.percent }}%</span>
+          <span class="progress-pct mono">{{ item.percent }}%</span>
         </div>
       }
     </div>
-  </div>
+  </section>
 </div>

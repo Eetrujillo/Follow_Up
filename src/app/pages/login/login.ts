@@ -1,23 +1,27 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../shared/services/auth.service';
 import { TaskService } from '../../shared/services/task';
+import { LibraryService } from '../../shared/services/library';
+import { AuthHero } from '../../shared/motion/auth-hero';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, AuthHero],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
 export class Login implements OnInit {
   loginForm: FormGroup;
   verPassword = false;
-  errorMessage = '';
-  successMessage = '';
-  isLoading = false;
+  /* Zoneless: a plain field mutated inside an RxJS callback never schedules a
+     repaint, and the error box only appeared after another user gesture. */
+  errorMessage = signal('');
+  successMessage = signal('');
+  isLoading = signal(false);
 
   constructor(
     private fb: FormBuilder,
@@ -25,6 +29,7 @@ export class Login implements OnInit {
     private route: ActivatedRoute,
     private authService: AuthService,
     private taskService: TaskService,
+    private libraryService: LibraryService,
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -36,7 +41,9 @@ export class Login implements OnInit {
     // Mostrar mensaje si viene del registro
     this.route.queryParams.subscribe((params) => {
       if (params['registered']) {
-        this.successMessage = 'Cuenta creada. Ahora inicia sesion.';
+        // Write into the existing signal: replacing the instance would leave the
+        // view bound to the old one.
+        this.successMessage.set('Cuenta creada. Ahora inicia sesion.');
       }
     });
   }
@@ -53,8 +60,8 @@ export class Login implements OnInit {
   }
 
   onSubmit() {
-    this.errorMessage = '';
-    this.successMessage = '';
+    this.errorMessage.set('');
+    this.successMessage.set('');
 
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
@@ -62,21 +69,24 @@ export class Login implements OnInit {
     }
 
     const { email, password } = this.loginForm.value;
-    this.isLoading = true;
+    this.isLoading.set(true);
 
     this.authService.login(email, password).subscribe({
       next: (success) => {
-        this.isLoading = false;
+        this.isLoading.set(false);
         if (success) {
           this.taskService.reloadForUser();
+          // Every cached collection is keyed by user: reloading here is what keeps
+          // the previous account's documents off the screen after a session change.
+          this.libraryService.reloadForUser();
           this.router.navigate(['/dashboard']);
         } else {
-          this.errorMessage = 'Correo o contrasena incorrectos';
+          this.errorMessage.set('Correo o contrasena incorrectos');
         }
       },
       error: () => {
-        this.isLoading = false;
-        this.errorMessage = 'Error al conectar. Intenta de nuevo.';
+        this.isLoading.set(false);
+        this.errorMessage.set('Error al conectar. Intenta de nuevo.');
       },
     });
   }

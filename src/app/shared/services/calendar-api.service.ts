@@ -22,6 +22,14 @@ export interface CreateCalendarEventRequest {
   year: number;
 }
 
+export interface UpdateCalendarEventRequest {
+  title?: string;
+  colorHex?: string;
+  day?: number;
+  month?: number;
+  year?: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CalendarApiService {
   private readonly api = inject(ApiService);
@@ -33,6 +41,16 @@ export class CalendarApiService {
 
   create(event: CreateCalendarEventRequest): Observable<BackendCalendarEvent> {
     return this.api.post<BackendCalendarEvent>(this.endpoint, event);
+  }
+
+  update(
+    id: string,
+    changes: UpdateCalendarEventRequest,
+  ): Observable<BackendCalendarEvent> {
+    return this.api.patch<BackendCalendarEvent>(
+      `${this.endpoint}/${encodeURIComponent(id)}`,
+      changes,
+    );
   }
 
   delete(id: string): Observable<BackendCalendarEvent> {

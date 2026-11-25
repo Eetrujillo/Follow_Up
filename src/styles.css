@@ -1,17 +1,878 @@
+/* =========================================================================
+   Follow-Up — tokens y capa base
+   Dirección «Instrumento» (design/ui-redesign/01-instrumento.html).
+   Regla: ningún componente declara un hex suelto. Todo rol pasa por un token.
+   ========================================================================= */
+
+:root {
+  /* Superficies: canvas < s1 < s2 < s3 */
+  --canvas: #0d0e0f;
+  --s1: #141617;
+  --s2: #1a1d1f;
+  --s3: #212527;
+
+  /* Líneas: la jerarquía se construye acá, no con sombras */
+  --hairline: rgba(255, 255, 255, 0.075);
+  --hairline-2: rgba(255, 255, 255, 0.12);
+
+  /* Texto: t1 primario, t2 secundario, t3 terciario (solo ≥15px sobre s1) */
+  --t1: #f0f2f3;
+  --t2: #a3abaf;
+  --t3: #798184;
+
+  /* Roles de estado, un tono cada uno */
+  --accent: #e0b155;
+  --accent-dim: rgba(224, 177, 85, 0.16);
+  --danger: #e2836f;
+  --danger-dim: rgba(226, 131, 111, 0.09);
+  --danger-line: rgba(226, 131, 111, 0.35);
+  --ok: #9cc49c;
+  --ok-dim: rgba(156, 196, 156, 0.12);
+
+  /* Datos y series: nunca compiten con el acento */
+  --data: #646d71;
+
+  /* Paleta de eventos del usuario (5 muestras fijas del calendario) */
+  --ev-1: #e0b155;
+  --ev-2: #e2836f;
+  --ev-3: #8fb3d9;
+  --ev-4: #98c29a;
+  --ev-5: #b899cc;
+
+  /* Forma y movimiento. Familia de curvas propia: ninguna sale del corpus
+     de referencia, la base ya estaba en el proyecto y las otras tres se
+     derivaron de ella (asentar, bloquear, salir, trazar). */
+  --r-ctl: 3px;
+  --r-box: 5px;
+  --ease: cubic-bezier(0.2, 0.8, 0.25, 1);
+  --ease-lock: cubic-bezier(0.34, 0.02, 0, 1);
+  --ease-exit: cubic-bezier(0.5, 0, 0.9, 0.45);
+  --ease-ink: cubic-bezier(0.32, 0.72, 0, 1);
+  --t-press: 90ms;
+  --t-micro: 120ms;
+  --fast: 140ms;
+  --t-enter: 200ms;
+  --slow: 260ms;
+  --t-settle: 380ms;
+  --t-scene: 620ms;
+
+  /* Tipografía del sistema, sin webfonts */
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Shell */
+  --sidebar-w: 180px;
+  --sidebar-collapsed: 58px;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html, body {
+html {
+  scrollbar-color: #3a4043 transparent;
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #33383b;
+  border-radius: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::selection {
+  background: rgba(224, 177, 85, 0.25);
+  color: var(--t1);
+}
+
+html,
+body {
   height: 100%;
   overflow: hidden;
 }
 
 body {
-  background-color: #161616;
-  font-family: sans-serif;
-  color: #ffffff;
+  background-color: var(--canvas);
+  color: var(--t1);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Foco visible en todo control: la app no tenía ninguno. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-ctl);
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+a {
+  color: var(--t1);
+  text-decoration: underline;
+  text-decoration-color: var(--hairline-2);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color var(--fast) var(--ease);
+}
+a:hover {
+  text-decoration-color: var(--accent);
+}
+
+/* =========================================================================
+   Primitivas compartidas. Los componentes las consumen; no las redefinen.
+   ========================================================================= */
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Botón ---------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--hairline-2);
+  border-radius: var(--r-ctl);
+  background: transparent;
+  color: var(--t1);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--fast) var(--ease),
+    border-color var(--fast) var(--ease),
+    color var(--fast) var(--ease),
+    transform var(--fast) var(--ease);
+}
+.btn:hover {
+  background: var(--s3);
+  border-color: var(--hairline-2);
+}
+.btn:active {
+  transform: scale(0.985);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #17140c;
+}
+.btn--primary:hover {
+  background: #eec06a;
+  border-color: #eec06a;
+}
+.btn--primary:disabled:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn--quiet {
+  border-color: transparent;
+  color: var(--t2);
+}
+.btn--quiet:hover {
+  background: var(--s3);
+  color: var(--t1);
+}
+
+.btn--danger {
+  border-color: var(--danger-line);
+  color: var(--danger);
+}
+.btn--danger:hover {
+  background: var(--danger-dim);
+  border-color: var(--danger);
+}
+
+/* --- Botón de icono ------------------------------------------------------- */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--r-ctl);
+  background: transparent;
+  color: var(--t2);
+  cursor: pointer;
+  transition:
+    background var(--fast) var(--ease),
+    color var(--fast) var(--ease),
+    border-color var(--fast) var(--ease),
+    transform var(--fast) var(--ease),
+    opacity var(--fast) var(--ease);
+}
+.icon-btn:hover {
+  background: var(--s3);
+  color: var(--t1);
+}
+.icon-btn:active {
+  transform: scale(0.94);
+}
+.icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.icon-btn--danger:hover {
+  background: var(--danger-dim);
+  color: var(--danger);
+}
+
+/* --- Campos --------------------------------------------------------------- */
+.field {
+  width: 100%;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--hairline-2);
+  border-radius: var(--r-ctl);
+  /* Hundido sobre el canvas: más oscuro que cualquier superficie
+     (--s1..s3) donde la card lo contenga. */
+  background: var(--canvas);
+  color: var(--t1);
+  font: inherit;
+  font-size: 13px;
+  transition:
+    border-color var(--fast) var(--ease),
+    background var(--fast) var(--ease);
+}
+.field::placeholder {
+  color: var(--t2);
+}
+.field:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+/* Sin outline:none: el anillo global de :focus-visible aplica también acá;
+   el foco con puntero ya lo apaga el :focus:not(:focus-visible) global. */
+.field:focus,
+.field:focus-visible {
+  border-color: var(--accent);
+  background: var(--s2);
+}
+textarea.field {
+  height: auto;
+  padding: 10px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+/* --- Contenedor ----------------------------------------------------------- */
+.card {
+  background: var(--s1);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-box);
+}
+
+/* --- Iconos SVG (sprite en app.html, trazo 1.5, grilla 20) --------------- */
+.ic {
+  width: 16px;
+  height: 16px;
+  display: block;
+  flex: none;
+}
+.ic--sm {
+  width: 14px;
+  height: 14px;
+}
+.ic--lg {
+  width: 18px;
+  height: 18px;
+}
+
+/* --- Accesibilidad: solo para lectores de pantalla ----------------------- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Todo movimiento es opcional. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .btn:active,
+  .icon-btn:active {
+    transform: none;
+  }
+}
+
+/* =========================================================================
+   Auth (login/signup) — dirección «Doble plano»
+   (design/login-auth/01-doble-plano.html, elegida por el humano).
+   Layout compartido por ambas páginas; lo específico de cada una vive en
+   su componente.
+   ========================================================================= */
+
+.auth {
+  display: grid;
+  grid-template-columns: minmax(320px, 2fr) minmax(0, 3fr);
+  min-height: 100%;
+  view-transition-name: page;
+}
+
+/* --- Panel de identidad --------------------------------------------------- */
+
+.auth-brand {
+  display: flex;
+  flex-direction: column;
+  background: var(--s1);
+  border-right: 1px solid var(--hairline);
+  padding: 48px 44px;
+  /* El hero WebGL es una capa absoluta adentro del panel: el panel es su
+     bloque contenedor y su stacking context. */
+  position: relative;
+  isolation: isolate;
+  /* Ritmo del revelado cinético del panel (filas 29-31 del inventario). */
+  --m-step: 70ms;
+}
+
+/* Todo el contenido del panel pinta por encima del hero (z-index 0). */
+.auth-brand__mark,
+.auth-brand__hero,
+.auth-brand__list,
+.auth-brand__foot {
+  position: relative;
+  z-index: 1;
+}
+
+.auth-brand__mark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-brand__mark svg {
+  width: 26px;
+  height: 26px;
+  display: block;
+  color: var(--accent);
+}
+
+.auth-brand__mark span {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.auth-brand__hero {
+  margin: auto 0;
+  max-width: 360px;
+}
+
+.auth-brand__hero h2 {
+  font-size: 26px;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--t1);
+}
+
+.auth-brand__hero p {
+  margin-top: 10px;
+  color: var(--t2);
+  max-width: 32ch;
+}
+
+.auth-brand__row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--hairline);
+  color: var(--t2);
+  font-size: 13px;
+}
+
+.auth-brand__list > .m-mask:first-child .auth-brand__row {
+  border-top-color: var(--hairline-2);
+}
+
+.auth-brand__row svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  color: var(--t3);
+  flex: none;
+  align-self: center;
+}
+
+.auth-brand__row b {
+  color: var(--t1);
+  font-weight: 500;
+  flex: none;
+  width: 88px;
+}
+
+.auth-brand__row p {
+  font-size: 12px;
+}
+
+.auth-brand__foot {
+  color: var(--t3);
+  font-size: 12px;
+}
+
+/* --- Hero del panel: capa WebGL y su póster ------------------------------ */
+
+/* El componente no aporta caja propia: sus dos hijos absolutos se resuelven
+   contra `.auth-brand`, que es el que tiene `position: relative`. */
+app-auth-hero {
+  display: contents;
+}
+
+/* `inset: 0 0 30% 0` deja la zona en movimiento por debajo del 35% del
+   viewport (presupuesto de saturación). No recibe eventos: el hero escucha el
+   `pointermove` del panel, no un listener global. */
+.auth-hero,
+.auth-hero__poster {
+  position: absolute;
+  inset: 0 0 30% 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.auth-hero {
+  display: block;
+}
+
+/* Póster estático: degradé radial en el acento a muy baja alfa sobre --s1.
+   Es lo único que se ve sin WebGL2, con reducción de movimiento o con puntero
+   grueso, así que no aporta movimiento propio. */
+.auth-hero__poster {
+  display: none;
+  background:
+    radial-gradient(circle at 32% 22%, var(--accent-dim), transparent 62%),
+    var(--s1);
+}
+
+/* WebGL falló (constructor lanzó): el componente marca el host y sale el
+   póster. Misma salida que las dos ramas de abajo. */
+.auth-hero-host--fallback .auth-hero {
+  display: none;
+}
+
+.auth-hero-host--fallback .auth-hero__poster {
+  display: block;
+}
+
+/* Ramas declarativas: el canvas ni siquiera se crea (el componente no monta
+   InkHero), pero si llegara a existir, acá se apaga. */
+@media (prefers-reduced-motion: reduce), (hover: none) {
+  .auth-hero {
+    display: none;
+  }
+
+  .auth-hero__poster {
+    display: block;
+  }
+}
+
+/* --- Revelado cinético del panel (filas 29-31) ---------------------------
+   El titular y cada fila entran enmascarados desde abajo, escalonados 70ms. */
+.auth-brand__hero .m-mask {
+  --m-delay: 0ms;
+}
+
+.auth-brand__list > .m-mask:nth-child(1) {
+  --m-delay: var(--m-step);
+}
+
+.auth-brand__list > .m-mask:nth-child(2) {
+  --m-delay: calc(var(--m-step) * 2);
+}
+
+.auth-brand__list > .m-mask:nth-child(3) {
+  --m-delay: calc(var(--m-step) * 3);
+}
+
+/* --- Plano del formulario -------------------------------------------------- */
+
+.auth-pane {
+  display: grid;
+  place-items: center;
+  padding: 32px 40px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--s2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-box);
+  padding: 30px 30px 24px;
+}
+
+/* Asentamiento de la card (fila 31): opacidad + 10px en --t-settle, con 120ms
+   de retardo para que la columna de marca arranque primero. El arranque lo
+   habilita JS con [data-motion='on']: sin script la card se lee completa. */
+[data-motion='on'] .auth-card {
+  animation: auth-in var(--t-settle) var(--ease) 120ms both;
+}
+
+@keyframes auth-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.auth-title {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--t1);
+  margin: 0 0 4px;
+}
+
+.auth-sub {
+  font-size: 12px;
+  color: var(--t2);
+  margin: 0 0 20px;
+}
+
+.auth-foot {
+  margin-top: 18px;
+  font-size: 12.5px;
+  color: var(--t2);
+  text-align: center;
+}
+
+.auth-link {
+  color: var(--t1);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--hairline-2);
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--fast) var(--ease);
+}
+
+.auth-link:hover {
+  text-decoration-color: var(--accent);
+}
+
+/* En pantallas angostas el panel de identidad desaparece: manda el control. */
+@media (max-width: 860px) {
+  .auth {
+    grid-template-columns: 1fr;
+  }
+  .auth-brand {
+    display: none;
+  }
+}
+
+/* Teléfono: el split ya es una columna, pero 40px de padding lateral sobre 360
+   dejan la card en 280px y los campos quedan apretados contra el borde. Se
+   recupera ancho en los dos niveles de padding. */
+@media (max-width: 600px) {
+  .auth-pane {
+    padding: 20px 16px;
+  }
+  .auth-card {
+    padding: 26px 20px 20px;
+  }
+}
+
+/* =========================================================================
+   Capa de movimiento — contrato compartido
+   Inventario aprobado y presupuesto: odd/tasks/motion-redesign.md.
+   Ningún componente declara duraciones ni curvas: consume estas clases.
+   Nada de acá se ve sin JS: el estado oculto lo habilita [data-motion='on'],
+   que aplica bootMotion() sobre <main> recién cuando sabe que el script corre.
+   ========================================================================= */
+
+/* --- Revelado ------------------------------------------------------------- */
+
+[data-motion='on'] .m-reveal {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity var(--t-settle) var(--ease) var(--m-delay, 0ms),
+    transform var(--t-settle) var(--ease) var(--m-delay, 0ms);
+}
+
+[data-motion='on'] .m-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Escalonado: el contenedor lleva .is-in una vez y los hijos heredan el retardo
+   por posición. Techo de 8 pasos (B11); el paso se ajusta por superficie. */
+[data-motion='on'] .m-stagger {
+  --m-step: 55ms;
+}
+
+[data-motion='on'] .m-stagger > * {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity var(--t-settle) var(--ease) var(--m-delay, 0ms),
+    transform var(--t-settle) var(--ease) var(--m-delay, 0ms);
+}
+
+[data-motion='on'] .m-stagger.is-in > * {
+  opacity: 1;
+  transform: none;
+}
+
+[data-motion='on'] .m-stagger > *:nth-child(1) {
+  --m-delay: 0ms;
+}
+[data-motion='on'] .m-stagger > *:nth-child(2) {
+  --m-delay: calc(var(--m-step) * 1);
+}
+[data-motion='on'] .m-stagger > *:nth-child(3) {
+  --m-delay: calc(var(--m-step) * 2);
+}
+[data-motion='on'] .m-stagger > *:nth-child(4) {
+  --m-delay: calc(var(--m-step) * 3);
+}
+[data-motion='on'] .m-stagger > *:nth-child(5) {
+  --m-delay: calc(var(--m-step) * 4);
+}
+[data-motion='on'] .m-stagger > *:nth-child(6) {
+  --m-delay: calc(var(--m-step) * 5);
+}
+[data-motion='on'] .m-stagger > *:nth-child(7) {
+  --m-delay: calc(var(--m-step) * 6);
+}
+[data-motion='on'] .m-stagger > *:nth-child(n + 8) {
+  --m-delay: calc(var(--m-step) * 7);
+}
+
+/* --- Máscara por línea (sólo cuando la tipografía es el tema) ------------- */
+
+[data-motion='on'] .m-mask {
+  display: block;
+  overflow: hidden;
+  /* El recorte no debe comerse descendentes ni acentos altos. */
+  padding-block: 0.12em;
+  margin-block: -0.12em;
+}
+
+[data-motion='on'] .m-mask > * {
+  display: block;
+  transform: translateY(108%);
+  transition: transform var(--t-scene) var(--ease) var(--m-delay, 0ms);
+}
+
+[data-motion='on'] .m-mask.is-in > * {
+  transform: none;
+}
+
+/* --- Pulsación ------------------------------------------------------------ */
+
+/* Sólo para superficies que no son .btn/.icon-btn, que ya la tienen.
+   scale sin overshoot: en una herramienta de trabajo el rebote lee a juguete. */
+[data-motion='on'] .m-press {
+  transition: transform var(--t-press) var(--ease-lock);
+}
+
+[data-motion='on'] .m-press:active {
+  transform: scale(0.99);
+}
+
+/* --- Tier 4: anillo del puntero (shared/motion/pointer.ts) --------------
+   Indicador, no reemplazo: el cursor nativo sigue visible siempre. Lo crea
+   pointer.ts sólo con puntero fino y sin reducción de movimiento.
+   `will-change` no se declara acá: lo pone esa capa dentro de la ventana de
+   uso y lo retira al salir el puntero.
+
+   Opt-in de la capa de puntero: `[data-magnetic]` desplaza hasta 6px hacia el
+   puntero y `[data-tilt]` inclina hasta 3.5deg (perspective(800px)). El
+   atributo es el contrato; ninguna superficie se anima sin él. */
+.m-cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: normal;
+  z-index: 300;
+  transition: opacity var(--t-micro) var(--ease);
+}
+
+/* --- Morph compartido: carpeta → documento (library) ----------------------
+   La clase se aplica a la tarjeta clickeada justo antes de `startViewTransition`
+   y se quita cuando la transición termina: el nombre tiene que ser único en el
+   documento en el momento del snapshot.
+   ========================================================================= */
+
+.m-morph {
+  view-transition-name: folder-morph;
+}
+
+/* --- View Transitions: el morph entre vistas lo hace el navegador ----------
+   Sólo se animan las regiones con nombre. La raíz no se funde: si lo hiciera,
+   cada navegación leería como una recarga del shell.
+   ========================================================================= */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+/* El contenido de la página: sale rápido, entra asentando desde 6px. */
+::view-transition-old(page) {
+  animation: page-out var(--fast) var(--ease-exit) both;
+}
+
+::view-transition-new(page) {
+  animation: page-in var(--t-settle) var(--ease-ink) both;
+}
+
+@keyframes page-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* El riel es persistente: se queda quieto mientras cambia la página. */
+::view-transition-old(shell),
+::view-transition-new(shell) {
+  animation: none;
+}
+
+/* La tinta: única FLIP del shell. El navegador interpola el marcador entre su
+   posición anterior y la nueva; no hay lectura de geometría en la navegación. */
+::view-transition-group(nav-ink) {
+  animation-duration: var(--slow);
+  animation-timing-function: var(--ease-ink);
+}
+
+::view-transition-old(nav-ink),
+::view-transition-new(nav-ink) {
+  animation: none;
+}
+
+/* El morph carpeta→documento: la forma viaja, no se funde. */
+::view-transition-group(folder-morph) {
+  animation-duration: var(--t-settle);
+  animation-timing-function: var(--ease-ink);
+}
+
+::view-transition-old(folder-morph),
+::view-transition-new(folder-morph) {
+  animation: none;
+}
+
+/* --- Reducción de movimiento: forma (1) cero las custom properties ---------
+   Es la única de las cuatro formas probadas que no puede driftear: un solo
+   camino de código. El bloque global de animation/transition !important que ya
+   existía arriba sigue cubriendo los keyframes de terceros.
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-press: 0ms;
+    --t-micro: 0ms;
+    --fast: 0ms;
+    --t-enter: 0ms;
+    --slow: 0ms;
+    --t-settle: 0ms;
+    --t-scene: 0ms;
+    --ease: linear;
+    --ease-lock: linear;
+    --ease-exit: linear;
+    --ease-ink: linear;
+  }
+
+  /* Doble cinturón: aunque el token no llegue, el estado oculto no se aplica. */
+  [data-motion='on'] .m-reveal,
+  [data-motion='on'] .m-stagger > *,
+  [data-motion='on'] .m-mask > * {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Las View Transitions no las alcanza el token: se apagan explícitas. */
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  ::view-transition-old(page),
+  ::view-transition-new(page),
+  ::view-transition-old(shell),
+  ::view-transition-new(shell),
+  ::view-transition-group(nav-ink),
+  ::view-transition-old(nav-ink),
+  ::view-transition-new(nav-ink),
+  ::view-transition-group(folder-morph),
+  ::view-transition-old(folder-morph),
+  ::view-transition-new(folder-morph) {
+    animation: none !important;
+  }
+
+}
+
+/* --- Rama mobile: más calma, no una desktop comprimida --------------------
+   En una columna el escalonado se lee como una cola lenta, así que no hay
+   escalonado: un solo asentamiento corto para el grupo. El desplazamiento baja
+   a 6px porque el recorrido vertical ya es largo.
+   ========================================================================= */
+
+@media (max-width: 860px), (hover: none) {
+  [data-motion='on'] .m-stagger {
+    --m-step: 0ms;
+  }
+
+  [data-motion='on'] .m-stagger > *,
+  [data-motion='on'] .m-reveal {
+    transform: translateY(6px);
+    transition-duration: var(--t-enter);
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: var(--t-enter);
+  }
+
 }
 

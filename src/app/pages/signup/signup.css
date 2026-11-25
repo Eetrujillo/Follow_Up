@@ -1,145 +1,85 @@
-.auth-container {
-  min-height: 100vh;
-  background-color: #161616;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
+/* Signup — «Doble plano». El split, la card y los mensajes viven en
+   styles.css (sección «Auth», compartida con login). Solo queda el host:
+   scroll vertical propio porque html,body{overflow:hidden} es del shell,
+   así que en teléfono apaisado el formulario alto scrollea sin cortarse. */
+
+:host {
+  display: block;
+  /* 100vh miente en un teléfono: incluye la franja que tapa la barra del
+     navegador, así que el pie de la card queda fuera del área visible y, como
+     el contenido cabe en ese alto, no hay scroll que lo alcance. dvh mide el
+     alto visible real; vh queda como respaldo. */
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+  background: var(--canvas);
 }
 
-.auth-card {
-  background-color: #1c1c1c;
-  border: 1px solid #2e2e2e;
-  border-radius: 12px;
-  padding: 40px 36px;
-  width: 100%;
-  max-width: 400px;
-}
+/* Campos y estados de error de esta página. */
 
-.auth-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.auth-logo {
-  color: #ffffff;
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.auth-subtitle {
-  color: #888888;
-  font-size: 13px;
-}
-
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.form-group {
+.fgroup {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  margin-bottom: 14px;
 }
 
-.form-group label {
-  color: #aaaaaa;
+.fgroup label {
   font-size: 12px;
+  color: var(--t2);
 }
 
-.form-group input {
-  background: #252525;
-  border: 1px solid #2e2e2e;
-  border-radius: 7px;
-  padding: 10px 13px;
-  color: #ffffff;
-  font-size: 13px;
-  outline: none;
-  transition: border 0.2s;
+.input-error {
+  border-color: var(--danger-line);
 }
 
-.form-group input:focus {
-  border-color: #3b82f6;
+.input-error:focus,
+.input-error:focus-visible {
+  border-color: var(--danger);
 }
 
-.form-group input::placeholder {
-  color: #555555;
-}
-
-.btn-primary {
-  background-color: #3b82f6;
-  color: #ffffff;
-  border: none;
-  border-radius: 7px;
-  padding: 11px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  margin-top: 6px;
-  transition: background 0.2s;
-}
-
-.btn-primary:hover {
-  background-color: #2563eb;
-}
-
-.auth-redirect {
-  text-align: center;
-  color: #888888;
-  font-size: 13px;
-  margin-top: 20px;
-}
-
-.auth-redirect a {
-  color: #3b82f6;
-  text-decoration: none;
-}
-
-.auth-redirect a:hover {
-  text-decoration: underline;
-}
-.field-error {
-  color: red;
+.error {
+  color: var(--danger);
   font-size: 11px;
-  margin-top: 4px;
-} 
-
-button {
-  width: 100%;
-  padding: 13px;
-  background-color: #1d8cf8;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 15px;
-  cursor: pointer;
-  margin-top: 8px;
-  transition: background 0.2s, opacity 0.2s;
 }
 
-button:hover {
-  background-color: #1670d0;
-}
-
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
 .error-box {
-  color: #ff4d4d;        
-  font-size: 13px;
-  font-weight: 600;
-  margin-top: 12px;
-  padding: 10px;
-  border-radius: 6px;
-  background-color: #2a2a2a; 
-  border: 1px solid #ff4d4d;
-  text-align: center;
+  background: var(--danger-dim);
+  border: 1px solid var(--danger-line);
+  border-radius: var(--r-ctl);
+  padding: 8px 12px;
+  color: var(--danger);
+  font-size: 12px;
+  margin-bottom: 14px;
 }
-.error{
-  color: #B00020;
+
+.success-box {
+  background: var(--ok-dim);
+  border: 1px solid var(--ok);
+  border-radius: var(--r-ctl);
+  padding: 8px 12px;
+  color: var(--ok);
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.spinner {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-top-color: currentColor;
+  animation: login-spin 700ms linear infinite;
+}
+
+@keyframes login-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

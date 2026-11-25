@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
 import { TaskService, Task } from '../../shared/services/task';
+import { TimerService } from '../../shared/services/timer.service';
+import { duration, flip } from '../../shared/motion/motion';
 import { Subscription, interval } from 'rxjs';
 import { takeWhile } from 'rxjs/operators';
 
@@ -19,6 +21,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
 
   @ViewChild('donutCanvas') donutCanvas!: ElementRef;
   @ViewChild('barCanvas')   barCanvas!: ElementRef;
+  @ViewChild('taskList')    taskListEl!: ElementRef<HTMLElement>;
 
   private donutChart!: Chart;
   private barChart!: Chart;
@@ -43,28 +46,49 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   minutes: string = '25';
   secs: string = '00';
 
-  constructor(private taskService: TaskService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private taskService: TaskService,
+    private cdr: ChangeDetectorRef,
+    private timer: TimerService,
+  ) {}
 
   ngOnInit() {
-    // Restaurar estado del Pomodoro si existe en localStorage
-    const saved = localStorage.getItem('pomodoro');
-    if (saved) {
-      const state = JSON.parse(saved);
-      this.segundos = state.segundos;
-      this.isRunning = state.isRunning;
-      this.updateTime();
-      if (this.isRunning) this.startTimer();
-    }
+    // S7: resume the Pomodoro through TimerService — per-account state with an
+    // epoch anchor, so navigation never erases it and a running countdown
+    // discounts the time spent away before it continues ticking.
+    const state = this.timer.restore();
+    this.segundos = state.segundos;
+    this.isRunning = state.isRunning;
+    this.updateTime();
+    if (this.isRunning) this.startTimer();
 
     this.taskSub = this.taskService.tasks$.subscribe(tasks => {
       this.tasks = tasks;
       if (this.donutChart) this.updateDonut();
+      this.revealTaskRows();
+    });
+  }
+
+  /**
+   * Las filas llegan por HTTP después de que App corrió su observer de navegación,
+   * así que nadie las va a revelar: cada emisión asienta las filas ya pintadas.
+   * Doble frame: el primero deja que el estado oculto llegue a pantalla, el
+   * segundo lo suelta para que la transición exista.
+   */
+  private revealTaskRows() {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const list: HTMLElement | undefined = this.taskListEl?.nativeElement;
+        if (!list) return;
+        for (const row of Array.from(list.children) as HTMLElement[]) {
+          row.classList.add('is-in');
+        }
+      });
     });
   }
 
   private savePomodoroState() {
-    const state = { segundos: this.segundos, isRunning: this.isRunning };
-    localStorage.setItem('pomodoro', JSON.stringify(state));
+    this.timer.save({ segundos: this.segundos, isRunning: this.isRunning, startedAt: this.isRunning ? Date.now() : null });
   }
 
   get progressPercent(): number {
@@ -74,11 +98,26 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
 
   addTask() {
     if (!this.newTaskText.trim()) return;
-    this.taskService.addTask(this.newTaskText.trim(), 'dashboard');
+    this.taskService.addTask(this.newTaskText.trim());
     this.newTaskText = '';
   }
 
-  deleteTask(id: number) {
+  deleteTask(id: string) {
+    const index = this.tasks.findIndex(task => task.id === id);
+    const list = this.taskListEl?.nativeElement;
+    if (index < 0 || !list) {
+      this.taskService.deleteTask(id);
+      return;
+    }
+
+    // FLIP: las filas que sobreviven cierran el hueco con transform, no de golpe.
+    // El modelo se reemplaza (no se muta el array del servicio) y se pinta dentro
+    // del callback: flip necesita medir el DOM en su estado final.
+    flip(list, () => {
+      this.tasks = this.tasks.filter(task => task.id !== id);
+      this.cdr.detectChanges();
+    });
+
     this.taskService.deleteTask(id);
   }
 
@@ -97,7 +136,10 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private startTimer() {
-    if (this.isRunning) return;
+    // Guard on the live subscription, not on the flag: the resume path in
+    // ngOnInit sets isRunning from storage before starting the interval here,
+    // and a flag guard would return and freeze a restored countdown.
+    if (this.timerSub) return;
     this.isRunning = true;
     this.savePomodoroState();
 
@@ -145,13 +187,19 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy() {
     this.timerSub?.unsubscribe();
     this.taskSub?.unsubscribe();
-    // Al salir del componente, borrar estado del Pomodoro
-    localStorage.removeItem('pomodoro');
+    // S7: leaving the page does not erase nor pause the countdown — the saved
+    // epoch anchor lets the next visit resume it with the real elapsed time.
+    this.savePomodoroState();
   }
 
   ngAfterViewInit() {
     this.createDonut();
     this.createBar();
+  }
+
+  /** Lee un token CSS de :root para que la paleta de Chart.js siga al tema. */
+  private tokenColor(name: string): string {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   }
 
   createDonut() {
@@ -161,7 +209,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
       data: {
         datasets: [{
           data: [pct, 100 - pct],
-          backgroundColor: ['#3b82f6', '#2a2a2a'],
+          backgroundColor: [this.tokenColor('--accent'), this.tokenColor('--hairline-2')],
           borderWidth: 0,
           borderRadius: 4,
         }]
@@ -169,7 +217,8 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
       options: {
         cutout: '78%',
         plugins: { legend: { display: false }, tooltip: { enabled: false } },
-        animation: { duration: 500 }
+        // Leída al crear el gráfico; bajo reducción de movimiento vale 0.
+        animation: { duration: duration(700) }
       }
     });
   }
@@ -183,8 +232,8 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   createBar() {
     const todayIndex = (new Date().getDay() + 6) % 7;
 
-    const colors = ['#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a','#2a2a2a'];
-    colors[todayIndex] = '#3b82f6';
+    const colors = Array(7).fill(this.tokenColor('--data'));
+    colors[todayIndex] = this.tokenColor('--accent');
 
     this.barChart = new Chart(this.barCanvas.nativeElement, {
       type: 'bar',
@@ -204,11 +253,12 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: '#666', font: { size: 11 } },
+            ticks: { color: this.tokenColor('--t3'), font: { size: 11 } },
             border: { display: false }
           },
           y: { display: false }
-        }
+        },
+        animation: { duration: duration(700) }
       }
     });
   }

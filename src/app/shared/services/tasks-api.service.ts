@@ -15,15 +15,17 @@ export interface BackendTask {
   completedAt: string | null;
 }
 
+/**
+ * `origin` is absent on purpose: the backend decides it. A task created here is a
+ * dashboard task, and a calendar task only exists together with its event.
+ */
 export interface CreateTaskRequest {
   description: string;
-  origin?: TaskOrigin;
   dueDate?: string;
 }
 
 export interface UpdateTaskRequest {
   description?: string;
-  origin?: TaskOrigin;
   dueDate?: string | null;
   isCompleted?: boolean;
 }

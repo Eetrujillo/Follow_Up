@@ -1,330 +1,102 @@
-.page-wrapper {
-  padding: 24px 32px;
-  min-height: 100vh;
-  background: #161616;
-  color: #fff;
-  font-family: sans-serif;
-  box-sizing: border-box;
-}
+.page-wrapper { padding: 20px 28px; min-height: 100%; }
 
-.breadcrumb {
-  font-size: 12px;
-  color: #555;
-  margin-bottom: 16px;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  flex-wrap: wrap;
-}
+/* --- Migas de pan ------------------------------------------------------- */
+.crumbs { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; margin-bottom: 16px; }
+.crumb { background: none; border: none; padding: 0; font: inherit; color: var(--t2); cursor: pointer; border-radius: var(--r-ctl); transition: color var(--fast) var(--ease); }
+.crumb:hover { color: var(--accent); }
+.crumb:active { color: var(--t1); }
+.crumb[aria-current] { color: var(--t1); cursor: default; }
+.crumb-sep { color: var(--t3); }
 
-.crumb {
-  cursor: pointer;
-  transition: color 0.2s;
-}
+/* --- Cabecera ----------------------------------------------------------- */
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.header-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
+h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px; color: var(--t1); }
+.subtitle { color: var(--t3); font-size: 13px; margin: 0; }
 
-.crumb:hover { color: #3b82f6; }
-.sep { color: #444; }
+/* --- Carpetas ----------------------------------------------------------- */
+.folders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
 
-.page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 24px;
-  gap: 16px;
-}
+/* Paso propio del escalonado: el atributo de scope le da a este selector más
+   especificidad que la regla global de .m-stagger. */
+.folders-grid.m-stagger { --m-step: 40ms; }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
+.folder-card { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px 14px; cursor: pointer; background: var(--s1); border: 1px solid var(--hairline); border-radius: var(--r-box); }
 
-h1 {
-  font-size: 22px;
-  font-weight: 600;
-  margin: 0 0 4px;
-}
+/* Dos clases para que esta transición gane a la del escalonado global: conserva
+   el retardo por posición en la opacidad y deja hover y pulsación en --fast. */
+.folders-grid > .folder-card { transition: opacity var(--t-settle) var(--ease) var(--m-delay, 0ms), transform var(--fast) var(--ease), background var(--fast) var(--ease), border-color var(--fast) var(--ease); }
 
-.subtitle {
-  color: #666;
-  font-size: 13px;
-  margin: 0;
-}
+.folder-card:hover { background: var(--s2); border-color: var(--hairline-2); transform: translateY(-1px); }
+.folder-card:active { transform: scale(0.985); }
+.folder-card > .ic--lg { color: var(--t2); }
 
-.btn-add {
-  background: #3b82f6;
-  border: none;
-  border-radius: 8px;
-  color: #fff;
-  padding: 9px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  margin: 0;
-  width: auto;
-  transition: background 0.2s;
-  flex-shrink: 0;
-}
+/* Nombre y recuento comparten línea base: el recuento es un dato, no un pie. */
+.folder-meta { display: flex; align-items: baseline; gap: 8px; width: 100%; min-width: 0; }
+.folder-name, .doc-name { font-size: 13px; color: var(--t1); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.folder-name { font-weight: 500; }
+.folder-count { font-size: 11px; color: var(--t3); flex: none; }
 
-.btn-add:hover { background: #2563eb; }
+/* La papelera aparece en hover y en :focus-within, nunca display:none. Sin capa
+   de movimiento queda visible: esconderla es una affordance de movimiento. */
+.trash { flex: none; }
+:host-context([data-motion='on']) .trash { opacity: 0; pointer-events: none; transition: opacity var(--t-micro) var(--ease); }
+:host-context([data-motion='on']) .folder-card:hover .trash,
+:host-context([data-motion='on']) .folder-card:focus-within .trash,
+:host-context([data-motion='on']) .doc-item:hover .trash,
+:host-context([data-motion='on']) .doc-item:focus-within .trash { opacity: 1; pointer-events: auto; }
+.folder-card .trash { position: absolute; top: 8px; right: 8px; }
 
-.btn-back {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: #2a2a2a;
-  border: none;
-  border-radius: 7px;
-  color: #888;
-  padding: 7px 12px;
-  font-size: 13px;
-  cursor: pointer;
-  white-space: nowrap;
-  margin: 0;
-  width: auto;
-  transition: background 0.2s, color 0.2s;
-}
+/* --- Documentos: lista de líneas, no una segunda grilla de tarjetas ------ */
+.doc-list { border-top: 1px solid var(--hairline); }
+.doc-item { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--hairline); transition: background var(--fast) var(--ease); }
+.doc-item:hover { background: var(--s1); }
+.doc-item:active { background: var(--s2); }
+.doc-item > .ic { color: var(--t2); flex: none; }
+.doc-date { font-size: 11px; color: var(--t3); flex: none; }
 
-.btn-back:hover { background: #333; color: #fff; }
+/* --- Vacío y editor ----------------------------------------------------- */
+.empty-state { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 32px 20px; background: var(--s1); border: 1px solid var(--hairline); border-radius: var(--r-box); color: var(--t2); font-size: 13px; }
+.empty-state .ic--lg { color: var(--t3); }
+.empty-state p { margin: 0; }
 
-.btn-save {
-  background: #3b82f6;
-  border: none;
-  border-radius: 8px;
-  color: #fff;
-  padding: 9px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  margin: 0;
-  width: auto;
-  transition: background 0.2s;
-}
+.editor-box { background: var(--s1); border: 1px solid var(--hairline); border-radius: var(--r-box); overflow: hidden; }
+/* Sin outline:none: el textarea hereda el anillo de foco global. */
+.editor { width: 100%; min-height: calc(100vh - 220px); background: transparent; border: none; padding: 24px; resize: none; color: var(--t1); font-size: 13px; line-height: 1.7; font-family: var(--font-body); caret-color: var(--accent); }
+.editor::placeholder { color: var(--t3); }
 
-.btn-save:hover { background: #2563eb; }
+/* --- Modal: sin keyframes. El overlay funde y la card sube 12px con los
+   tokens. Con la capa de movimiento queda montado, porque sólo así hay salida;
+   cerrado no se pinta ni se enfoca, así que el foco no se escapa. ---------- */
+.modal-overlay { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.6); }
+.modal-overlay.is-open { display: flex; }
+:host-context([data-motion='on']) .modal-overlay { display: flex; opacity: 0; visibility: hidden; transition: opacity var(--fast) var(--ease-exit), visibility var(--fast) var(--ease-exit); }
+:host-context([data-motion='on']) .modal-overlay.is-open { opacity: 1; visibility: visible; transition: opacity var(--t-enter) var(--ease), visibility var(--t-enter) var(--ease); }
 
-.icon-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  margin: 0;
-  width: auto;
-  transition: background 0.2s;
-}
+.modal { width: 100%; max-width: 360px; padding: 20px; display: flex; flex-direction: column; gap: 12px; background: var(--s2); border: 1px solid var(--hairline-2); border-radius: var(--r-box); }
+:host-context([data-motion='on']) .modal { transform: translateY(12px); transition: transform var(--fast) var(--ease-exit); }
+:host-context([data-motion='on']) .modal-overlay.is-open .modal { transform: none; transition: transform var(--t-enter) var(--ease); }
+.modal h3 { font-size: 15px; font-weight: 500; margin: 0; color: var(--t1); }
+.modal-label { font-size: 12px; color: var(--t2); }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
 
-.icon-btn.del { color: #555; }
-.icon-btn.del:hover { background: #2a2a2a; color: #ef4444; }
+/* --- Toast: se monta para que aria-live lo anuncie; @starting-style lo entra
+   y el `transitionend` del componente cierra la salida. ------------------- */
+.toast { position: fixed; bottom: 24px; left: 50%; z-index: 120; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--s2); border: 1px solid var(--hairline-2); border-radius: var(--r-ctl); color: var(--t1); font-size: 13px; }
+.toast .ic--sm { color: var(--ok); }
+:host-context([data-motion='on']) .toast { transition: opacity var(--t-enter) var(--ease), transform var(--t-enter) var(--ease); }
+@starting-style { :host-context([data-motion='on']) .toast { opacity: 0; transform: translateX(-50%) translateY(12px); } }
+:host-context([data-motion='on']) .toast.is-out { opacity: 0; transform: translateX(-50%) translateY(12px); transition: opacity var(--fast) var(--ease-exit), transform var(--fast) var(--ease-exit); }
 
-/* Grid de carpetas */
-.folders-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-}
-
-.folder-card {
-  background: #1e1e1e;
-  border: 1px solid #2a2a2a;
-  border-radius: 10px;
-  padding: 18px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
-}
-
-.folder-card:hover {
-  background: #252525;
-  border-color: #3b82f6;
-}
-
-.folder-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  color: #888;
-  min-width: 0;
-}
-
-.folder-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #555;
-  flex-shrink: 0;
-}
-
-.folder-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: #fff;
-  margin: 0 0 3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.folder-docs {
-  font-size: 12px;
-  color: #666;
-  margin: 0;
-}
-
-.doc-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.doc-item {
-  background: #1e1e1e;
-  border: 1px solid #2a2a2a;
-  border-radius: 10px;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
-}
-
-.doc-item:hover {
-  background: #252525;
-  border-color: #3b82f6;
-}
-
-.doc-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  color: #888;
-  min-width: 0;
-}
-
-.doc-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: #fff;
-  margin: 0 0 3px;
-}
-
-.doc-date {
-  font-size: 11px;
-  color: #666;
-  margin: 0;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 60px 0;
-  color: #555;
-  font-size: 14px;
-}
-
-
-.editor-box {
-  background: #1e1e1e;
-  border: 1px solid #2a2a2a;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.editor {
-  width: 100%;
-  min-height: calc(100vh - 200px);
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #ccc;
-  font-size: 14px;
-  line-height: 1.8;
-  padding: 24px;
-  resize: none;
-  box-sizing: border-box;
-  font-family: sans-serif;
-}
-
-.editor::placeholder { color: #444; }
-
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.modal {
-  background: #1e1e1e;
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  padding: 24px;
-  width: 100%;
-  max-width: 360px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.modal h3 {
-  font-size: 15px;
-  font-weight: 600;
-  margin: 0;
-}
-
-.modal input {
-  background: #252525;
-  border: 1px solid #2e2e2e;
-  border-radius: 7px;
-  padding: 10px 12px;
-  color: #fff;
-  font-size: 13px;
-  outline: none;
-  box-sizing: border-box;
-  width: 100%;
-}
-
-.modal input:focus { border-color: #3b82f6; }
-
-.modal-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.btn-cancel {
-  background: #2a2a2a;
-  border: none;
-  border-radius: 7px;
-  color: #888;
-  padding: 8px 16px;
-  cursor: pointer;
-  font-size: 13px;
-  width: auto;
-  margin: 0;
-  transition: background 0.2s;
-}
-
-.btn-cancel:hover { background: #333; color: #fff; }
-
-@media (max-width: 1100px) {
-  .folders-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
+/* Teléfono: la fila del documento se queda sin ancho para el nombre, así que el
+   nombre pasa a su propia línea, la fecha debajo, y la cabecera se apila. */
 @media (max-width: 600px) {
-  .folders-grid { grid-template-columns: 1fr; }
   .page-wrapper { padding: 16px; }
+  .page-header { flex-direction: column; align-items: stretch; }
+  .header-left { flex-wrap: wrap; }
+  .doc-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: 'icon name trash' 'icon date trash'; align-items: center; column-gap: 12px; row-gap: 2px; }
+  .doc-item > .ic { grid-area: icon; }
+  .doc-name { grid-area: name; }
+  .doc-date { grid-area: date; }
+  .doc-item .trash { grid-area: trash; }
 }

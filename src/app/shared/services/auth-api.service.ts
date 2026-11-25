@@ -1,9 +1,9 @@
-import { HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, tap, throwError } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { ApiService } from './api.service';
 import { BACKEND_API_URL } from './backend-api.config';
-import { BackendUser } from './users-api.service';
+import { SessionUser } from './session-user';
+import { TokenStorage } from './token-storage';
 
 export interface RegisterRequest {
   fullName: string;
@@ -17,7 +17,7 @@ export interface LoginRequest {
 }
 
 export interface AuthRegistrationResponse {
-  user: BackendUser;
+  user: SessionUser;
   token: string;
 }
 
@@ -27,45 +27,31 @@ export interface AuthLoginResponse {
   expires_in: number;
 }
 
-const ACCESS_TOKEN_KEY = 'backend_access_token';
-
 @Injectable({ providedIn: 'root' })
 export class AuthApiService {
   private readonly api = inject(ApiService);
+  private readonly tokenStorage = inject(TokenStorage);
   private readonly endpoint = `${BACKEND_API_URL}/auth`;
 
   register(request: RegisterRequest): Observable<AuthRegistrationResponse> {
-    return this.api
-      .post<AuthRegistrationResponse>(`${this.endpoint}/register`, request)
-      .pipe(tap(({ token }) => this.storeToken(token)));
+    return this.api.post<AuthRegistrationResponse>(`${this.endpoint}/register`, request);
   }
 
   login(request: LoginRequest): Observable<AuthLoginResponse> {
     return this.api
       .post<AuthLoginResponse>(`${this.endpoint}/login`, request)
-      .pipe(tap(({ access_token }) => this.storeToken(access_token)));
+      .pipe(tap(({ access_token }) => this.tokenStorage.set(access_token)));
   }
 
-  me(): Observable<BackendUser> {
-    const token = this.getAccessToken();
-    if (!token) {
-      return throwError(() => new Error('No hay una sesión autenticada'));
-    }
-
-    return this.api.get<BackendUser>(`${this.endpoint}/me`, {
-      headers: new HttpHeaders({ Authorization: `Bearer ${token}` }),
-    });
+  me(): Observable<SessionUser> {
+    return this.api.get<SessionUser>(`${this.endpoint}/me`);
   }
 
   getAccessToken(): string | null {
-    return localStorage.getItem(ACCESS_TOKEN_KEY);
+    return this.tokenStorage.get();
   }
 
   logout(): void {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-  }
-
-  private storeToken(token: string): void {
-    localStorage.setItem(ACCESS_TOKEN_KEY, token);
+    this.tokenStorage.clear();
   }
 }

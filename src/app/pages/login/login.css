@@ -1,166 +1,105 @@
+/* Login — «Doble plano». El split, la card y los mensajes viven en
+   styles.css (sección «Auth», compartida con signup). Solo queda el host:
+   scroll vertical propio porque html,body{overflow:hidden} es del shell,
+   así que en teléfono apaisado el formulario alto scrollea sin cortarse. */
+
 :host {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  display: block;
+  /* 100vh miente en un teléfono: incluye la franja que tapa la barra del
+     navegador, así que el pie de la card queda fuera del área visible y, como
+     el contenido cabe en ese alto, no hay scroll que lo alcance. dvh mide el
+     alto visible real; vh queda como respaldo. */
   height: 100vh;
-  width: 100vw;
-  background-color: #121212;
-  position: fixed;
-  top: 0;
-  left: 0;
+  height: 100dvh;
+  overflow-y: auto;
+  background: var(--canvas);
 }
 
-.login-container {
-  width: 100%;
-  max-width: 420px;
-  text-align: center;
-  font-family: sans-serif;
-  color: white;
-  padding: 0 24px;
-}
+/* Campos y estados de error de esta página. */
 
-.success-box {
-  background: #0f2a1a;
-  border: 1px solid #10b981;
-  border-radius: 8px;
-  padding: 10px 14px;
-  color: #10b981;
-  font-size: 13px;
-  margin-bottom: 14px;
-  text-align: left;
-}
-
-.logo-box {
-  color: #1d8cf8;
-  font-size: 45px;
-  margin-bottom: 10px;
-}
-
-.titulo {
-  font-size: 28px;
-  margin: 0 0 8px;
-  font-weight: 700;
-}
-
-.subtitulo {
-  color: #888;
-  font-size: 14px;
-  margin-bottom: 32px;
-}
-
-.campo {
+.fgroup {
   display: flex;
   flex-direction: column;
-  text-align: left;
-  margin-bottom: 18px;
+  gap: 6px;
+  margin-bottom: 14px;
 }
 
-label {
-  color: #888;
+.fgroup label {
   font-size: 12px;
-  margin-bottom: 7px;
+  color: var(--t2);
 }
 
 .password-wrapper {
   position: relative;
-  display: flex;
-  align-items: center;
 }
 
+.password-wrapper .field {
+  padding-right: 40px;
+}
+
+/* El ojo es un button real; margin-top en vez de transform para no pelear
+   con el :active de .icon-btn. */
 .ojo {
   position: absolute;
-  right: 14px;
-  cursor: pointer;
-  color: #888;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  transition: color 0.2s;
+  right: 3px;
+  top: 50%;
+  margin-top: -14px; /* mitad exacta de los 28px del botón: queda a 1px de alto de lo contrario */
+  width: 28px;
+  height: 28px;
+  color: var(--t2);
 }
 
-.ojo:hover {
-  color: #1d8cf8; 
+.input-error {
+  border-color: var(--danger-line);
 }
 
-input {
-  width: 100%;
-  background-color: #1e1e1e;
-  border: 1px solid #2e2e2e;
-  border-radius: 10px;
-  padding: 13px 16px;
-  padding-right: 48px; 
-  color: white;
-  outline: none;
-  box-sizing: border-box;
-  font-size: 14px;
-  transition: border 0.2s;
-}
-
-input:focus {
-  border-color: #1d8cf8;
-}
-
-input.input-error {
-  border-color: #ef4444;
-}
-
-input::placeholder {
-  color: #444;
+.input-error:focus,
+.input-error:focus-visible {
+  border-color: var(--danger);
 }
 
 .error {
-  color: #ef4444;
+  color: var(--danger);
   font-size: 11px;
-  margin-top: 5px;
 }
 
 .error-box {
-  background: #2a1515;
-  border: 1px solid #ef4444;
-  border-radius: 8px;
-  padding: 10px 14px;
-  color: #ef4444;
-  font-size: 13px;
+  background: var(--danger-dim);
+  border: 1px solid var(--danger-line);
+  border-radius: var(--r-ctl);
+  padding: 8px 12px;
+  color: var(--danger);
+  font-size: 12px;
   margin-bottom: 14px;
-  text-align: left;
 }
 
-button {
+.success-box {
+  background: var(--ok-dim);
+  border: 1px solid var(--ok);
+  border-radius: var(--r-ctl);
+  padding: 8px 12px;
+  color: var(--ok);
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+
+.auth-submit {
   width: 100%;
-  padding: 13px;
-  background-color: #1d8cf8;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 15px;
-  cursor: pointer;
-  margin-top: 8px;
-  transition: background 0.2s, opacity 0.2s;
+  margin-top: 6px;
 }
 
-button:hover {
-  background-color: #1670d0;
+.spinner {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-top-color: currentColor;
+  animation: login-spin 700ms linear infinite;
 }
 
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.pie {
-  color: #888;
-  font-size: 13px;
-  margin-top: 26px;
-}
-
-.registro-link {
-  cursor: pointer;
-  font-weight: 700;
-  color: #1d8cf8;
-}
-
-.registro-link:hover {
-  text-decoration: underline;
+@keyframes login-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

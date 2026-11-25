@@ -1,4 +1,14 @@
-import { Component, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  ViewChild,
+  ElementRef,
+  AfterViewInit,
+  ChangeDetectorRef,
+  HostListener,
+  afterNextRender,
+  inject,
+  Injector,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StorageService } from '../../shared/services/storage';
@@ -6,6 +16,7 @@ import { LibraryService } from '../../shared/services/library';
 import { AuthService } from '../../shared/services/auth.service';
 import { AiService } from '../../shared/services/ai.service';
 import { TaskService } from '../../shared/services/task';
+import { observeReveals } from '../../shared/motion/motion';
 
 @Component({
   selector: 'app-notepad',
@@ -16,6 +27,7 @@ import { TaskService } from '../../shared/services/task';
 })
 export class Notepad implements AfterViewInit {
   @ViewChild('editor', { static: true }) editorRef!: ElementRef<HTMLElement>;
+  @ViewChild('noteNameInput') noteNameInput?: ElementRef<HTMLInputElement>;
 
   saved = false;
   showSaveModal = false;
@@ -28,6 +40,8 @@ export class Notepad implements AfterViewInit {
   generating = false;
   generateError = '';
   aiSuccessMessage = '';
+
+  private readonly injector = inject(Injector);
 
   constructor(
     private storage: StorageService,
@@ -68,13 +82,18 @@ export class Notepad implements AfterViewInit {
   }
 
   format(command: string, value?: string) {
-    document.execCommand(command, false, value);
+    // Guard de entorno (jsdom no implementa execCommand); en navegador es un no-op.
+    if (typeof document.execCommand === 'function') {
+      document.execCommand(command, false, value);
+    }
     this.editorRef.nativeElement.focus();
     this.onContentChange();
   }
 
   isActive(command: string): boolean {
-    return document.queryCommandState(command);
+    // Guard de entorno (jsdom no implementa queryCommandState); misma firma y
+    // mismo comportamiento en navegador.
+    return typeof document.queryCommandState === 'function' && document.queryCommandState(command);
   }
 
   onContentChange() {
@@ -92,6 +111,17 @@ export class Notepad implements AfterViewInit {
   openSaveModal() {
     this.noteName = '';
     this.showSaveModal = true;
+    // Mismo patrón que library.ts: el input del modal solo existe tras renderizarlo,
+    // así que el foco se programa para después del próximo render (no con setTimeout).
+    afterNextRender(() => this.noteNameInput?.nativeElement.focus(), { injector: this.injector });
+  }
+
+  /** Cierre accesible del modal de guardado (Esc). */
+  @HostListener('document:keydown.escape')
+  closeSaveModalOnEscape() {
+    if (this.showSaveModal) {
+      this.showSaveModal = false;
+    }
   }
 
   saveToLibrary() {
@@ -101,6 +131,9 @@ export class Notepad implements AfterViewInit {
     this.libraryService.saveNote(this.noteName.trim(), contentPlain);
     this.showSaveModal = false;
     this.saved = true;
+    // El aviso entra con la clase compartida: el observer le pone .is-in cuando
+    // ya está en el DOM, después de este render.
+    afterNextRender(() => observeReveals(document), { injector: this.injector });
     setTimeout(() => (this.saved = false), 2000);
   }
 
@@ -108,7 +141,7 @@ export class Notepad implements AfterViewInit {
     const key = e.key;
     if (key === 'Enter') {
       e.preventDefault();
-      this.insertHtmlAtCursor('<br><br>');
+      this.insertLineBreaks();
       this.onContentChange();
       return;
     }
@@ -150,25 +183,34 @@ export class Notepad implements AfterViewInit {
     }
   }
 
-  private insertHtmlAtCursor(html: string) {
+  /**
+   * Two line breaks, built as DOM nodes instead of parsed from an HTML string.
+   * The editor is contenteditable and holds user text, so nothing here should ever
+   * go through a parser: `innerHTML` on this element is one refactor away from
+   * becoming an injection point, and it is not worth keeping that door open to
+   * gain nothing.
+   */
+  private insertLineBreaks() {
+    this.insertNodesAtCursor([document.createElement('br'), document.createElement('br')]);
+  }
+
+  private insertNodesAtCursor(nodes: Node[]) {
+    const parent = this.editorRef.nativeElement;
     const sel = window.getSelection();
+
     if (!sel || sel.rangeCount === 0) {
-      this.editorRef.nativeElement.insertAdjacentHTML('beforeend', html);
-      this.placeCaretAtEnd(this.editorRef.nativeElement);
+      for (const node of nodes) parent.appendChild(node);
+      this.placeCaretAtEnd(parent);
       return;
     }
+
     const range = sel.getRangeAt(0);
-    const temp = document.createElement('div');
-    temp.innerHTML = html;
-    const frag = document.createDocumentFragment();
-    const nodes: ChildNode[] = [];
-    let node: ChildNode | null;
-    while ((node = temp.firstChild)) {
-      nodes.push(node);
-      frag.appendChild(node);
-    }
     range.deleteContents();
+
+    const frag = document.createDocumentFragment();
+    for (const node of nodes) frag.appendChild(node);
     range.insertNode(frag);
+
     const lastNode = nodes[nodes.length - 1];
     if (lastNode) {
       const newRange = document.createRange();
@@ -177,7 +219,8 @@ export class Notepad implements AfterViewInit {
       sel.removeAllRanges();
       sel.addRange(newRange);
     }
-    this.editorRef.nativeElement.focus();
+
+    parent.focus();
   }
 
   private insertTextAtCursor(text: string) {
