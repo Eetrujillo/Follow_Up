@@ -39,12 +39,22 @@
   --ev-4: #98c29a;
   --ev-5: #b899cc;
 
-  /* Forma y movimiento */
+  /* Forma y movimiento. Familia de curvas propia: ninguna sale del corpus
+     de referencia, la base ya estaba en el proyecto y las otras tres se
+     derivaron de ella (asentar, bloquear, salir, trazar). */
   --r-ctl: 3px;
   --r-box: 5px;
   --ease: cubic-bezier(0.2, 0.8, 0.25, 1);
+  --ease-lock: cubic-bezier(0.34, 0.02, 0, 1);
+  --ease-exit: cubic-bezier(0.5, 0, 0.9, 0.45);
+  --ease-ink: cubic-bezier(0.32, 0.72, 0, 1);
+  --t-press: 90ms;
+  --t-micro: 120ms;
   --fast: 140ms;
+  --t-enter: 200ms;
   --slow: 260ms;
+  --t-settle: 380ms;
+  --t-scene: 620ms;
 
   /* Tipografía del sistema, sin webfonts */
   --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -335,6 +345,7 @@ textarea.field {
   display: grid;
   grid-template-columns: minmax(320px, 2fr) minmax(0, 3fr);
   min-height: 100%;
+  view-transition-name: page;
 }
 
 /* --- Panel de identidad --------------------------------------------------- */
@@ -345,6 +356,21 @@ textarea.field {
   background: var(--s1);
   border-right: 1px solid var(--hairline);
   padding: 48px 44px;
+  /* El hero WebGL es una capa absoluta adentro del panel: el panel es su
+     bloque contenedor y su stacking context. */
+  position: relative;
+  isolation: isolate;
+  /* Ritmo del revelado cinético del panel (filas 29-31 del inventario). */
+  --m-step: 70ms;
+}
+
+/* Todo el contenido del panel pinta por encima del hero (z-index 0). */
+.auth-brand__mark,
+.auth-brand__hero,
+.auth-brand__list,
+.auth-brand__foot {
+  position: relative;
+  z-index: 1;
 }
 
 .auth-brand__mark {
@@ -395,7 +421,7 @@ textarea.field {
   font-size: 13px;
 }
 
-.auth-brand__row:first-child {
+.auth-brand__list > .m-mask:first-child .auth-brand__row {
   border-top-color: var(--hairline-2);
 }
 
@@ -424,6 +450,79 @@ textarea.field {
   font-size: 12px;
 }
 
+/* --- Hero del panel: capa WebGL y su póster ------------------------------ */
+
+/* El componente no aporta caja propia: sus dos hijos absolutos se resuelven
+   contra `.auth-brand`, que es el que tiene `position: relative`. */
+app-auth-hero {
+  display: contents;
+}
+
+/* `inset: 0 0 30% 0` deja la zona en movimiento por debajo del 35% del
+   viewport (presupuesto de saturación). No recibe eventos: el hero escucha el
+   `pointermove` del panel, no un listener global. */
+.auth-hero,
+.auth-hero__poster {
+  position: absolute;
+  inset: 0 0 30% 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.auth-hero {
+  display: block;
+}
+
+/* Póster estático: degradé radial en el acento a muy baja alfa sobre --s1.
+   Es lo único que se ve sin WebGL2, con reducción de movimiento o con puntero
+   grueso, así que no aporta movimiento propio. */
+.auth-hero__poster {
+  display: none;
+  background:
+    radial-gradient(circle at 32% 22%, var(--accent-dim), transparent 62%),
+    var(--s1);
+}
+
+/* WebGL falló (constructor lanzó): el componente marca el host y sale el
+   póster. Misma salida que las dos ramas de abajo. */
+.auth-hero-host--fallback .auth-hero {
+  display: none;
+}
+
+.auth-hero-host--fallback .auth-hero__poster {
+  display: block;
+}
+
+/* Ramas declarativas: el canvas ni siquiera se crea (el componente no monta
+   InkHero), pero si llegara a existir, acá se apaga. */
+@media (prefers-reduced-motion: reduce), (hover: none) {
+  .auth-hero {
+    display: none;
+  }
+
+  .auth-hero__poster {
+    display: block;
+  }
+}
+
+/* --- Revelado cinético del panel (filas 29-31) ---------------------------
+   El titular y cada fila entran enmascarados desde abajo, escalonados 70ms. */
+.auth-brand__hero .m-mask {
+  --m-delay: 0ms;
+}
+
+.auth-brand__list > .m-mask:nth-child(1) {
+  --m-delay: var(--m-step);
+}
+
+.auth-brand__list > .m-mask:nth-child(2) {
+  --m-delay: calc(var(--m-step) * 2);
+}
+
+.auth-brand__list > .m-mask:nth-child(3) {
+  --m-delay: calc(var(--m-step) * 3);
+}
+
 /* --- Plano del formulario -------------------------------------------------- */
 
 .auth-pane {
@@ -439,14 +538,19 @@ textarea.field {
   border: 1px solid var(--hairline);
   border-radius: var(--r-box);
   padding: 30px 30px 24px;
-  /* Momento autorado de la pantalla: la entrada de la card. */
-  animation: auth-in var(--slow) var(--ease);
+}
+
+/* Asentamiento de la card (fila 31): opacidad + 10px en --t-settle, con 120ms
+   de retardo para que la columna de marca arranque primero. El arranque lo
+   habilita JS con [data-motion='on']: sin script la card se lee completa. */
+[data-motion='on'] .auth-card {
+  animation: auth-in var(--t-settle) var(--ease) 120ms both;
 }
 
 @keyframes auth-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(10px);
   }
 }
 
@@ -505,3 +609,270 @@ textarea.field {
     padding: 26px 20px 20px;
   }
 }
+
+/* =========================================================================
+   Capa de movimiento — contrato compartido
+   Inventario aprobado y presupuesto: odd/tasks/motion-redesign.md.
+   Ningún componente declara duraciones ni curvas: consume estas clases.
+   Nada de acá se ve sin JS: el estado oculto lo habilita [data-motion='on'],
+   que aplica bootMotion() sobre <main> recién cuando sabe que el script corre.
+   ========================================================================= */
+
+/* --- Revelado ------------------------------------------------------------- */
+
+[data-motion='on'] .m-reveal {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity var(--t-settle) var(--ease) var(--m-delay, 0ms),
+    transform var(--t-settle) var(--ease) var(--m-delay, 0ms);
+}
+
+[data-motion='on'] .m-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Escalonado: el contenedor lleva .is-in una vez y los hijos heredan el retardo
+   por posición. Techo de 8 pasos (B11); el paso se ajusta por superficie. */
+[data-motion='on'] .m-stagger {
+  --m-step: 55ms;
+}
+
+[data-motion='on'] .m-stagger > * {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity var(--t-settle) var(--ease) var(--m-delay, 0ms),
+    transform var(--t-settle) var(--ease) var(--m-delay, 0ms);
+}
+
+[data-motion='on'] .m-stagger.is-in > * {
+  opacity: 1;
+  transform: none;
+}
+
+[data-motion='on'] .m-stagger > *:nth-child(1) {
+  --m-delay: 0ms;
+}
+[data-motion='on'] .m-stagger > *:nth-child(2) {
+  --m-delay: calc(var(--m-step) * 1);
+}
+[data-motion='on'] .m-stagger > *:nth-child(3) {
+  --m-delay: calc(var(--m-step) * 2);
+}
+[data-motion='on'] .m-stagger > *:nth-child(4) {
+  --m-delay: calc(var(--m-step) * 3);
+}
+[data-motion='on'] .m-stagger > *:nth-child(5) {
+  --m-delay: calc(var(--m-step) * 4);
+}
+[data-motion='on'] .m-stagger > *:nth-child(6) {
+  --m-delay: calc(var(--m-step) * 5);
+}
+[data-motion='on'] .m-stagger > *:nth-child(7) {
+  --m-delay: calc(var(--m-step) * 6);
+}
+[data-motion='on'] .m-stagger > *:nth-child(n + 8) {
+  --m-delay: calc(var(--m-step) * 7);
+}
+
+/* --- Máscara por línea (sólo cuando la tipografía es el tema) ------------- */
+
+[data-motion='on'] .m-mask {
+  display: block;
+  overflow: hidden;
+  /* El recorte no debe comerse descendentes ni acentos altos. */
+  padding-block: 0.12em;
+  margin-block: -0.12em;
+}
+
+[data-motion='on'] .m-mask > * {
+  display: block;
+  transform: translateY(108%);
+  transition: transform var(--t-scene) var(--ease) var(--m-delay, 0ms);
+}
+
+[data-motion='on'] .m-mask.is-in > * {
+  transform: none;
+}
+
+/* --- Pulsación ------------------------------------------------------------ */
+
+/* Sólo para superficies que no son .btn/.icon-btn, que ya la tienen.
+   scale sin overshoot: en una herramienta de trabajo el rebote lee a juguete. */
+[data-motion='on'] .m-press {
+  transition: transform var(--t-press) var(--ease-lock);
+}
+
+[data-motion='on'] .m-press:active {
+  transform: scale(0.99);
+}
+
+/* --- Tier 4: anillo del puntero (shared/motion/pointer.ts) --------------
+   Indicador, no reemplazo: el cursor nativo sigue visible siempre. Lo crea
+   pointer.ts sólo con puntero fino y sin reducción de movimiento.
+   `will-change` no se declara acá: lo pone esa capa dentro de la ventana de
+   uso y lo retira al salir el puntero.
+
+   Opt-in de la capa de puntero: `[data-magnetic]` desplaza hasta 6px hacia el
+   puntero y `[data-tilt]` inclina hasta 3.5deg (perspective(800px)). El
+   atributo es el contrato; ninguna superficie se anima sin él. */
+.m-cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: normal;
+  z-index: 300;
+  transition: opacity var(--t-micro) var(--ease);
+}
+
+/* --- Morph compartido: carpeta → documento (library) ----------------------
+   La clase se aplica a la tarjeta clickeada justo antes de `startViewTransition`
+   y se quita cuando la transición termina: el nombre tiene que ser único en el
+   documento en el momento del snapshot.
+   ========================================================================= */
+
+.m-morph {
+  view-transition-name: folder-morph;
+}
+
+/* --- View Transitions: el morph entre vistas lo hace el navegador ----------
+   Sólo se animan las regiones con nombre. La raíz no se funde: si lo hiciera,
+   cada navegación leería como una recarga del shell.
+   ========================================================================= */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+/* El contenido de la página: sale rápido, entra asentando desde 6px. */
+::view-transition-old(page) {
+  animation: page-out var(--fast) var(--ease-exit) both;
+}
+
+::view-transition-new(page) {
+  animation: page-in var(--t-settle) var(--ease-ink) both;
+}
+
+@keyframes page-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* El riel es persistente: se queda quieto mientras cambia la página. */
+::view-transition-old(shell),
+::view-transition-new(shell) {
+  animation: none;
+}
+
+/* La tinta: única FLIP del shell. El navegador interpola el marcador entre su
+   posición anterior y la nueva; no hay lectura de geometría en la navegación. */
+::view-transition-group(nav-ink) {
+  animation-duration: var(--slow);
+  animation-timing-function: var(--ease-ink);
+}
+
+::view-transition-old(nav-ink),
+::view-transition-new(nav-ink) {
+  animation: none;
+}
+
+/* El morph carpeta→documento: la forma viaja, no se funde. */
+::view-transition-group(folder-morph) {
+  animation-duration: var(--t-settle);
+  animation-timing-function: var(--ease-ink);
+}
+
+::view-transition-old(folder-morph),
+::view-transition-new(folder-morph) {
+  animation: none;
+}
+
+/* --- Reducción de movimiento: forma (1) cero las custom properties ---------
+   Es la única de las cuatro formas probadas que no puede driftear: un solo
+   camino de código. El bloque global de animation/transition !important que ya
+   existía arriba sigue cubriendo los keyframes de terceros.
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-press: 0ms;
+    --t-micro: 0ms;
+    --fast: 0ms;
+    --t-enter: 0ms;
+    --slow: 0ms;
+    --t-settle: 0ms;
+    --t-scene: 0ms;
+    --ease: linear;
+    --ease-lock: linear;
+    --ease-exit: linear;
+    --ease-ink: linear;
+  }
+
+  /* Doble cinturón: aunque el token no llegue, el estado oculto no se aplica. */
+  [data-motion='on'] .m-reveal,
+  [data-motion='on'] .m-stagger > *,
+  [data-motion='on'] .m-mask > * {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Las View Transitions no las alcanza el token: se apagan explícitas. */
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  ::view-transition-old(page),
+  ::view-transition-new(page),
+  ::view-transition-old(shell),
+  ::view-transition-new(shell),
+  ::view-transition-group(nav-ink),
+  ::view-transition-old(nav-ink),
+  ::view-transition-new(nav-ink),
+  ::view-transition-group(folder-morph),
+  ::view-transition-old(folder-morph),
+  ::view-transition-new(folder-morph) {
+    animation: none !important;
+  }
+
+}
+
+/* --- Rama mobile: más calma, no una desktop comprimida --------------------
+   En una columna el escalonado se lee como una cola lenta, así que no hay
+   escalonado: un solo asentamiento corto para el grupo. El desplazamiento baja
+   a 6px porque el recorrido vertical ya es largo.
+   ========================================================================= */
+
+@media (max-width: 860px), (hover: none) {
+  [data-motion='on'] .m-stagger {
+    --m-step: 0ms;
+  }
+
+  [data-motion='on'] .m-stagger > *,
+  [data-motion='on'] .m-reveal {
+    transform: translateY(6px);
+    transition-duration: var(--t-enter);
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: var(--t-enter);
+  }
+
+}
+
