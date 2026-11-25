@@ -50,7 +50,7 @@ float noise(vec2 p) {
 float fbm(vec2 p) {
   float v = 0.0;
   float a = 0.5;
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 3; i++) {
     v += a * noise(p);
     p *= 2.02;
     a *= 0.5;
@@ -64,8 +64,10 @@ void main() {
 
   // Warp de dominio: dos campos de ruido desplazan el tercero. Es lo que
   // convierte ruido en corriente de tinta en vez de nubes.
-  vec2 q = vec2(fbm(p + u_ptr * 0.35), fbm(p + vec2(5.2, 1.3)));
-  float f = fbm(p + q * 1.8 + u_ptr * 0.2);
+  // Un solo campo de warp en vez de dos: mismo dibujo de corriente, la mitad
+  // del ruido. Cada fbm son 3 octavas x 4 hash = 12 senos por fragmento.
+  float q = fbm(p * 1.1 + u_ptr * 0.35);
+  float f = fbm(p + q * 1.9 + u_ptr * 0.2);
 
   vec3 ink = vec3(0.078, 0.086, 0.090);      // --s1
   vec3 accent = vec3(0.878, 0.694, 0.333);   // --e0b155
@@ -86,7 +88,9 @@ void main() {
 }`;
 
 /** DPR por escalón: la escalera baja, nunca sube (evita oscilar). */
-const DPR_STEPS = [2, 1.5, 1];
+// El hero es un degradé suave: a 1.5x ya es indistinguible del 2x, y cuesta
+// la mitad de fragmentos. La escalera sólo baja, nunca sube (evita oscilar).
+const DPR_STEPS = [1.5, 1, 0.75];
 const SETTLE_MS = 1200;
 const FRAME_BUDGET_MS = 12;
 
@@ -201,6 +205,14 @@ export class InkHero {
       this.lastFrameAt = now;
       if (delta > 0 && delta < 200) this.frameCosts.push(delta);
 
+      // Mide EN VIVO: si los primeros frames ya se pasan del presupuesto, baja
+      // un escalón de DPR y sigue. Medir sólo al final llegaba tarde: el jank
+      // ya había ocurrido.
+      if (this.frameCosts.length === 8 && this.dprStep < DPR_STEPS.length - 1) {
+        const first = this.frameCosts.reduce((a, b) => a + b, 0) / this.frameCosts.length;
+        if (first > FRAME_BUDGET_MS + 4) this.dropQuality();
+      }
+
       this.draw(eased);
 
       if (t < 1) {
@@ -221,8 +233,13 @@ export class InkHero {
   private measureQuality(): void {
     if (this.frameCosts.length < 20) return;
     const avg = this.frameCosts.reduce((a, b) => a + b, 0) / this.frameCosts.length;
-    if (avg <= FRAME_BUDGET_MS || this.dprStep >= DPR_STEPS.length - 1) return;
+    if (avg <= FRAME_BUDGET_MS) return;
+    this.dropQuality();
+  }
 
+  /** Baja un escalón de DPR y re-mide. Nada más: la escalera nunca sube. */
+  private dropQuality(): void {
+    if (this.dprStep >= DPR_STEPS.length - 1) return;
     this.dprStep += 1;
     this.pxWidth = 0;
     this.pxHeight = 0;
@@ -241,7 +258,7 @@ export class InkHero {
     ];
 
     if (this.frame) return;
-    this.pointerBurstUntil = performance.now() + 480;
+    this.pointerBurstUntil = performance.now() + 260;
 
     const burst = (now: number) => {
       if (this.destroyed) return;

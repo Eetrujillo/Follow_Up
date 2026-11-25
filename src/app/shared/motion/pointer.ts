@@ -30,6 +30,13 @@ const TILT = '[data-tilt]';
 /** Anillo: 10px, lerp 0.15 por frame (sigue al puntero, no lo tapa). */
 const RING_LERP = 0.15;
 
+/**
+ * Sin movimiento de puntero y sin objetivo activo, el loop se apaga.
+ * Un rAF a 60fps que reescribe el mismo transform es un impuesto permanente:
+ * se paga en todos los frames aunque no cambie un píxel.
+ */
+const RING_IDLE_MS = 160;
+
 /** Magnetismo: fracción de la distancia al centro, con tope de 6px. */
 const MAGNET_RATIO = 0.25;
 const MAGNET_MAX = 6;
@@ -79,6 +86,7 @@ export function initPointerMotion(): () => void {
   let ringY = 0;
   let frame = 0;
   let visible = false;
+  let lastMoveAt = 0;
 
   const clearInline = (el: HTMLElement): void => {
     el.style.transform = '';
@@ -132,9 +140,14 @@ export function initPointerMotion(): () => void {
       return;
     }
 
-    ringX += (pointerX - ringX) * RING_LERP;
-    ringY += (pointerY - ringY) * RING_LERP;
-    ring.style.transform = `translate(${ringX.toFixed(2)}px, ${ringY.toFixed(2)}px)`;
+    const dx = pointerX - ringX;
+    const dy = pointerY - ringY;
+    const settled = Math.abs(dx) < 0.15 && Math.abs(dy) < 0.15;
+    if (!settled) {
+      ringX += dx * RING_LERP;
+      ringY += dy * RING_LERP;
+      ring.style.transform = `translate(${ringX.toFixed(2)}px, ${ringY.toFixed(2)}px)`;
+    }
 
     if (magnetic) {
       const rect = rects.get(magnetic);
@@ -155,6 +168,12 @@ export function initPointerMotion(): () => void {
         tilt.style.transform =
           `perspective(${TILT_PERSPECTIVE}px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`;
       }
+    }
+
+    // Nada se mueve y el puntero está quieto: se apaga hasta el próximo move.
+    if (!magnetic && !tilt && settled && performance.now() - lastMoveAt > RING_IDLE_MS) {
+      frame = 0;
+      return;
     }
 
     frame = requestAnimationFrame(tick);
@@ -217,6 +236,7 @@ export function initPointerMotion(): () => void {
   const onPointerMove = (event: PointerEvent): void => {
     pointerX = event.clientX;
     pointerY = event.clientY;
+    lastMoveAt = performance.now();
 
     if (!visible) {
       // Primera aparición: el anillo nace bajo el puntero, no vuela desde 0,0.
